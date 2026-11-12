@@ -10,11 +10,15 @@ import com.k3weather.app.core.model.LocationItem
 
 object WeatherBackgroundHelper {
     fun cityDrawable(context: Context, location: LocationItem): Drawable? {
-        val key = "city_${location.name.lowercase().replace(Regex("[^a-z]"), "") }"
+        val norm = java.text.Normalizer.normalize(location.name, java.text.Normalizer.Form.NFD)
+            .replace("\\p{Mn}+".toRegex(), "")
+            .replace("Đ", "D")
+            .replace("đ", "d")
+            .lowercase()
         val resourceId = when {
-            key.contains("dalat") || key.contains("đàlạt") -> R.drawable.city_dalat
-            key.contains("danang") || key.contains("đànẵng") -> R.drawable.city_danang
-            key.contains("hanoi") || key.contains("hànoi") -> R.drawable.city_hanoi
+            norm.contains("da lat") || norm.contains("dalat") -> R.drawable.city_dalat
+            norm.contains("da nang") || norm.contains("danang") -> R.drawable.city_danang
+            norm.contains("ha noi") || norm.contains("hanoi") -> R.drawable.city_hanoi
             else -> 0
         }
         return if (resourceId != 0) ContextCompat.getDrawable(context, resourceId) else null

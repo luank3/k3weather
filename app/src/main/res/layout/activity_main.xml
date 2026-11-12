@@ -83,7 +83,7 @@
                 android:layout_width="24dp"
                 android:layout_height="24dp"
                 android:src="@drawable/ic_nav_forecast"
-                app:tint="@color/accent_cyan"
+                app:tint="@android:color/white"
                 android:contentDescription="@string/tab_forecast" />
 
             <TextView
@@ -92,9 +92,17 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="2dp"
                 android:text="@string/tab_forecast"
-                android:textColor="@color/accent_cyan"
+                android:textColor="@android:color/white"
                 android:textSize="12sp"
                 android:fontFamily="sans-serif-medium" />
+
+            <View
+                android:id="@+id/indicatorForecast"
+                android:layout_width="32dp"
+                android:layout_height="3dp"
+                android:layout_marginTop="3dp"
+                android:background="@drawable/bg_nav_indicator"
+                android:visibility="visible" />
         </LinearLayout>
 
         <!-- Saved Locations Tab -->
@@ -126,6 +134,14 @@
                 android:textColor="@color/text_muted"
                 android:textSize="12sp"
                 android:fontFamily="sans-serif-medium" />
+
+            <View
+                android:id="@+id/indicatorSaved"
+                android:layout_width="32dp"
+                android:layout_height="3dp"
+                android:layout_marginTop="3dp"
+                android:background="@drawable/bg_nav_indicator"
+                android:visibility="gone" />
         </LinearLayout>
 
         <!-- Settings Tab -->
@@ -157,6 +173,14 @@
                 android:textColor="@color/text_muted"
                 android:textSize="12sp"
                 android:fontFamily="sans-serif-medium" />
+
+            <View
+                android:id="@+id/indicatorSettings"
+                android:layout_width="32dp"
+                android:layout_height="3dp"
+                android:layout_marginTop="3dp"
+                android:background="@drawable/bg_nav_indicator"
+                android:visibility="gone" />
         </LinearLayout>
     </LinearLayout>
 

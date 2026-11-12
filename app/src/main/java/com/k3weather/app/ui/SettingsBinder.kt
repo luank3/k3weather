@@ -5,22 +5,36 @@ import com.k3weather.app.databinding.LayoutSettingsBinding
 
 class SettingsBinder(private val binding: LayoutSettingsBinding, private val onSettingsChanged: (AppSettings) -> Unit) {
     fun bind(settings: AppSettings) {
-        binding.unitCelsius.isChecked = settings.tempUnit == TemperatureUnit.CELSIUS
-        binding.unitFahrenheit.isChecked = settings.tempUnit == TemperatureUnit.FAHRENHEIT
-        binding.unitKmh.isChecked = settings.windSpeedUnit == WindSpeedUnit.KMH
-        binding.unitMph.isChecked = settings.windSpeedUnit == WindSpeedUnit.MPH
+        binding.tvTemperatureUnitValue.text = if (settings.tempUnit == TemperatureUnit.CELSIUS) "°C  ›" else "°F  ›"
+        binding.tvWindSpeedUnitValue.text = if (settings.windSpeedUnit == WindSpeedUnit.KMH) "km/h  ›" else "mph  ›"
+
+        binding.rowTemperature.setOnClickListener {
+            val next = if (settings.tempUnit == TemperatureUnit.CELSIUS) TemperatureUnit.FAHRENHEIT else TemperatureUnit.CELSIUS
+            send(settings.copy(tempUnit = next))
+        }
+
+        binding.rowWindSpeed.setOnClickListener {
+            val next = if (settings.windSpeedUnit == WindSpeedUnit.KMH) WindSpeedUnit.MPH else WindSpeedUnit.KMH
+            send(settings.copy(windSpeedUnit = next))
+        }
+
+        binding.weatherBackgroundsSwitch.setOnCheckedChangeListener(null)
         binding.weatherBackgroundsSwitch.isChecked = settings.weatherBackgroundsEnabled
+        binding.weatherBackgroundsSwitch.setOnCheckedChangeListener { _, checked ->
+            send(settings.copy(weatherBackgroundsEnabled = checked))
+        }
+
+        binding.reduceMotionSwitch.setOnCheckedChangeListener(null)
         binding.reduceMotionSwitch.isChecked = settings.reduceMotion
+        binding.reduceMotionSwitch.setOnCheckedChangeListener { _, checked ->
+            send(settings.copy(reduceMotion = checked))
+        }
+
+        binding.currentLocationSwitch.setOnCheckedChangeListener(null)
         binding.currentLocationSwitch.isChecked = settings.useCurrentLocation
-        binding.apiEndpoint.setText(settings.customApiBaseUrl.orEmpty())
-        binding.unitCelsius.setOnClickListener { send(settings.copy(tempUnit = TemperatureUnit.CELSIUS)) }
-        binding.unitFahrenheit.setOnClickListener { send(settings.copy(tempUnit = TemperatureUnit.FAHRENHEIT)) }
-        binding.unitKmh.setOnClickListener { send(settings.copy(windSpeedUnit = WindSpeedUnit.KMH)) }
-        binding.unitMph.setOnClickListener { send(settings.copy(windSpeedUnit = WindSpeedUnit.MPH)) }
-        binding.weatherBackgroundsSwitch.setOnCheckedChangeListener { _, checked -> send(settings.copy(weatherBackgroundsEnabled = checked)) }
-        binding.reduceMotionSwitch.setOnCheckedChangeListener { _, checked -> send(settings.copy(reduceMotion = checked)) }
-        binding.currentLocationSwitch.setOnCheckedChangeListener { _, checked -> send(settings.copy(useCurrentLocation = checked)) }
-        binding.apiEndpoint.setOnFocusChangeListener { _, focused -> if (!focused) send(settings.copy(customApiBaseUrl = binding.apiEndpoint.text?.toString()?.trim()?.takeIf(String::isNotBlank)) ) }
+        binding.currentLocationSwitch.setOnCheckedChangeListener { _, checked ->
+            send(settings.copy(useCurrentLocation = checked))
+        }
     }
     private fun send(settings: AppSettings) = onSettingsChanged(settings)
 }

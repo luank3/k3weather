@@ -176,17 +176,20 @@ class MainActivity : AppCompatActivity() {
         savedBinding.root.visibility = if (tab == Tab.SAVED) View.VISIBLE else View.GONE
         settingsBinding.root.visibility = if (tab == Tab.SETTINGS) View.VISIBLE else View.GONE
 
-        val cyan = ContextCompat.getColor(this, R.color.accent_cyan)
+        val active = ContextCompat.getColor(this, R.color.text_primary)
         val muted = ContextCompat.getColor(this, R.color.text_muted)
 
-        binding.ivTabForecast.imageTintList = ColorStateList.valueOf(if (tab == Tab.FORECAST) cyan else muted)
-        binding.tvTabForecast.setTextColor(if (tab == Tab.FORECAST) cyan else muted)
+        binding.ivTabForecast.imageTintList = ColorStateList.valueOf(if (tab == Tab.FORECAST) active else muted)
+        binding.tvTabForecast.setTextColor(if (tab == Tab.FORECAST) active else muted)
+        binding.indicatorForecast.visibility = if (tab == Tab.FORECAST) View.VISIBLE else View.GONE
 
-        binding.ivTabSaved.imageTintList = ColorStateList.valueOf(if (tab == Tab.SAVED) cyan else muted)
-        binding.tvTabSaved.setTextColor(if (tab == Tab.SAVED) cyan else muted)
+        binding.ivTabSaved.imageTintList = ColorStateList.valueOf(if (tab == Tab.SAVED) active else muted)
+        binding.tvTabSaved.setTextColor(if (tab == Tab.SAVED) active else muted)
+        binding.indicatorSaved.visibility = if (tab == Tab.SAVED) View.VISIBLE else View.GONE
 
-        binding.ivTabSettings.imageTintList = ColorStateList.valueOf(if (tab == Tab.SETTINGS) cyan else muted)
-        binding.tvTabSettings.setTextColor(if (tab == Tab.SETTINGS) cyan else muted)
+        binding.ivTabSettings.imageTintList = ColorStateList.valueOf(if (tab == Tab.SETTINGS) active else muted)
+        binding.tvTabSettings.setTextColor(if (tab == Tab.SETTINGS) active else muted)
+        binding.indicatorSettings.visibility = if (tab == Tab.SETTINGS) View.VISIBLE else View.GONE
 
         if (tab == Tab.SAVED) {
             refreshSavedForecasts()

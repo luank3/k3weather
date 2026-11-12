@@ -1,22 +1,288 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android" android:layout_width="match_parent" android:layout_height="match_parent" android:background="@android:color/transparent" android:fillViewport="true">
-    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:padding="20dp">
-        <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Settings" android:textColor="@android:color/white" android:textSize="26sp" android:textStyle="bold" android:layout_marginBottom="16dp" />
-        <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="TEMPERATURE" android:textColor="#BFFFFFFF" android:textSize="12sp" android:textStyle="bold" />
-        <RadioGroup android:id="@+id/temperatureUnits" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal">
-            <RadioButton android:id="@+id/unitCelsius" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="°C" android:textColor="@android:color/white" />
-            <RadioButton android:id="@+id/unitFahrenheit" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="°F" android:textColor="@android:color/white" />
-        </RadioGroup>
-        <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="WIND SPEED" android:textColor="#BFFFFFFF" android:textSize="12sp" android:textStyle="bold" android:layout_marginTop="10dp" />
-        <RadioGroup android:id="@+id/windUnits" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal">
-            <RadioButton android:id="@+id/unitKmh" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="km/h" android:textColor="@android:color/white" />
-            <RadioButton android:id="@+id/unitMph" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="mph" android:textColor="@android:color/white" />
-        </RadioGroup>
-        <Switch android:id="@+id/weatherBackgroundsSwitch" android:layout_width="match_parent" android:layout_height="56dp" android:text="Weather backgrounds" android:textColor="@android:color/white" />
-        <Switch android:id="@+id/reduceMotionSwitch" android:layout_width="match_parent" android:layout_height="56dp" android:text="Reduce motion" android:textColor="@android:color/white" />
-        <Switch android:id="@+id/currentLocationSwitch" android:layout_width="match_parent" android:layout_height="56dp" android:text="Use current location" android:textColor="@android:color/white" />
-        <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="14dp" android:text="CUSTOM API ENDPOINT" android:textColor="#BFFFFFFF" android:textSize="12sp" android:textStyle="bold" />
-        <EditText android:id="@+id/apiEndpoint" android:layout_width="match_parent" android:layout_height="wrap_content" android:hint="Default weather service" android:inputType="textUri" android:singleLine="true" android:textColor="@android:color/white" android:textColorHint="#AAFFFFFF" />
-        <TextView android:id="@+id/attributions" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="24dp" android:text="Weather data by Open-Meteo · Map data © OpenStreetMap contributors" android:textColor="#AAFFFFFF" android:textSize="12sp" />
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@android:color/transparent"
+    android:fillViewport="true">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="20dp">
+
+        <!-- Title -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Settings"
+            android:textColor="@android:color/white"
+            android:textSize="26sp"
+            android:textStyle="bold"
+            android:fontFamily="sans-serif-medium"
+            android:layout_marginBottom="20dp" />
+
+        <!-- Section 1: Units -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Units"
+            android:textColor="@android:color/white"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:fontFamily="sans-serif-medium"
+            android:layout_marginBottom="10dp" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@drawable/bg_card_translucent"
+            android:orientation="vertical"
+            android:clipToOutline="true">
+
+            <!-- Temperature Row -->
+            <LinearLayout
+                android:id="@+id/rowTemperature"
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+                android:background="?attr/selectableItemBackground"
+                android:clickable="true"
+                android:focusable="true"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:paddingHorizontal="16dp">
+
+                <ImageView
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
+                    android:contentDescription="@null"
+                    android:src="@drawable/ic_thermometer"
+                    app:tint="@android:color/white" />
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginStart="14dp"
+                    android:text="Temperature"
+                    android:textColor="@android:color/white"
+                    android:textSize="16sp"
+                    android:fontFamily="sans-serif" />
+
+                <TextView
+                    android:id="@+id/tvTemperatureUnitValue"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="°C  ›"
+                    android:textColor="#CCFFFFFF"
+                    android:textSize="16sp"
+                    android:fontFamily="sans-serif-medium" />
+            </LinearLayout>
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:layout_marginStart="50dp"
+                android:background="#1AFFFFFF" />
+
+            <!-- Wind Speed Row -->
+            <LinearLayout
+                android:id="@+id/rowWindSpeed"
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+                android:background="?attr/selectableItemBackground"
+                android:clickable="true"
+                android:focusable="true"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:paddingHorizontal="16dp">
+
+                <ImageView
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
+                    android:contentDescription="@null"
+                    android:src="@drawable/ic_wind"
+                    app:tint="@android:color/white" />
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginStart="14dp"
+                    android:text="Wind speed"
+                    android:textColor="@android:color/white"
+                    android:textSize="16sp"
+                    android:fontFamily="sans-serif" />
+
+                <TextView
+                    android:id="@+id/tvWindSpeedUnitValue"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="km/h  ›"
+                    android:textColor="#CCFFFFFF"
+                    android:textSize="16sp"
+                    android:fontFamily="sans-serif-medium" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <!-- Section 2: Display -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="24dp"
+            android:layout_marginBottom="10dp"
+            android:text="Display"
+            android:textColor="@android:color/white"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:fontFamily="sans-serif-medium" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@drawable/bg_card_translucent"
+            android:orientation="vertical"
+            android:clipToOutline="true">
+
+            <!-- Weather backgrounds Row -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:paddingHorizontal="16dp">
+
+                <ImageView
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
+                    android:contentDescription="@null"
+                    android:src="@drawable/ic_image"
+                    app:tint="@android:color/white" />
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginStart="14dp"
+                    android:text="Weather backgrounds"
+                    android:textColor="@android:color/white"
+                    android:textSize="16sp"
+                    android:fontFamily="sans-serif" />
+
+                <androidx.appcompat.widget.SwitchCompat
+                    android:id="@+id/weatherBackgroundsSwitch"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    app:thumbTint="@color/accent_cyan"
+                    app:trackTint="#8000E5FF" />
+            </LinearLayout>
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:layout_marginStart="50dp"
+                android:background="#1AFFFFFF" />
+
+            <!-- Reduce motion Row -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:paddingHorizontal="16dp">
+
+                <ImageView
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
+                    android:contentDescription="@null"
+                    android:src="@drawable/ic_reduce_motion"
+                    app:tint="@android:color/white" />
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginStart="14dp"
+                    android:text="Reduce motion"
+                    android:textColor="@android:color/white"
+                    android:textSize="16sp"
+                    android:fontFamily="sans-serif" />
+
+                <androidx.appcompat.widget.SwitchCompat
+                    android:id="@+id/reduceMotionSwitch"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    app:thumbTint="@color/accent_cyan"
+                    app:trackTint="#8000E5FF" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <!-- Section 3: Location -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="24dp"
+            android:layout_marginBottom="10dp"
+            android:text="Location"
+            android:textColor="@android:color/white"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:fontFamily="sans-serif-medium" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@drawable/bg_card_translucent"
+            android:orientation="vertical"
+            android:clipToOutline="true">
+
+            <!-- Use current location Row -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:paddingHorizontal="16dp">
+
+                <ImageView
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
+                    android:contentDescription="@null"
+                    android:src="@drawable/ic_location"
+                    app:tint="@android:color/white" />
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginStart="14dp"
+                    android:text="Use current location"
+                    android:textColor="@android:color/white"
+                    android:textSize="16sp"
+                    android:fontFamily="sans-serif" />
+
+                <androidx.appcompat.widget.SwitchCompat
+                    android:id="@+id/currentLocationSwitch"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    app:thumbTint="@color/accent_cyan"
+                    app:trackTint="#8000E5FF" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <!-- Attribution Link -->
+        <TextView
+            android:id="@+id/attributions"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="32dp"
+            android:layout_marginBottom="24dp"
+            android:gravity="center"
+            android:text="Weather data by Open-Meteo · Map data © OpenStreetMap contributors"
+            android:textColor="#80FFFFFF"
+            android:textSize="12sp"
+            android:fontFamily="sans-serif" />
+
     </LinearLayout>
 </ScrollView>

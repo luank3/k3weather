@@ -3,63 +3,128 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/weather_background"
+    android:background="@android:color/transparent"
     android:orientation="vertical"
-    android:padding="16dp">
+    android:padding="20dp">
+
+    <!-- Header: Back Arrow + Title -->
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="56dp"
+        android:layout_height="wrap_content"
         android:gravity="center_vertical"
-        android:orientation="horizontal">
+        android:orientation="horizontal"
+        android:paddingBottom="16dp">
+
         <ImageButton
             android:id="@+id/backButton"
-            android:layout_width="48dp"
-            android:layout_height="48dp"
+            android:layout_width="44dp"
+            android:layout_height="44dp"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:contentDescription="Back"
-            android:src="@drawable/ic_back" />
+            android:src="@drawable/ic_back"
+            app:tint="@android:color/white" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:text="Search locations"
+            android:textColor="@android:color/white"
+            android:textSize="22sp"
+            android:textStyle="bold"
+            android:fontFamily="sans-serif-medium" />
+    </LinearLayout>
+
+    <!-- Search Input Pill with Cyan Border -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:background="@drawable/bg_search_input"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingHorizontal="14dp">
+
+        <ImageView
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:layout_marginEnd="10dp"
+            android:contentDescription="@null"
+            android:src="@drawable/ic_search"
+            app:tint="#B0BEC5" />
+
         <EditText
             android:id="@+id/searchInput"
             android:layout_width="0dp"
-            android:layout_height="48dp"
+            android:layout_height="match_parent"
             android:layout_weight="1"
-            android:background="@drawable/bg_card_translucent"
+            android:background="@null"
             android:hint="Search city"
             android:imeOptions="actionSearch"
             android:inputType="textCapWords"
-            android:paddingHorizontal="14dp"
             android:singleLine="true"
             android:textColor="@android:color/white"
-            android:textColorHint="#AAFFFFFF" />
+            android:textColorHint="#80FFFFFF"
+            android:textSize="16sp"
+            android:fontFamily="sans-serif" />
+
         <ImageButton
             android:id="@+id/clearButton"
-            android:layout_width="40dp"
-            android:layout_height="48dp"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:contentDescription="Clear search"
-            android:src="@drawable/ic_close" />
+            android:src="@drawable/ic_close"
+            app:tint="#80FFFFFF" />
     </LinearLayout>
+
+    <!-- Search Progress Indicator -->
     <ProgressBar
         android:id="@+id/searchProgress"
         android:layout_width="32dp"
         android:layout_height="32dp"
         android:layout_gravity="center_horizontal"
+        android:layout_marginTop="16dp"
         android:visibility="gone" />
+
+    <!-- Results Section Label -->
     <TextView
-        android:id="@+id/emptyState"
-        android:layout_width="match_parent"
+        android:id="@+id/tvResultsHeader"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:gravity="center"
-        android:padding="24dp"
-        android:text="Search for a city to add"
-        android:textColor="#CCFFFFFF"
-        android:visibility="visible" />
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/searchResults"
+        android:layout_marginTop="24dp"
+        android:layout_marginBottom="12dp"
+        android:text="Results"
+        android:textColor="@android:color/white"
+        android:textSize="16sp"
+        android:textStyle="bold"
+        android:fontFamily="sans-serif-medium" />
+
+    <!-- Enclosing Results Card -->
+    <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
-        android:clipToPadding="false"
-        android:paddingTop="8dp"
-        app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager" />
+        android:background="@drawable/bg_card_translucent"
+        android:clipToOutline="true">
+
+        <TextView
+            android:id="@+id/emptyState"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:gravity="center"
+            android:padding="24dp"
+            android:text="Search for a city to add"
+            android:textColor="#CCFFFFFF"
+            android:textSize="15sp"
+            android:visibility="visible" />
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/searchResults"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:clipToPadding="false"
+            app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager" />
+    </FrameLayout>
+
 </LinearLayout>
