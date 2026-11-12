@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android" android:layout_width="match_parent" android:layout_height="match_parent" android:background="@android:color/transparent" android:fillViewport="true">
+    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:padding="20dp">
+        <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Settings" android:textColor="@android:color/white" android:textSize="26sp" android:textStyle="bold" android:layout_marginBottom="16dp" />
+        <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="TEMPERATURE" android:textColor="#BFFFFFFF" android:textSize="12sp" android:textStyle="bold" />
+        <RadioGroup android:id="@+id/temperatureUnits" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal">
+            <RadioButton android:id="@+id/unitCelsius" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="°C" android:textColor="@android:color/white" />
+            <RadioButton android:id="@+id/unitFahrenheit" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="°F" android:textColor="@android:color/white" />
+        </RadioGroup>
+        <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="WIND SPEED" android:textColor="#BFFFFFFF" android:textSize="12sp" android:textStyle="bold" android:layout_marginTop="10dp" />
+        <RadioGroup android:id="@+id/windUnits" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal">
+            <RadioButton android:id="@+id/unitKmh" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="km/h" android:textColor="@android:color/white" />
+            <RadioButton android:id="@+id/unitMph" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="mph" android:textColor="@android:color/white" />
+        </RadioGroup>
+        <Switch android:id="@+id/weatherBackgroundsSwitch" android:layout_width="match_parent" android:layout_height="56dp" android:text="Weather backgrounds" android:textColor="@android:color/white" />
+        <Switch android:id="@+id/reduceMotionSwitch" android:layout_width="match_parent" android:layout_height="56dp" android:text="Reduce motion" android:textColor="@android:color/white" />
+        <Switch android:id="@+id/currentLocationSwitch" android:layout_width="match_parent" android:layout_height="56dp" android:text="Use current location" android:textColor="@android:color/white" />
+        <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="14dp" android:text="CUSTOM API ENDPOINT" android:textColor="#BFFFFFFF" android:textSize="12sp" android:textStyle="bold" />
+        <EditText android:id="@+id/apiEndpoint" android:layout_width="match_parent" android:layout_height="wrap_content" android:hint="Default weather service" android:inputType="textUri" android:singleLine="true" android:textColor="@android:color/white" android:textColorHint="#AAFFFFFF" />
+        <TextView android:id="@+id/attributions" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="24dp" android:text="Weather data by Open-Meteo · Map data © OpenStreetMap contributors" android:textColor="#AAFFFFFF" android:textSize="12sp" />
+    </LinearLayout>
+</ScrollView>

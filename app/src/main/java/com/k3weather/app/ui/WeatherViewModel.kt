@@ -1,0 +1,94 @@
+package com.k3weather.app.ui
+
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.k3weather.app.core.model.*
+import com.k3weather.app.core.repository.WeatherRepository
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
+
+data class WeatherUiState(
+    val selectedLocation: LocationItem? = null,
+    val forecast: ForecastData? = null,
+    val savedLocations: List<LocationItem> = emptyList(),
+    val searchResults: List<LocationItem> = emptyList(),
+    val settings: AppSettings = AppSettings(),
+    val loading: Boolean = false,
+    val searching: Boolean = false,
+    val error: String? = null,
+    val searchError: String? = null
+)
+
+class WeatherViewModel(private val repository: WeatherRepository) : ViewModel() {
+    private val _state = MutableStateFlow(WeatherUiState())
+    val state: StateFlow<WeatherUiState> = _state.asStateFlow()
+    private var searchJob: Job? = null
+
+    init {
+        viewModelScope.launch {
+            val settings = repository.getSettings()
+            val saved = repository.getSavedLocations()
+            val selected = repository.getSelectedLocation()
+            _state.value = _state.value.copy(settings = settings, savedLocations = saved, selectedLocation = selected)
+            loadForecast(selected)
+        }
+    }
+
+    fun refresh(force: Boolean = true) {
+        val location = _state.value.selectedLocation ?: return
+        viewModelScope.launch { loadForecast(location, force) }
+    }
+
+    private suspend fun loadForecast(location: LocationItem, force: Boolean = false) {
+        _state.value = _state.value.copy(selectedLocation = location, loading = true, error = null)
+        repository.getForecast(location, force).fold(
+            onSuccess = { forecast -> _state.value = _state.value.copy(forecast = forecast, loading = false) },
+            onFailure = { error ->
+                val cached = repository.getCachedForecast(location.id)
+                _state.value = _state.value.copy(forecast = cached, loading = false, error = error.message ?: "Unable to load forecast")
+            }
+        )
+    }
+
+    fun selectLocation(location: LocationItem) {
+        viewModelScope.launch { repository.setSelectedLocation(location); loadForecast(location) }
+    }
+
+    fun search(query: String) {
+        searchJob?.cancel()
+        if (query.isBlank()) {
+            _state.value = _state.value.copy(searchResults = emptyList(), searching = false, searchError = null)
+            return
+        }
+        searchJob = viewModelScope.launch {
+            delay(300)
+            _state.value = _state.value.copy(searching = true, searchError = null)
+            repository.searchLocations(query).fold(
+                onSuccess = { _state.value = _state.value.copy(searchResults = it, searching = false) },
+                onFailure = { _state.value = _state.value.copy(searchResults = emptyList(), searching = false, searchError = it.message ?: "Search failed") }
+            )
+        }
+    }
+
+    fun saveLocation(location: LocationItem) {
+        viewModelScope.launch {
+            repository.saveLocation(location)
+            _state.value = _state.value.copy(savedLocations = repository.getSavedLocations())
+        }
+    }
+
+    fun removeLocation(location: LocationItem) {
+        viewModelScope.launch {
+            repository.removeLocation(location.id)
+            _state.value = _state.value.copy(savedLocations = repository.getSavedLocations())
+        }
+    }
+
+    fun updateSettings(settings: AppSettings) {
+        viewModelScope.launch { repository.updateSettings(settings); _state.value = _state.value.copy(settings = settings) }
+    }
+}

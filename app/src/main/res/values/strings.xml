@@ -1,0 +1,6 @@
+<resources>
+    <string name="app_name">K3 Weather</string>
+    <string name="tab_forecast">Forecast</string>
+    <string name="tab_saved">Saved</string>
+    <string name="tab_settings">Settings</string>
+</resources>
