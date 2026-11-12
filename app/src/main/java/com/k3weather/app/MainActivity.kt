@@ -75,7 +75,7 @@ class MainActivity : AppCompatActivity() {
     private enum class SearchSource { FORECAST, SAVED }
     private var searchSource = SearchSource.FORECAST
 
-    private var activeColorScheme = AppColorScheme.CYAN
+    private var activeColorScheme: AppColorScheme? = null
 
     private val locationPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()

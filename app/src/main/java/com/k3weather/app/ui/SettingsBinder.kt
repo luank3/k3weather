@@ -27,11 +27,21 @@ class SettingsBinder(
             send(settings.copy(windSpeedUnit = next))
         }
 
-        // Apply theme color to switches
+        // Apply stateful theme color to switches (clear ON vs OFF visual distinction)
         val accentColor = settings.colorScheme.primaryAccent
-        val trackColor = (accentColor and 0x00FFFFFF) or 0x66000000
-        val thumbTintList = ColorStateList.valueOf(accentColor)
-        val trackTintList = ColorStateList.valueOf(trackColor)
+        val activeTrackColor = (accentColor and 0x00FFFFFF) or 0x73000000
+        val states = arrayOf(
+            intArrayOf(android.R.attr.state_checked),
+            intArrayOf(-android.R.attr.state_checked)
+        )
+        val thumbTintList = ColorStateList(
+            states,
+            intArrayOf(accentColor, 0xFFB0BEC5.toInt())
+        )
+        val trackTintList = ColorStateList(
+            states,
+            intArrayOf(activeTrackColor, 0x3DFFFFFF)
+        )
 
         binding.weatherBackgroundsSwitch.thumbTintList = thumbTintList
         binding.weatherBackgroundsSwitch.trackTintList = trackTintList
@@ -40,17 +50,23 @@ class SettingsBinder(
         binding.currentLocationSwitch.thumbTintList = thumbTintList
         binding.currentLocationSwitch.trackTintList = trackTintList
 
-        // Switches
+        // Switches & full-row click targets
         binding.weatherBackgroundsSwitch.setOnCheckedChangeListener(null)
         binding.weatherBackgroundsSwitch.isChecked = settings.weatherBackgroundsEnabled
         binding.weatherBackgroundsSwitch.setOnCheckedChangeListener { _, checked ->
             send(settings.copy(weatherBackgroundsEnabled = checked))
+        }
+        binding.rowWeatherBackgrounds.setOnClickListener {
+            binding.weatherBackgroundsSwitch.toggle()
         }
 
         binding.reduceMotionSwitch.setOnCheckedChangeListener(null)
         binding.reduceMotionSwitch.isChecked = settings.reduceMotion
         binding.reduceMotionSwitch.setOnCheckedChangeListener { _, checked ->
             send(settings.copy(reduceMotion = checked))
+        }
+        binding.rowReduceMotion.setOnClickListener {
+            binding.reduceMotionSwitch.toggle()
         }
 
         // Color scheme
@@ -77,6 +93,9 @@ class SettingsBinder(
         binding.currentLocationSwitch.isChecked = settings.useCurrentLocation
         binding.currentLocationSwitch.setOnCheckedChangeListener { _, checked ->
             send(settings.copy(useCurrentLocation = checked))
+        }
+        binding.rowCurrentLocation.setOnClickListener {
+            binding.currentLocationSwitch.toggle()
         }
     }
 

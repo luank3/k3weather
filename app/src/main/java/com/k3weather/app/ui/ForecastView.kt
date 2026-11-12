@@ -82,7 +82,14 @@ class ForecastView(private val binding: LayoutForecastBinding) {
         binding.searchButton.imageTintList = ColorStateList.valueOf(0xFFFFFFFF.toInt())
 
         // Hourly forecast
-        binding.hourlyList.adapter = HourlyAdapter(forecast.hourly, tempUnit, context.getString(R.string.time_now))
+        val locationZone = runCatching { ZoneId.of(forecast.location.timezone) }.getOrDefault(ZoneId.systemDefault())
+        binding.hourlyList.adapter = HourlyAdapter(
+            items = forecast.hourly,
+            unit = tempUnit,
+            nowLabel = context.getString(R.string.time_now),
+            accentColor = accentColor,
+            zoneId = locationZone
+        )
 
         // Next 3 days forecast
         val minGlobal = forecast.daily.minOfOrNull { it.minTempC } ?: 0.0
@@ -92,7 +99,8 @@ class ForecastView(private val binding: LayoutForecastBinding) {
         binding.dailyRows.removeAllViews()
         val currentLocale = context.resources.configuration.locales[0] ?: Locale.getDefault()
 
-        forecast.daily.take(3).forEachIndexed { index, day ->
+        val daysToRender = forecast.daily.take(3)
+        daysToRender.forEachIndexed { index, day ->
             val row = ItemDailyForecastBinding.inflate(LayoutInflater.from(context), binding.dailyRows, false)
 
             val dayName = if (index == 0) {
@@ -104,6 +112,7 @@ class ForecastView(private val binding: LayoutForecastBinding) {
             }
 
             row.dayLabel.text = dayName
+            row.dayLabel.setTextColor(if (index == 0) accentColor else 0xFFFFFFFF.toInt())
             row.dayIcon.setImageResource(WeatherCodeMapper.getIcon(day.weatherCode, isDay = true))
             row.minTemperature.text = tempUnit.format(day.minTempC)
             row.maxTemperature.text = tempUnit.format(day.maxTempC)
@@ -113,7 +122,7 @@ class ForecastView(private val binding: LayoutForecastBinding) {
                 GradientDrawable.Orientation.LEFT_RIGHT,
                 intArrayOf(colorScheme.gradientStart, colorScheme.gradientEnd)
             ).apply {
-                cornerRadius = 6f
+                cornerRadius = 999f
             }
             row.temperatureRange.background = barGradient
 
@@ -128,12 +137,24 @@ class ForecastView(private val binding: LayoutForecastBinding) {
 
                     val lp = row.temperatureRange.layoutParams as android.widget.FrameLayout.LayoutParams
                     lp.leftMargin = leftMargin
+                    lp.marginStart = leftMargin
                     lp.width = barWidth
                     row.temperatureRange.layoutParams = lp
                 }
             }
 
             binding.dailyRows.addView(row.root)
+
+            if (index < daysToRender.lastIndex) {
+                val divider = View(context).apply {
+                    layoutParams = android.widget.LinearLayout.LayoutParams(
+                        ViewGroup.LayoutParams.MATCH_PARENT,
+                        (1f * context.resources.displayMetrics.density).toInt().coerceAtLeast(1)
+                    )
+                    setBackgroundColor(0x14FFFFFF)
+                }
+                binding.dailyRows.addView(divider)
+            }
         }
     }
 }
@@ -150,7 +171,9 @@ class ForecastBinder(private val view: ForecastView) {
 private class HourlyAdapter(
     private val items: List<HourlyForecast>,
     private val unit: TemperatureUnit,
-    private val nowLabel: String
+    private val nowLabel: String,
+    private val accentColor: Int,
+    private val zoneId: ZoneId
 ) : RecyclerView.Adapter<HourlyAdapter.Holder>() {
 
     class Holder(val binding: ItemHourlyForecastBinding) : RecyclerView.ViewHolder(binding.root)
@@ -162,15 +185,16 @@ private class HourlyAdapter(
 
     override fun onBindViewHolder(holder: Holder, position: Int) {
         val item = items[position]
-        holder.binding.hourTime.text = if (position == 0) {
+        val isNow = position == 0
+        holder.binding.hourTime.text = if (isNow) {
             nowLabel
         } else {
             runCatching {
                 val instant = Instant.ofEpochSecond(item.timeEpochSeconds)
-                val zone = ZoneId.systemDefault()
-                instant.atZone(zone).format(DateTimeFormatter.ofPattern("h a", Locale.US))
+                instant.atZone(zoneId).format(DateTimeFormatter.ofPattern("h a", Locale.US))
             }.getOrDefault(item.timeLabel)
         }
+        holder.binding.hourTime.setTextColor(if (isNow) accentColor else 0xFFD9F0FF.toInt())
         holder.binding.hourIcon.setImageResource(WeatherCodeMapper.getIcon(item.weatherCode, item.isDay))
         holder.binding.hourTemperature.text = unit.format(item.temperatureC)
     }

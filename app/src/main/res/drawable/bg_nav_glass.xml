@@ -2,13 +2,17 @@
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
     <item>
         <shape android:shape="rectangle">
-            <solid android:color="#CC08151A" />
+            <gradient
+                android:angle="270"
+                android:startColor="#D90B2027"
+                android:endColor="#EB071419"
+                android:type="linear" />
         </shape>
     </item>
     <item android:gravity="top">
         <shape android:shape="rectangle">
             <size android:height="1dp" />
-            <solid android:color="#26FFFFFF" />
+            <solid android:color="#2EFFFFFF" />
         </shape>
     </item>
 </layer-list>

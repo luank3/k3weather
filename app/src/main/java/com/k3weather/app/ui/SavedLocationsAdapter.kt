@@ -55,11 +55,12 @@ class SavedLocationsAdapter(
         val isDay = forecast?.current?.isDay ?: true
 
         val conditionText = if (forecast != null) {
-            WeatherCodeMapper.getLocalizedLabel(context, weatherCode)
+            val label = WeatherCodeMapper.getLocalizedLabel(context, weatherCode)
+            if (location.subtitle.isNotBlank()) "$label • ${location.subtitle}" else label
         } else if (location.subtitle.isNotBlank()) {
             location.subtitle
         } else {
-            "Vietnam"
+            location.country
         }
         holder.binding.condition.text = conditionText
         holder.binding.temperature.text = forecast?.let { unit.format(it.current.temperatureC) } ?: "--°"

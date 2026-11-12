@@ -33,7 +33,7 @@
         android:layout_height="0dp"
         android:visibility="gone"
         android:elevation="12dp"
-        android:background="@color/primary_dark_teal"
+        android:background="#F208171D"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -44,10 +44,10 @@
         android:id="@+id/bottomNavBar"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:minHeight="64dp"
+        android:minHeight="68dp"
         android:orientation="horizontal"
         android:background="@drawable/bg_nav_glass"
-        android:elevation="8dp"
+        android:elevation="10dp"
         android:baselineAligned="false"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -57,7 +57,7 @@
         <LinearLayout
             android:id="@+id/tabForecast"
             android:layout_width="0dp"
-            android:layout_height="64dp"
+            android:layout_height="68dp"
             android:layout_weight="1"
             android:gravity="center"
             android:orientation="vertical"
@@ -77,17 +77,18 @@
                 android:id="@+id/tvTabForecast"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="2dp"
+                android:layout_marginTop="3dp"
                 android:text="@string/tab_forecast"
                 android:textColor="@android:color/white"
                 android:textSize="12sp"
+                android:letterSpacing="0.02"
                 android:fontFamily="sans-serif-medium" />
 
             <View
                 android:id="@+id/indicatorForecast"
-                android:layout_width="32dp"
+                android:layout_width="28dp"
                 android:layout_height="3dp"
-                android:layout_marginTop="3dp"
+                android:layout_marginTop="4dp"
                 android:background="@drawable/bg_nav_indicator"
                 android:visibility="visible" />
         </LinearLayout>
@@ -96,7 +97,7 @@
         <LinearLayout
             android:id="@+id/tabSaved"
             android:layout_width="0dp"
-            android:layout_height="64dp"
+            android:layout_height="68dp"
             android:layout_weight="1"
             android:gravity="center"
             android:orientation="vertical"
@@ -116,17 +117,18 @@
                 android:id="@+id/tvTabSaved"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="2dp"
+                android:layout_marginTop="3dp"
                 android:text="@string/tab_saved"
                 android:textColor="@color/text_muted"
                 android:textSize="12sp"
+                android:letterSpacing="0.02"
                 android:fontFamily="sans-serif-medium" />
 
             <View
                 android:id="@+id/indicatorSaved"
-                android:layout_width="32dp"
+                android:layout_width="28dp"
                 android:layout_height="3dp"
-                android:layout_marginTop="3dp"
+                android:layout_marginTop="4dp"
                 android:background="@drawable/bg_nav_indicator"
                 android:visibility="gone" />
         </LinearLayout>
@@ -135,7 +137,7 @@
         <LinearLayout
             android:id="@+id/tabSettings"
             android:layout_width="0dp"
-            android:layout_height="64dp"
+            android:layout_height="68dp"
             android:layout_weight="1"
             android:gravity="center"
             android:orientation="vertical"
@@ -155,17 +157,18 @@
                 android:id="@+id/tvTabSettings"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="2dp"
+                android:layout_marginTop="3dp"
                 android:text="@string/tab_settings"
                 android:textColor="@color/text_muted"
                 android:textSize="12sp"
+                android:letterSpacing="0.02"
                 android:fontFamily="sans-serif-medium" />
 
             <View
                 android:id="@+id/indicatorSettings"
-                android:layout_width="32dp"
+                android:layout_width="28dp"
                 android:layout_height="3dp"
-                android:layout_marginTop="3dp"
+                android:layout_marginTop="4dp"
                 android:background="@drawable/bg_nav_indicator"
                 android:visibility="gone" />
         </LinearLayout>

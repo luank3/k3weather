@@ -4,6 +4,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:fillViewport="true"
+    android:overScrollMode="never"
     android:background="@android:color/transparent">
 
     <LinearLayout
@@ -11,8 +12,8 @@
         android:layout_height="wrap_content"
         android:orientation="vertical"
         android:paddingHorizontal="20dp"
-        android:paddingTop="12dp"
-        android:paddingBottom="24dp">
+        android:paddingTop="14dp"
+        android:paddingBottom="28dp">
 
         <!-- Top Header: Pin, City, Region, Return to current, Search -->
         <LinearLayout
@@ -25,7 +26,7 @@
                 android:id="@+id/ivLocationPin"
                 android:layout_width="22dp"
                 android:layout_height="22dp"
-                android:layout_marginEnd="6dp"
+                android:layout_marginEnd="8dp"
                 android:contentDescription="@null"
                 android:src="@drawable/ic_location"
                 app:tint="@android:color/white" />
@@ -34,25 +35,36 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
+                android:layout_marginEnd="8dp"
                 android:orientation="vertical">
 
                 <TextView
                     android:id="@+id/cityName"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:ellipsize="end"
+                    android:maxLines="1"
                     android:text="Đà Lạt"
                     android:textColor="@android:color/white"
                     android:textSize="26sp"
                     android:textStyle="bold"
+                    android:letterSpacing="-0.01"
+                    android:shadowColor="#33000000"
+                    android:shadowDx="0"
+                    android:shadowDy="2"
+                    android:shadowRadius="6"
                     android:fontFamily="sans-serif-medium" />
 
                 <TextView
                     android:id="@+id/citySubtitle"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:ellipsize="end"
+                    android:maxLines="1"
                     android:text="Vietnam"
-                    android:textColor="#CCFFFFFF"
+                    android:textColor="#D9FFFFFF"
                     android:textSize="14sp"
+                    android:letterSpacing="0.01"
                     android:fontFamily="sans-serif" />
             </LinearLayout>
 
@@ -61,7 +73,7 @@
                 android:id="@+id/btnCurrentLocation"
                 android:layout_width="44dp"
                 android:layout_height="44dp"
-                android:layout_marginEnd="6dp"
+                android:layout_marginEnd="8dp"
                 android:background="@drawable/bg_circle_translucent"
                 android:contentDescription="@string/my_location"
                 android:padding="10dp"
@@ -71,10 +83,11 @@
 
             <ImageButton
                 android:id="@+id/searchButton"
-                android:layout_width="48dp"
-                android:layout_height="48dp"
-                android:background="?attr/selectableItemBackgroundBorderless"
-                android:contentDescription="Search cities"
+                android:layout_width="44dp"
+                android:layout_height="44dp"
+                android:background="@drawable/bg_circle_translucent"
+                android:padding="10dp"
+                android:contentDescription="@string/search_locations"
                 android:src="@drawable/ic_search"
                 app:tint="@android:color/white" />
         </LinearLayout>
@@ -84,12 +97,12 @@
             android:id="@+id/btnReturnCurrentLocation"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
+            android:layout_marginTop="10dp"
             android:background="@drawable/bg_pill_accent_translucent"
             android:gravity="center_vertical"
             android:orientation="horizontal"
-            android:paddingHorizontal="12dp"
-            android:paddingVertical="6dp"
+            android:paddingHorizontal="14dp"
+            android:paddingVertical="7dp"
             android:clickable="true"
             android:focusable="true"
             android:visibility="gone">
@@ -110,6 +123,7 @@
                 android:text="@string/return_to_current_location"
                 android:textColor="@color/accent_cyan"
                 android:textSize="12sp"
+                android:letterSpacing="0.01"
                 android:fontFamily="sans-serif-medium" />
         </LinearLayout>
 
@@ -120,11 +134,13 @@
             android:layout_gravity="center_horizontal"
             android:layout_marginTop="10dp"
             android:background="@drawable/bg_card_translucent"
-            android:paddingHorizontal="12dp"
-            android:paddingVertical="5dp"
+            android:paddingHorizontal="14dp"
+            android:paddingVertical="6dp"
             android:text="@string/showing_saved_forecast"
-            android:textColor="@android:color/white"
+            android:textColor="#E6FFFFFF"
             android:textSize="12sp"
+            android:letterSpacing="0.02"
+            android:fontFamily="sans-serif-medium"
             android:visibility="gone" />
 
         <ProgressBar
@@ -141,11 +157,16 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:gravity="center"
-            android:layout_marginTop="14dp"
+            android:layout_marginTop="18dp"
             android:text="--°"
             android:textColor="@android:color/white"
-            android:textSize="96sp"
+            android:textSize="98sp"
             android:textStyle="bold"
+            android:letterSpacing="-0.03"
+            android:shadowColor="#40000000"
+            android:shadowDx="0"
+            android:shadowDy="4"
+            android:shadowRadius="14"
             android:fontFamily="sans-serif-medium"
             android:includeFontPadding="false" />
 
@@ -154,61 +175,80 @@
             android:id="@+id/condition"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
             android:gravity="center"
             android:text="Partly cloudy"
             android:textColor="@android:color/white"
-            android:textSize="24sp"
+            android:textSize="22sp"
             android:textStyle="bold"
+            android:letterSpacing="0.01"
+            android:shadowColor="#33000000"
+            android:shadowDx="0"
+            android:shadowDy="2"
+            android:shadowRadius="8"
             android:fontFamily="sans-serif-medium" />
 
-        <!-- Weather Details Row: High/Low & Wind Speed -->
+        <!-- Weather Details Row: High/Low & Wind Speed Chip -->
         <LinearLayout
             android:id="@+id/rowDetails"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center_horizontal"
-            android:layout_marginTop="6dp"
+            android:layout_marginTop="12dp"
+            android:background="@drawable/bg_card_translucent"
+            android:paddingHorizontal="16dp"
+            android:paddingVertical="8dp"
             android:gravity="center_vertical"
             android:orientation="horizontal">
+
+            <ImageView
+                android:layout_width="15dp"
+                android:layout_height="15dp"
+                android:layout_marginEnd="6dp"
+                android:contentDescription="@null"
+                android:src="@drawable/ic_thermometer"
+                app:tint="#D9FFFFFF" />
 
             <TextView
                 android:id="@+id/highLow"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="H 22° • L 14°"
-                android:textColor="#E0FFFFFF"
-                android:textSize="16sp"
+                android:textColor="#F2FFFFFF"
+                android:textSize="14sp"
+                android:letterSpacing="0.01"
                 android:fontFamily="sans-serif-medium" />
 
             <View
                 android:layout_width="1dp"
                 android:layout_height="14dp"
-                android:layout_marginHorizontal="10dp"
-                android:background="#40FFFFFF" />
+                android:layout_marginHorizontal="12dp"
+                android:background="#38FFFFFF" />
 
             <ImageView
                 android:layout_width="16dp"
                 android:layout_height="16dp"
-                android:layout_marginEnd="5dp"
+                android:layout_marginEnd="6dp"
                 android:contentDescription="@null"
                 android:src="@drawable/ic_wind"
-                app:tint="#CCFFFFFF" />
+                app:tint="#D9FFFFFF" />
 
             <TextView
                 android:id="@+id/tvWindSpeed"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="12 km/h"
-                android:textColor="#CCFFFFFF"
-                android:textSize="15sp"
-                android:fontFamily="sans-serif" />
+                android:textColor="#F2FFFFFF"
+                android:textSize="14sp"
+                android:letterSpacing="0.01"
+                android:fontFamily="sans-serif-medium" />
         </LinearLayout>
 
         <!-- Hourly Forecast Card -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="26dp"
+            android:layout_marginTop="24dp"
             android:background="@drawable/bg_card_translucent"
             android:orientation="vertical"
             android:padding="18dp">
@@ -217,16 +257,23 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/hourly_forecast"
-                android:textColor="@android:color/white"
-                android:textSize="18sp"
+                android:textColor="#F2FFFFFF"
+                android:textSize="16sp"
                 android:textStyle="bold"
+                android:letterSpacing="0.02"
                 android:fontFamily="sans-serif-medium" />
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:layout_marginTop="10dp"
+                android:background="#1AFFFFFF" />
 
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/hourlyList"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="14dp"
+                android:layout_marginTop="12dp"
                 android:clipToPadding="false"
                 android:orientation="horizontal"
                 android:overScrollMode="never"
@@ -246,17 +293,24 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/next_3_days"
-                android:textColor="@android:color/white"
-                android:textSize="18sp"
+                android:textColor="#F2FFFFFF"
+                android:textSize="16sp"
                 android:textStyle="bold"
+                android:letterSpacing="0.02"
                 android:fontFamily="sans-serif-medium" />
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:layout_marginTop="10dp"
+                android:background="#1AFFFFFF" />
 
             <LinearLayout
                 android:id="@+id/dailyRows"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:layout_marginTop="8dp" />
+                android:layout_marginTop="6dp" />
         </LinearLayout>
 
         <!-- Bottom Refresh Action -->
@@ -265,20 +319,22 @@
             android:layout_height="wrap_content"
             android:gravity="center"
             android:orientation="horizontal"
-            android:layout_marginTop="16dp">
+            android:layout_marginTop="18dp">
 
             <Button
                 android:id="@+id/retryButton"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_marginEnd="12dp"
                 android:text="Retry"
                 android:visibility="gone" />
 
             <ImageButton
                 android:id="@+id/refreshButton"
-                android:layout_width="48dp"
-                android:layout_height="48dp"
-                android:background="?attr/selectableItemBackgroundBorderless"
+                android:layout_width="44dp"
+                android:layout_height="44dp"
+                android:background="@drawable/bg_circle_translucent"
+                android:padding="11dp"
                 android:contentDescription="Refresh forecast"
                 android:src="@drawable/ic_refresh"
                 app:tint="@android:color/white" />

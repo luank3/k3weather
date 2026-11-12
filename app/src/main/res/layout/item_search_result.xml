@@ -7,32 +7,43 @@
     android:clickable="true"
     android:focusable="true"
     android:gravity="center_vertical"
-    android:minHeight="64dp"
+    android:minHeight="66dp"
     android:orientation="horizontal"
-    android:paddingHorizontal="16dp"
+    android:paddingHorizontal="18dp"
     android:paddingVertical="12dp">
 
-    <ImageView
-        android:layout_width="20dp"
-        android:layout_height="20dp"
+    <FrameLayout
+        android:layout_width="36dp"
+        android:layout_height="36dp"
         android:layout_marginEnd="14dp"
-        android:contentDescription="@null"
-        android:src="@drawable/ic_location"
-        app:tint="#B0BEC5" />
+        android:background="@drawable/bg_circle_translucent">
+
+        <ImageView
+            android:layout_width="18dp"
+            android:layout_height="18dp"
+            android:layout_gravity="center"
+            android:contentDescription="@null"
+            android:src="@drawable/ic_location"
+            app:tint="#D9FFFFFF" />
+    </FrameLayout>
 
     <LinearLayout
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_weight="1"
+        android:layout_marginEnd="8dp"
         android:orientation="vertical">
 
         <TextView
             android:id="@+id/cityName"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:ellipsize="end"
+            android:maxLines="1"
             android:textColor="@android:color/white"
             android:textSize="16sp"
             android:textStyle="bold"
+            android:letterSpacing="0.01"
             android:fontFamily="sans-serif-medium" />
 
         <TextView
@@ -40,7 +51,9 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="2dp"
-            android:textColor="#94A3B8"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:textColor="#B0BEC5"
             android:textSize="13sp"
             android:fontFamily="sans-serif" />
     </LinearLayout>
