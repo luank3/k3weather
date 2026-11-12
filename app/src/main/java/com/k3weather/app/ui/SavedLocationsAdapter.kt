@@ -13,33 +13,75 @@ class SavedLocationsAdapter(
     private val onSelect: (LocationItem) -> Unit,
     private val onDelete: (LocationItem) -> Unit
 ) : RecyclerView.Adapter<SavedLocationsAdapter.Holder>() {
+
     private var locations: List<LocationItem> = emptyList()
     private var forecasts: Map<String, ForecastData> = emptyMap()
     private var unit = TemperatureUnit.CELSIUS
     private var backgroundsEnabled = true
+    private var reduceMotion = false
+    private var colorScheme = AppColorScheme.CYAN
+
     class Holder(val binding: ItemSavedLocationBinding) : RecyclerView.ViewHolder(binding.root)
-    fun submit(locations: List<LocationItem>, forecasts: Map<String, ForecastData>, unit: TemperatureUnit, backgroundsEnabled: Boolean) {
-        this.locations = locations; this.forecasts = forecasts; this.unit = unit; this.backgroundsEnabled = backgroundsEnabled; notifyDataSetChanged()
+
+    fun submit(
+        locations: List<LocationItem>,
+        forecasts: Map<String, ForecastData>,
+        unit: TemperatureUnit,
+        backgroundsEnabled: Boolean,
+        reduceMotion: Boolean = false,
+        colorScheme: AppColorScheme = AppColorScheme.CYAN
+    ) {
+        this.locations = locations
+        this.forecasts = forecasts
+        this.unit = unit
+        this.backgroundsEnabled = backgroundsEnabled
+        this.reduceMotion = reduceMotion
+        this.colorScheme = colorScheme
+        notifyDataSetChanged()
     }
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int) = Holder(ItemSavedLocationBinding.inflate(LayoutInflater.from(parent.context), parent, false))
-    override fun getItemCount() = locations.size
+
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): Holder =
+        Holder(ItemSavedLocationBinding.inflate(LayoutInflater.from(parent.context), parent, false))
+
+    override fun getItemCount(): Int = locations.size
+
     override fun onBindViewHolder(holder: Holder, position: Int) {
         val location = locations[position]
         val forecast = forecasts[location.id]
+        val context = holder.binding.root.context
+
         holder.binding.cityName.text = location.name
-        holder.binding.condition.text = forecast?.current?.condition ?: if (location.subtitle.isNotBlank()) location.subtitle else "Vietnam"
+
+        val weatherCode = forecast?.current?.weatherCode ?: 1
+        val isDay = forecast?.current?.isDay ?: true
+
+        val conditionText = if (forecast != null) {
+            WeatherCodeMapper.getLocalizedLabel(context, weatherCode)
+        } else if (location.subtitle.isNotBlank()) {
+            location.subtitle
+        } else {
+            "Vietnam"
+        }
+        holder.binding.condition.text = conditionText
         holder.binding.temperature.text = forecast?.let { unit.format(it.current.temperatureC) } ?: "--°"
-        
+
         // Current location badge
-        holder.binding.ivCurrentLocationBadge.visibility = if (location.isCurrentLocation) android.view.View.VISIBLE else android.view.View.GONE
+        holder.binding.ivCurrentLocationBadge.visibility =
+            if (location.isCurrentLocation) android.view.View.VISIBLE else android.view.View.GONE
 
         // Weather icon
-        val code = forecast?.current?.weatherCode ?: 1
-        val isDay = forecast?.current?.isDay ?: true
-        holder.binding.ivWeatherIcon.setImageResource(weatherIcon(code, isDay))
+        holder.binding.ivWeatherIcon.setImageResource(weatherIcon(weatherCode, isDay))
 
-        WeatherBackgroundHelper.apply(holder.binding.root, location, forecast?.current?.condition.orEmpty(), forecast?.current?.isDay ?: true, backgroundsEnabled)
-        holder.binding.cityBackground.setImageDrawable(WeatherBackgroundHelper.cityDrawable(holder.binding.root.context, location))
+        // Card weather effect background
+        WeatherBackgroundHelper.applyWeatherEffect(
+            view = holder.binding.weatherEffectBackground,
+            weatherCode = weatherCode,
+            isDay = isDay,
+            reduceMotion = reduceMotion,
+            colorScheme = colorScheme,
+            enabled = backgroundsEnabled
+        )
+
         holder.binding.root.setOnClickListener { onSelect(location) }
         holder.binding.deleteButton.setOnClickListener { onDelete(location) }
     }
@@ -56,6 +98,13 @@ private fun weatherIcon(code: Int, isDay: Boolean = true): Int = when (WeatherCo
 
 class SavedLocationsBinder(private val adapter: SavedLocationsAdapter) {
     fun bind(state: WeatherUiState, forecasts: Map<String, ForecastData>) {
-        adapter.submit(state.savedLocations, forecasts, state.settings.tempUnit, state.settings.weatherBackgroundsEnabled)
+        adapter.submit(
+            locations = state.savedLocations,
+            forecasts = forecasts,
+            unit = state.settings.tempUnit,
+            backgroundsEnabled = state.settings.weatherBackgroundsEnabled,
+            reduceMotion = state.settings.reduceMotion,
+            colorScheme = state.settings.colorScheme
+        )
     }
 }

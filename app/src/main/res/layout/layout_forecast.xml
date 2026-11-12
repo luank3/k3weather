@@ -75,7 +75,7 @@
             android:background="@drawable/bg_card_translucent"
             android:paddingHorizontal="12dp"
             android:paddingVertical="5dp"
-            android:text="Showing saved forecast"
+            android:text="@string/showing_saved_forecast"
             android:textColor="@android:color/white"
             android:textSize="12sp"
             android:visibility="gone" />
@@ -138,7 +138,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Hourly forecast"
+                android:text="@string/hourly_forecast"
                 android:textColor="@android:color/white"
                 android:textSize="18sp"
                 android:textStyle="bold"
@@ -167,7 +167,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Next 3 days"
+                android:text="@string/next_3_days"
                 android:textColor="@android:color/white"
                 android:textSize="18sp"
                 android:textStyle="bold"

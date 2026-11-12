@@ -1,6 +1,84 @@
 <resources>
     <string name="app_name">K3 Weather</string>
+
+    <!-- Navigation Tabs -->
     <string name="tab_forecast">Forecast</string>
     <string name="tab_saved">Saved</string>
     <string name="tab_settings">Settings</string>
+
+    <!-- Forecast Screen -->
+    <string name="hourly_forecast">Hourly forecast</string>
+    <string name="next_3_days">Next 3 days</string>
+    <string name="time_now">Now</string>
+    <string name="day_today">Today</string>
+    <string name="showing_saved_forecast">Showing saved forecast</string>
+    <string name="current_location">Current location</string>
+
+    <!-- Search Screen -->
+    <string name="search_locations">Search locations</string>
+    <string name="search_hint">Search city, state, or country</string>
+    <string name="search_results_header">Results</string>
+    <string name="no_results">No results found</string>
+
+    <!-- Saved Locations Screen -->
+    <string name="saved_locations">Saved locations</string>
+    <string name="empty_saved_locations">No saved locations</string>
+    <string name="add_city">Add city</string>
+    <string name="keep_one_city">Keep at least one saved city</string>
+
+    <!-- Settings Screen -->
+    <string name="settings_title">Settings</string>
+    <string name="settings_section_units">Units</string>
+    <string name="settings_temperature">Temperature</string>
+    <string name="settings_wind_speed">Wind speed</string>
+    <string name="settings_section_display">Display</string>
+    <string name="settings_weather_backgrounds">Weather effect background</string>
+    <string name="settings_reduce_motion">Reduce motion</string>
+    <string name="settings_color_scheme">Color scheme</string>
+    <string name="settings_language">Language</string>
+    <string name="settings_section_location">Location</string>
+    <string name="settings_use_current_location">Use current location</string>
+    <string name="settings_attribution">Weather data by Open-Meteo · Map data © OpenStreetMap contributors</string>
+
+    <!-- Color Scheme Names -->
+    <string name="color_scheme_cyan">Cyan Glow</string>
+    <string name="color_scheme_emerald">Emerald Mint</string>
+    <string name="color_scheme_sunset">Sunset Gold</string>
+    <string name="color_scheme_purple">Purple Neon</string>
+    <string name="color_scheme_sky">Sky Blue</string>
+
+    <!-- Language Names -->
+    <string name="lang_system">System default</string>
+    <string name="lang_en">English</string>
+    <string name="lang_vi">Tiếng Việt</string>
+
+    <!-- Days of Week -->
+    <string name="day_mon">Mon</string>
+    <string name="day_tue">Tue</string>
+    <string name="day_wed">Wed</string>
+    <string name="day_thu">Thu</string>
+    <string name="day_fri">Fri</string>
+    <string name="day_sat">Sat</string>
+    <string name="day_sun">Sun</string>
+
+    <!-- Weather Conditions -->
+    <string name="condition_clear_sky">Clear sky</string>
+    <string name="condition_mainly_clear">Mainly clear</string>
+    <string name="condition_partly_cloudy">Partly cloudy</string>
+    <string name="condition_overcast">Overcast</string>
+    <string name="condition_fog">Fog</string>
+    <string name="condition_drizzle">Drizzle</string>
+    <string name="condition_freezing_drizzle">Freezing drizzle</string>
+    <string name="condition_rain">Rain</string>
+    <string name="condition_freezing_rain">Freezing rain</string>
+    <string name="condition_snow">Snow</string>
+    <string name="condition_rain_showers">Rain showers</string>
+    <string name="condition_snow_showers">Snow showers</string>
+    <string name="condition_thunderstorm">Thunderstorm</string>
+    <string name="condition_unknown">Unknown</string>
+
+    <!-- Location Messages -->
+    <string name="location_permission_denied">Location permission denied</string>
+    <string name="location_services_disabled">Location services disabled</string>
+    <string name="location_updated">Location updated: %1$s</string>
 </resources>

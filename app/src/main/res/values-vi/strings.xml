@@ -1,0 +1,84 @@
+<resources>
+    <string name="app_name">K3 Weather</string>
+
+    <!-- Navigation Tabs -->
+    <string name="tab_forecast">Dự báo</string>
+    <string name="tab_saved">Đã lưu</string>
+    <string name="tab_settings">Cài đặt</string>
+
+    <!-- Forecast Screen -->
+    <string name="hourly_forecast">Dự báo hàng giờ</string>
+    <string name="next_3_days">3 ngày tới</string>
+    <string name="time_now">Hiện tại</string>
+    <string name="day_today">Hôm nay</string>
+    <string name="showing_saved_forecast">Hiển thị dữ liệu đã lưu</string>
+    <string name="current_location">Vị trí hiện tại</string>
+
+    <!-- Search Screen -->
+    <string name="search_locations">Tìm kiếm địa điểm</string>
+    <string name="search_hint">Tìm thành phố, khu vực, quốc gia</string>
+    <string name="search_results_header">Kết quả</string>
+    <string name="no_results">Không tìm thấy kết quả</string>
+
+    <!-- Saved Locations Screen -->
+    <string name="saved_locations">Địa điểm đã lưu</string>
+    <string name="empty_saved_locations">Chưa có địa điểm nào được lưu</string>
+    <string name="add_city">Thêm địa điểm</string>
+    <string name="keep_one_city">Cần giữ lại ít nhất một thành phố</string>
+
+    <!-- Settings Screen -->
+    <string name="settings_title">Cài đặt</string>
+    <string name="settings_section_units">Đơn vị</string>
+    <string name="settings_temperature">Nhiệt độ</string>
+    <string name="settings_wind_speed">Tốc độ gió</string>
+    <string name="settings_section_display">Hiển thị</string>
+    <string name="settings_weather_backgrounds">Hiệu ứng thời tiết</string>
+    <string name="settings_reduce_motion">Giảm chuyển động</string>
+    <string name="settings_color_scheme">Bảng màu</string>
+    <string name="settings_language">Ngôn ngữ</string>
+    <string name="settings_section_location">Vị trí</string>
+    <string name="settings_use_current_location">Sử dụng vị trí hiện tại</string>
+    <string name="settings_attribution">Dữ liệu thời tiết bởi Open-Meteo · Bản đồ © OpenStreetMap</string>
+
+    <!-- Color Scheme Names -->
+    <string name="color_scheme_cyan">Xanh Lam Cyan</string>
+    <string name="color_scheme_emerald">Xanh Ngọc Lục</string>
+    <string name="color_scheme_sunset">Hoàng Hôn Cam</string>
+    <string name="color_scheme_purple">Tím Neon</string>
+    <string name="color_scheme_sky">Xanh Da Trời</string>
+
+    <!-- Language Names -->
+    <string name="lang_system">Theo hệ thống</string>
+    <string name="lang_en">English</string>
+    <string name="lang_vi">Tiếng Việt</string>
+
+    <!-- Days of Week -->
+    <string name="day_mon">T2</string>
+    <string name="day_tue">T3</string>
+    <string name="day_wed">T4</string>
+    <string name="day_thu">T5</string>
+    <string name="day_fri">T6</string>
+    <string name="day_sat">T7</string>
+    <string name="day_sun">CN</string>
+
+    <!-- Weather Conditions -->
+    <string name="condition_clear_sky">Trời quang đãng</string>
+    <string name="condition_mainly_clear">Trời ít mây</string>
+    <string name="condition_partly_cloudy">Có mây từng đợt</string>
+    <string name="condition_overcast">Trời u ám</string>
+    <string name="condition_fog">Sương mù</string>
+    <string name="condition_drizzle">Mưa phùn</string>
+    <string name="condition_freezing_drizzle">Mưa phùn băng giá</string>
+    <string name="condition_rain">Mưa</string>
+    <string name="condition_freezing_rain">Mưa băng giá</string>
+    <string name="condition_snow">Tuyết rơi</string>
+    <string name="condition_rain_showers">Mưa rào</string>
+    <string name="condition_snow_showers">Mưa tuyết rào</string>
+    <string name="condition_thunderstorm">Dông bão</string>
+    <string name="condition_unknown">Không xác định</string>
+
+    <!-- Location Messages -->
+    <string name="location_permission_denied">Quyền truy cập vị trí bị từ chối</string>
+    <string name="location_services_disabled">Dịch vụ vị trí đang tắt</string>
+    <string name="location_updated">Đã cập nhật vị trí: %1$s</string>
+</resources>

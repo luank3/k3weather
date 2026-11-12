@@ -65,6 +65,7 @@ class WeatherRepositoryImpl(private val preferences: WeatherPreferences, private
     override suspend fun removeLocation(locationId: String) = preferences.removeLocation(locationId)
     override suspend fun getSelectedLocation() = preferences.getSelectedLocation()
     override suspend fun setSelectedLocation(location: LocationItem) = preferences.setSelectedLocation(location)
+    override suspend fun hasSelectedLocation(): Boolean = preferences.hasSelectedLocation()
     override suspend fun getSettings() = preferences.getSettings()
     override suspend fun updateSettings(settings: AppSettings) = preferences.setSettings(settings)
 }

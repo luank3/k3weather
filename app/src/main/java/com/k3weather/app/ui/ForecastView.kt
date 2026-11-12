@@ -1,10 +1,9 @@
 package com.k3weather.app.ui
 
+import android.graphics.drawable.GradientDrawable
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.ImageView
-import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.k3weather.app.R
 import com.k3weather.app.core.model.*
@@ -13,10 +12,17 @@ import com.k3weather.app.databinding.ItemHourlyForecastBinding
 import com.k3weather.app.databinding.LayoutForecastBinding
 import com.k3weather.app.data.mapper.WeatherCodeMapper
 import com.k3weather.app.data.mapper.WeatherCondition
-import com.k3weather.app.ui.common.WeatherBackgroundHelper
+import java.time.Instant
+import java.time.LocalDate
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
+import java.util.Locale
 
 class ForecastView(private val binding: LayoutForecastBinding) {
+
     fun bind(state: WeatherUiState, onSearch: () -> Unit, onRefresh: () -> Unit) {
+        val context = binding.root.context
+
         binding.searchButton.setOnClickListener { onSearch() }
         binding.refreshButton.setOnClickListener { onRefresh() }
         binding.retryButton.setOnClickListener { onRefresh() }
@@ -32,26 +38,25 @@ class ForecastView(private val binding: LayoutForecastBinding) {
 
         val forecast = state.forecast ?: return
         val unit = state.settings.tempUnit
+        val colorScheme = state.settings.colorScheme
+
         binding.cityName.text = forecast.location.name
         binding.citySubtitle.text = forecast.location.subtitle.ifBlank { forecast.location.country }
         binding.temperature.text = unit.format(forecast.current.temperatureC)
-        binding.condition.text = forecast.current.condition
+        binding.condition.text = WeatherCodeMapper.getLocalizedLabel(context, forecast.current.weatherCode)
         binding.highLow.text = "H ${unit.format(forecast.current.maxTempC)} • L ${unit.format(forecast.current.minTempC)}"
 
-        // Top text color: dark navy on Đà Lạt daytime sunny sky matching mockup, otherwise white
-        val isDalatDay = forecast.current.isDay && (forecast.location.name.contains("Đà Lạt") || forecast.location.name.contains("Da Lat"))
-        val topTextColor = if (isDalatDay) 0xFF0E1E2F.toInt() else 0xFFFFFFFF.toInt()
-        val topSubtitleColor = if (isDalatDay) 0xCC1E293B.toInt() else 0xCCFFFFFF.toInt()
-        binding.cityName.setTextColor(topTextColor)
-        binding.citySubtitle.setTextColor(topSubtitleColor)
-        binding.temperature.setTextColor(topTextColor)
-        binding.condition.setTextColor(topTextColor)
-        binding.highLow.setTextColor(topSubtitleColor)
-        binding.ivLocationPin.imageTintList = android.content.res.ColorStateList.valueOf(topTextColor)
-        binding.searchButton.imageTintList = android.content.res.ColorStateList.valueOf(topTextColor)
+        // Text styling
+        binding.cityName.setTextColor(0xFFFFFFFF.toInt())
+        binding.citySubtitle.setTextColor(0xCCFFFFFF.toInt())
+        binding.temperature.setTextColor(0xFFFFFFFF.toInt())
+        binding.condition.setTextColor(0xFFFFFFFF.toInt())
+        binding.highLow.setTextColor(0xCCFFFFFF.toInt())
+        binding.ivLocationPin.imageTintList = android.content.res.ColorStateList.valueOf(0xFFFFFFFF.toInt())
+        binding.searchButton.imageTintList = android.content.res.ColorStateList.valueOf(0xFFFFFFFF.toInt())
 
         // Hourly forecast
-        binding.hourlyList.adapter = HourlyAdapter(forecast.hourly, unit)
+        binding.hourlyList.adapter = HourlyAdapter(forecast.hourly, unit, context.getString(R.string.time_now))
 
         // Next 3 days forecast
         val minGlobal = forecast.daily.minOfOrNull { it.minTempC } ?: 0.0
@@ -59,17 +64,32 @@ class ForecastView(private val binding: LayoutForecastBinding) {
         val tempRange = (maxGlobal - minGlobal).coerceAtLeast(1.0)
 
         binding.dailyRows.removeAllViews()
+        val currentLocale = context.resources.configuration.locales[0] ?: Locale.getDefault()
+
         forecast.daily.take(3).forEachIndexed { index, day ->
-            val row = ItemDailyForecastBinding.inflate(LayoutInflater.from(binding.root.context), binding.dailyRows, false)
-            val dayName = if (index == 0) "Today" else {
+            val row = ItemDailyForecastBinding.inflate(LayoutInflater.from(context), binding.dailyRows, false)
+
+            val dayName = if (index == 0) {
+                context.getString(R.string.day_today)
+            } else {
                 runCatching {
-                    java.time.LocalDate.parse(day.dateIso).format(java.time.format.DateTimeFormatter.ofPattern("EEE", java.util.Locale.US))
+                    LocalDate.parse(day.dateIso).format(DateTimeFormatter.ofPattern("EEE", currentLocale))
                 }.getOrDefault(day.dayLabel)
             }
+
             row.dayLabel.text = dayName
             row.dayIcon.setImageResource(weatherIcon(day.weatherCode))
             row.minTemperature.text = unit.format(day.minTempC)
             row.maxTemperature.text = unit.format(day.maxTempC)
+
+            // Dynamic gradient bar with current color scheme
+            val barGradient = GradientDrawable(
+                GradientDrawable.Orientation.LEFT_RIGHT,
+                intArrayOf(colorScheme.gradientStart, colorScheme.gradientEnd)
+            ).apply {
+                cornerRadius = 6f
+            }
+            row.temperatureRange.background = barGradient
 
             // Dynamic gradient temperature bar width & left margin
             row.temperatureRangeContainer.post {
@@ -96,17 +116,28 @@ class ForecastBinder(private val view: ForecastView) {
     fun bind(state: WeatherUiState, onSearch: () -> Unit, onRefresh: () -> Unit) = view.bind(state, onSearch, onRefresh)
 }
 
-private class HourlyAdapter(private val items: List<HourlyForecast>, private val unit: TemperatureUnit) : RecyclerView.Adapter<HourlyAdapter.Holder>() {
+private class HourlyAdapter(
+    private val items: List<HourlyForecast>,
+    private val unit: TemperatureUnit,
+    private val nowLabel: String
+) : RecyclerView.Adapter<HourlyAdapter.Holder>() {
+
     class Holder(val binding: ItemHourlyForecastBinding) : RecyclerView.ViewHolder(binding.root)
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int) = Holder(ItemHourlyForecastBinding.inflate(LayoutInflater.from(parent.context), parent, false))
-    override fun getItemCount() = minOf(5, items.size)
+
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): Holder =
+        Holder(ItemHourlyForecastBinding.inflate(LayoutInflater.from(parent.context), parent, false))
+
+    override fun getItemCount(): Int = minOf(5, items.size)
+
     override fun onBindViewHolder(holder: Holder, position: Int) {
         val item = items[position]
-        holder.binding.hourTime.text = if (position == 0) "Now" else {
+        holder.binding.hourTime.text = if (position == 0) {
+            nowLabel
+        } else {
             runCatching {
-                val instant = java.time.Instant.ofEpochSecond(item.timeEpochSeconds)
-                val zone = java.time.ZoneId.systemDefault()
-                instant.atZone(zone).format(java.time.format.DateTimeFormatter.ofPattern("h a", java.util.Locale.US))
+                val instant = Instant.ofEpochSecond(item.timeEpochSeconds)
+                val zone = ZoneId.systemDefault()
+                instant.atZone(zone).format(DateTimeFormatter.ofPattern("h a", Locale.US))
             }.getOrDefault(item.timeLabel)
         }
         holder.binding.hourIcon.setImageResource(weatherIcon(item.weatherCode))

@@ -6,25 +6,11 @@
     android:layout_height="match_parent"
     android:background="@color/primary_dark_teal">
 
-    <!-- Photographic background layer -->
-    <ImageView
-        android:id="@+id/ivBackgroundPhoto"
+    <!-- Full screen weather effect background -->
+    <com.k3weather.app.ui.common.WeatherEffectView
+        android:id="@+id/weatherEffectBackground"
         android:layout_width="0dp"
         android:layout_height="0dp"
-        android:scaleType="centerCrop"
-        android:src="@drawable/city_dalat"
-        android:contentDescription="@null"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
-
-    <!-- Weather/Time scrim overlay layer -->
-    <View
-        android:id="@+id/viewWeatherOverlay"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:background="@drawable/bg_gradient_overlay"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -53,13 +39,14 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 
-    <!-- Persistent Bottom Navigation Bar -->
+    <!-- Persistent Bottom Navigation Bar (Glassmorphic & Translucent) -->
     <LinearLayout
         android:id="@+id/bottomNavBar"
         android:layout_width="0dp"
-        android:layout_height="64dp"
+        android:layout_height="wrap_content"
+        android:minHeight="64dp"
         android:orientation="horizontal"
-        android:background="@color/nav_bar_bg"
+        android:background="@drawable/bg_nav_glass"
         android:elevation="8dp"
         android:baselineAligned="false"
         app:layout_constraintBottom_toBottomOf="parent"
@@ -70,7 +57,7 @@
         <LinearLayout
             android:id="@+id/tabForecast"
             android:layout_width="0dp"
-            android:layout_height="match_parent"
+            android:layout_height="64dp"
             android:layout_weight="1"
             android:gravity="center"
             android:orientation="vertical"
@@ -109,7 +96,7 @@
         <LinearLayout
             android:id="@+id/tabSaved"
             android:layout_width="0dp"
-            android:layout_height="match_parent"
+            android:layout_height="64dp"
             android:layout_weight="1"
             android:gravity="center"
             android:orientation="vertical"
@@ -148,7 +135,7 @@
         <LinearLayout
             android:id="@+id/tabSettings"
             android:layout_width="0dp"
-            android:layout_height="match_parent"
+            android:layout_height="64dp"
             android:layout_weight="1"
             android:gravity="center"
             android:orientation="vertical"

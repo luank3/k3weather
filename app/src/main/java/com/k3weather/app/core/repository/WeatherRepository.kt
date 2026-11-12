@@ -13,6 +13,7 @@ interface WeatherRepository {
     suspend fun removeLocation(locationId: String): Boolean
     suspend fun getSelectedLocation(): LocationItem
     suspend fun setSelectedLocation(location: LocationItem)
+    suspend fun hasSelectedLocation(): Boolean
     suspend fun getSettings(): AppSettings
     suspend fun updateSettings(settings: AppSettings)
 }

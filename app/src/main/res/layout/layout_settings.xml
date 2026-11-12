@@ -16,7 +16,7 @@
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Settings"
+            android:text="@string/settings_title"
             android:textColor="@android:color/white"
             android:textSize="26sp"
             android:textStyle="bold"
@@ -27,7 +27,7 @@
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Units"
+            android:text="@string/settings_section_units"
             android:textColor="@android:color/white"
             android:textSize="16sp"
             android:textStyle="bold"
@@ -65,7 +65,7 @@
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:layout_marginStart="14dp"
-                    android:text="Temperature"
+                    android:text="@string/settings_temperature"
                     android:textColor="@android:color/white"
                     android:textSize="16sp"
                     android:fontFamily="sans-serif" />
@@ -110,7 +110,7 @@
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:layout_marginStart="14dp"
-                    android:text="Wind speed"
+                    android:text="@string/settings_wind_speed"
                     android:textColor="@android:color/white"
                     android:textSize="16sp"
                     android:fontFamily="sans-serif" />
@@ -132,7 +132,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="24dp"
             android:layout_marginBottom="10dp"
-            android:text="Display"
+            android:text="@string/settings_section_display"
             android:textColor="@android:color/white"
             android:textSize="16sp"
             android:textStyle="bold"
@@ -165,7 +165,7 @@
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:layout_marginStart="14dp"
-                    android:text="Weather backgrounds"
+                    android:text="@string/settings_weather_backgrounds"
                     android:textColor="@android:color/white"
                     android:textSize="16sp"
                     android:fontFamily="sans-serif" />
@@ -204,7 +204,7 @@
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:layout_marginStart="14dp"
-                    android:text="Reduce motion"
+                    android:text="@string/settings_reduce_motion"
                     android:textColor="@android:color/white"
                     android:textSize="16sp"
                     android:fontFamily="sans-serif" />
@@ -216,6 +216,96 @@
                     app:thumbTint="@color/accent_cyan"
                     app:trackTint="#8000E5FF" />
             </LinearLayout>
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:layout_marginStart="50dp"
+                android:background="#1AFFFFFF" />
+
+            <!-- Color scheme Row -->
+            <LinearLayout
+                android:id="@+id/rowColorScheme"
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+                android:background="?attr/selectableItemBackground"
+                android:clickable="true"
+                android:focusable="true"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:paddingHorizontal="16dp">
+
+                <ImageView
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
+                    android:contentDescription="@null"
+                    android:src="@drawable/ic_palette"
+                    app:tint="@android:color/white" />
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginStart="14dp"
+                    android:text="@string/settings_color_scheme"
+                    android:textColor="@android:color/white"
+                    android:textSize="16sp"
+                    android:fontFamily="sans-serif" />
+
+                <TextView
+                    android:id="@+id/tvColorSchemeValue"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Cyan Glow  ›"
+                    android:textColor="#CCFFFFFF"
+                    android:textSize="16sp"
+                    android:fontFamily="sans-serif-medium" />
+            </LinearLayout>
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:layout_marginStart="50dp"
+                android:background="#1AFFFFFF" />
+
+            <!-- Language Row -->
+            <LinearLayout
+                android:id="@+id/rowLanguage"
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+                android:background="?attr/selectableItemBackground"
+                android:clickable="true"
+                android:focusable="true"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:paddingHorizontal="16dp">
+
+                <ImageView
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
+                    android:contentDescription="@null"
+                    android:src="@drawable/ic_language"
+                    app:tint="@android:color/white" />
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginStart="14dp"
+                    android:text="@string/settings_language"
+                    android:textColor="@android:color/white"
+                    android:textSize="16sp"
+                    android:fontFamily="sans-serif" />
+
+                <TextView
+                    android:id="@+id/tvLanguageValue"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="English  ›"
+                    android:textColor="#CCFFFFFF"
+                    android:textSize="16sp"
+                    android:fontFamily="sans-serif-medium" />
+            </LinearLayout>
         </LinearLayout>
 
         <!-- Section 3: Location -->
@@ -224,7 +314,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="24dp"
             android:layout_marginBottom="10dp"
-            android:text="Location"
+            android:text="@string/settings_section_location"
             android:textColor="@android:color/white"
             android:textSize="16sp"
             android:textStyle="bold"
@@ -257,7 +347,7 @@
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:layout_marginStart="14dp"
-                    android:text="Use current location"
+                    android:text="@string/settings_use_current_location"
                     android:textColor="@android:color/white"
                     android:textSize="16sp"
                     android:fontFamily="sans-serif" />
@@ -279,7 +369,7 @@
             android:layout_marginTop="32dp"
             android:layout_marginBottom="24dp"
             android:gravity="center"
-            android:text="Weather data by Open-Meteo · Map data © OpenStreetMap contributors"
+            android:text="@string/settings_attribution"
             android:textColor="#80FFFFFF"
             android:textSize="12sp"
             android:fontFamily="sans-serif" />

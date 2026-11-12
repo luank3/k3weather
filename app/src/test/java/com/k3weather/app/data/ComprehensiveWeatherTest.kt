@@ -150,6 +150,16 @@ class ComprehensiveWeatherTest {
         assertEquals("Da Lat", normalizeSearchQuery("Đa\u0300 La\u0323t"))
     }
 
+    @Test
+    fun colorSchemeResolutionAndFallbacks() {
+        assertEquals(com.k3weather.app.core.model.AppColorScheme.CYAN, com.k3weather.app.core.model.AppColorScheme.fromId("cyan"))
+        assertEquals(com.k3weather.app.core.model.AppColorScheme.EMERALD, com.k3weather.app.core.model.AppColorScheme.fromId("emerald"))
+        assertEquals(com.k3weather.app.core.model.AppColorScheme.SUNSET, com.k3weather.app.core.model.AppColorScheme.fromId("sunset"))
+        assertEquals(com.k3weather.app.core.model.AppColorScheme.PURPLE, com.k3weather.app.core.model.AppColorScheme.fromId("purple"))
+        assertEquals(com.k3weather.app.core.model.AppColorScheme.SKY, com.k3weather.app.core.model.AppColorScheme.fromId("sky"))
+        assertEquals(com.k3weather.app.core.model.AppColorScheme.CYAN, com.k3weather.app.core.model.AppColorScheme.fromId("nonexistent"))
+    }
+
     private fun location(timezone: String) = LocationItem("test", "Test", latitude = 0.0, longitude = 0.0, timezone = timezone)
 
     private fun forecastJson(timezone: String, now: String, hourlyTimes: List<String>, dailyTimes: List<String>): JSONObject {

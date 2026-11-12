@@ -10,13 +10,11 @@
     android:clickable="true"
     android:focusable="true">
 
-    <!-- Photographic background -->
-    <ImageView
-        android:id="@+id/cityBackground"
+    <!-- Weather effect background inside card -->
+    <com.k3weather.app.ui.common.WeatherEffectView
+        android:id="@+id/weatherEffectBackground"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:contentDescription="@null"
-        android:scaleType="centerCrop" />
+        android:layout_height="match_parent" />
 
     <!-- Gradient overlay for text contrast -->
     <View
@@ -85,7 +83,7 @@
             android:layout_alignParentEnd="true"
             android:layout_alignParentTop="true"
             android:background="?attr/selectableItemBackgroundBorderless"
-            android:contentDescription="Remove location"
+            android:contentDescription="@string/add_city"
             android:padding="6dp"
             android:src="@drawable/ic_delete"
             app:tint="#A0FFFFFF" />
@@ -107,12 +105,10 @@
             android:layout_height="wrap_content"
             android:layout_alignParentBottom="true"
             android:layout_alignParentEnd="true"
-            android:text="18°"
+            android:text="--°"
             android:textColor="@android:color/white"
             android:textSize="36sp"
             android:textStyle="bold"
-            android:fontFamily="sans-serif-medium"
-            android:includeFontPadding="false" />
-
+            android:fontFamily="sans-serif-medium" />
     </RelativeLayout>
 </FrameLayout>

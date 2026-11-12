@@ -5,6 +5,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.content.res.ColorStateList
+import android.graphics.drawable.GradientDrawable
 import android.location.Geocoder
 import android.location.Location
 import android.location.LocationListener
@@ -16,15 +17,19 @@ import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.content.ContextCompat
+import androidx.core.os.LocaleListCompat
 import androidx.core.view.ViewCompat
+import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
-import com.k3weather.app.core.model.AppSettings
+import com.k3weather.app.core.model.AppColorScheme
 import com.k3weather.app.core.model.ForecastData
 import com.k3weather.app.core.model.LocationItem
+import com.k3weather.app.data.remote.LocationResolver
 import com.k3weather.app.databinding.ActivityMainBinding
 import com.k3weather.app.databinding.LayoutForecastBinding
 import com.k3weather.app.databinding.LayoutSavedLocationsBinding
@@ -37,6 +42,7 @@ import com.k3weather.app.ui.SavedLocationsBinder
 import com.k3weather.app.ui.SearchBinder
 import com.k3weather.app.ui.SearchView
 import com.k3weather.app.ui.SettingsBinder
+import com.k3weather.app.ui.WeatherUiState
 import com.k3weather.app.ui.WeatherViewModel
 import com.k3weather.app.ui.common.WeatherBackgroundHelper
 import kotlinx.coroutines.Dispatchers
@@ -68,6 +74,8 @@ class MainActivity : AppCompatActivity() {
     private enum class SearchSource { FORECAST, SAVED }
     private var searchSource = SearchSource.FORECAST
 
+    private var activeColorScheme = AppColorScheme.CYAN
+
     private val locationPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
     ) { permissions ->
@@ -76,7 +84,7 @@ class MainActivity : AppCompatActivity() {
         if (granted) {
             obtainCurrentLocation()
         } else {
-            Toast.makeText(this, "Location permission denied", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, getString(R.string.location_permission_denied), Toast.LENGTH_SHORT).show()
             val currentSettings = viewModel.state.value.settings
             viewModel.updateSettings(currentSettings.copy(useCurrentLocation = false))
         }
@@ -84,6 +92,8 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        WindowCompat.setDecorFitsSystemWindows(window, false)
+
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
@@ -95,6 +105,7 @@ class MainActivity : AppCompatActivity() {
         setupBottomNavigation()
         setupBackPress()
         observeState()
+        resolveInitialLocation()
     }
 
     private fun setupInsets() {
@@ -131,7 +142,7 @@ class MainActivity : AppCompatActivity() {
             },
             onDelete = { location ->
                 if (viewModel.state.value.savedLocations.size <= 1) {
-                    Toast.makeText(this, "Keep at least one saved city", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this, getString(R.string.keep_one_city), Toast.LENGTH_SHORT).show()
                 } else {
                     viewModel.removeLocation(location)
                 }
@@ -157,8 +168,20 @@ class MainActivity : AppCompatActivity() {
             try {
                 val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://open-meteo.com/"))
                 startActivity(intent)
-            } catch (e: Exception) {
-                // Ignore if browser not found
+            } catch (_: Exception) {
+            }
+        }
+    }
+
+    private fun resolveInitialLocation() {
+        val repository = (application as WeatherApplication).repository
+        lifecycleScope.launch {
+            val hasExplicit = withContext(Dispatchers.IO) { repository.hasSelectedLocation() }
+            val settings = withContext(Dispatchers.IO) { repository.getSettings() }
+
+            if (!hasExplicit || settings.useCurrentLocation) {
+                val detected = LocationResolver.resolveDefaultLocation(this@MainActivity)
+                viewModel.selectLocation(detected)
             }
         }
     }
@@ -232,6 +255,10 @@ class MainActivity : AppCompatActivity() {
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.state.collect { state ->
+                    // Apply Language & Color Scheme
+                    applyColorScheme(state.settings.colorScheme)
+                    applyLanguage(state.settings.language)
+
                     // Update Forecast
                     forecastBinder.bind(
                         state = state,
@@ -264,34 +291,66 @@ class MainActivity : AppCompatActivity() {
                         }
                     )
 
-                    // Update App Background
+                    // Update Weather Effect Background
                     updateMainBackground(state)
                 }
             }
         }
     }
 
-    private fun updateMainBackground(state: com.k3weather.app.ui.WeatherUiState) {
-        val location = state.selectedLocation ?: return
-        val condition = state.forecast?.current?.condition.orEmpty()
+    private fun applyColorScheme(colorScheme: AppColorScheme) {
+        if (activeColorScheme == colorScheme) return
+        activeColorScheme = colorScheme
+
+        val accentColor = colorScheme.primaryAccent
+        val tintList = ColorStateList.valueOf(accentColor)
+
+        // Indicator pills
+        binding.indicatorForecast.backgroundTintList = tintList
+        binding.indicatorSaved.backgroundTintList = tintList
+        binding.indicatorSettings.backgroundTintList = tintList
+
+        // Saved add button
+        savedBinding.addCityButton.imageTintList = tintList
+
+        // Search pill border
+        val searchPill = GradientDrawable().apply {
+            shape = GradientDrawable.RECTANGLE
+            cornerRadius = 24f * resources.displayMetrics.density
+            setColor(0xCC0E282E.toInt())
+            setStroke((1.5f * resources.displayMetrics.density).toInt(), accentColor)
+        }
+        searchBinding.root.findViewById<View>(R.id.searchInput)?.parent?.let {
+            if (it is View) it.background = searchPill
+        }
+    }
+
+    private fun applyLanguage(language: String) {
+        val targetLocale = when (language) {
+            "vi" -> LocaleListCompat.forLanguageTags("vi")
+            "en" -> LocaleListCompat.forLanguageTags("en")
+            else -> LocaleListCompat.getEmptyLocaleList()
+        }
+        if (AppCompatDelegate.getApplicationLocales() != targetLocale) {
+            AppCompatDelegate.setApplicationLocales(targetLocale)
+        }
+    }
+
+    private fun updateMainBackground(state: WeatherUiState) {
+        val code = state.forecast?.current?.weatherCode ?: 0
         val isDay = state.forecast?.current?.isDay ?: true
         val enabled = state.settings.weatherBackgroundsEnabled
+        val reduceMotion = state.settings.reduceMotion
+        val colorScheme = state.settings.colorScheme
 
-        if (!enabled) {
-            binding.ivBackgroundPhoto.setImageDrawable(null)
-            binding.rootContainer.setBackgroundColor(ContextCompat.getColor(this, R.color.primary_dark_teal))
-            binding.viewWeatherOverlay.visibility = View.GONE
-            return
-        }
-
-        binding.viewWeatherOverlay.visibility = View.VISIBLE
-        val drawable = WeatherBackgroundHelper.cityDrawable(this, location)
-        if (drawable != null) {
-            binding.ivBackgroundPhoto.setImageDrawable(drawable)
-        } else {
-            binding.ivBackgroundPhoto.setImageResource(R.drawable.city_dalat)
-        }
-        WeatherBackgroundHelper.apply(binding.viewWeatherOverlay, location, condition, isDay, enabled)
+        WeatherBackgroundHelper.applyWeatherEffect(
+            view = binding.weatherEffectBackground,
+            weatherCode = code,
+            isDay = isDay,
+            reduceMotion = reduceMotion,
+            colorScheme = colorScheme,
+            enabled = enabled
+        )
     }
 
     private fun refreshSavedForecasts() {
@@ -332,7 +391,7 @@ class MainActivity : AppCompatActivity() {
         val hasNetwork = locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER)
 
         if (!hasGps && !hasNetwork) {
-            Toast.makeText(this, "Location services disabled", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, getString(R.string.location_services_disabled), Toast.LENGTH_SHORT).show()
             return
         }
 
@@ -352,7 +411,6 @@ class MainActivity : AppCompatActivity() {
         if (lastLocation != null) {
             handleResolvedLocation(lastLocation)
         } else {
-            // Request single location update
             val provider = if (hasNetwork) LocationManager.NETWORK_PROVIDER else LocationManager.GPS_PROVIDER
             locationManager.requestSingleUpdate(provider, object : LocationListener {
                 override fun onLocationChanged(loc: Location) {
@@ -368,7 +426,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun handleResolvedLocation(loc: Location) {
         lifecycleScope.launch(Dispatchers.IO) {
-            var placeName = "Current location"
+            var placeName = getString(R.string.current_location)
             var region = ""
             var country = ""
             try {
@@ -376,12 +434,11 @@ class MainActivity : AppCompatActivity() {
                 val addresses = geocoder.getFromLocation(loc.latitude, loc.longitude, 1)
                 if (!addresses.isNullOrEmpty()) {
                     val addr = addresses[0]
-                    placeName = addr.locality ?: addr.subAdminArea ?: addr.adminArea ?: "Current location"
+                    placeName = addr.locality ?: addr.subAdminArea ?: addr.adminArea ?: getString(R.string.current_location)
                     region = addr.adminArea.orEmpty()
                     country = addr.countryName.orEmpty()
                 }
-            } catch (e: Exception) {
-                // Fallback to placeName
+            } catch (_: Exception) {
             }
 
             val currentLocItem = LocationItem(
@@ -398,7 +455,7 @@ class MainActivity : AppCompatActivity() {
             withContext(Dispatchers.Main) {
                 viewModel.selectLocation(currentLocItem)
                 selectTab(Tab.FORECAST)
-                Toast.makeText(this@MainActivity, "Location updated: $placeName", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this@MainActivity, getString(R.string.location_updated, placeName), Toast.LENGTH_SHORT).show()
             }
         }
     }

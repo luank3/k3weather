@@ -6,36 +6,45 @@
     android:background="@android:color/transparent"
     android:orientation="vertical"
     android:padding="20dp">
+
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:gravity="center_vertical"
         android:orientation="horizontal">
+
         <TextView
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="Saved locations"
+            android:text="@string/saved_locations"
             android:textColor="@android:color/white"
             android:textSize="26sp"
-            android:textStyle="bold" />
+            android:textStyle="bold"
+            android:fontFamily="sans-serif-medium" />
+
         <ImageButton
             android:id="@+id/addCityButton"
             android:layout_width="48dp"
             android:layout_height="48dp"
             android:background="?attr/selectableItemBackgroundBorderless"
-            android:contentDescription="Add city"
-            android:src="@drawable/ic_add" />
+            android:contentDescription="@string/add_city"
+            android:src="@drawable/ic_add"
+            app:tint="@android:color/white" />
     </LinearLayout>
+
     <TextView
         android:id="@+id/emptyState"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="32dp"
         android:gravity="center"
-        android:text="No saved locations"
+        android:text="@string/empty_saved_locations"
         android:textColor="#CCFFFFFF"
+        android:textSize="15sp"
+        android:fontFamily="sans-serif"
         android:visibility="gone" />
+
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/savedLocationsList"
         android:layout_width="match_parent"
