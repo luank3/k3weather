@@ -19,21 +19,27 @@ class ComprehensiveWeatherTest {
         val expected = mapOf(
             0 to ("Clear sky" to WeatherCondition.CLEAR),
             1 to ("Mainly clear" to WeatherCondition.CLEAR),
-            2 to ("Partly cloudy" to WeatherCondition.CLOUDY),
+            2 to ("Partly cloudy" to WeatherCondition.PARTLY_CLOUDY),
             3 to ("Overcast" to WeatherCondition.CLOUDY),
             45 to ("Fog" to WeatherCondition.FOG), 48 to ("Fog" to WeatherCondition.FOG),
-            51 to ("Drizzle" to WeatherCondition.RAIN), 53 to ("Drizzle" to WeatherCondition.RAIN),
-            55 to ("Drizzle" to WeatherCondition.RAIN), 56 to ("Freezing drizzle" to WeatherCondition.RAIN),
-            57 to ("Freezing drizzle" to WeatherCondition.RAIN), 61 to ("Rain" to WeatherCondition.RAIN),
-            63 to ("Rain" to WeatherCondition.RAIN), 65 to ("Rain" to WeatherCondition.RAIN),
-            66 to ("Freezing rain" to WeatherCondition.RAIN), 67 to ("Freezing rain" to WeatherCondition.RAIN),
+            51 to ("Drizzle" to WeatherCondition.DRIZZLE), 53 to ("Drizzle" to WeatherCondition.DRIZZLE),
+            55 to ("Dense drizzle" to WeatherCondition.DRIZZLE),
+            56 to ("Freezing drizzle" to WeatherCondition.SLEET),
+            57 to ("Freezing drizzle" to WeatherCondition.SLEET),
+            61 to ("Rain" to WeatherCondition.RAIN),
+            63 to ("Rain" to WeatherCondition.RAIN),
+            65 to ("Heavy rain" to WeatherCondition.HEAVY_RAIN),
+            66 to ("Freezing rain" to WeatherCondition.SLEET),
+            67 to ("Freezing rain" to WeatherCondition.SLEET),
             71 to ("Snow" to WeatherCondition.SNOW), 73 to ("Snow" to WeatherCondition.SNOW),
-            75 to ("Snow" to WeatherCondition.SNOW), 77 to ("Snow" to WeatherCondition.SNOW),
+            75 to ("Heavy snow" to WeatherCondition.SNOW), 77 to ("Heavy snow" to WeatherCondition.SNOW),
             80 to ("Rain showers" to WeatherCondition.RAIN), 81 to ("Rain showers" to WeatherCondition.RAIN),
-            82 to ("Rain showers" to WeatherCondition.RAIN), 85 to ("Snow showers" to WeatherCondition.SNOW),
-            86 to ("Snow showers" to WeatherCondition.SNOW), 95 to ("Thunderstorm" to WeatherCondition.THUNDER),
-            96 to ("Thunderstorm" to WeatherCondition.THUNDER), 97 to ("Thunderstorm" to WeatherCondition.THUNDER),
-            98 to ("Thunderstorm" to WeatherCondition.THUNDER), 99 to ("Thunderstorm" to WeatherCondition.THUNDER)
+            82 to ("Violent rain showers" to WeatherCondition.HEAVY_RAIN),
+            85 to ("Snow showers" to WeatherCondition.SNOW),
+            86 to ("Snow showers" to WeatherCondition.SNOW),
+            95 to ("Thunderstorm" to WeatherCondition.THUNDER),
+            96 to ("Thunderstorm with hail" to WeatherCondition.THUNDER_HAIL),
+            99 to ("Thunderstorm with hail" to WeatherCondition.THUNDER_HAIL)
         )
         for (code in 0..99) {
             val mapped = WeatherCodeMapper.map(code)

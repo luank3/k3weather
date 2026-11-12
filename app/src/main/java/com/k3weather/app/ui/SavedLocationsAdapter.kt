@@ -3,7 +3,6 @@ package com.k3weather.app.ui
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
-import com.k3weather.app.R
 import com.k3weather.app.core.model.*
 import com.k3weather.app.data.mapper.WeatherCodeMapper
 import com.k3weather.app.databinding.ItemSavedLocationBinding
@@ -70,7 +69,7 @@ class SavedLocationsAdapter(
             if (location.isCurrentLocation) android.view.View.VISIBLE else android.view.View.GONE
 
         // Weather icon
-        holder.binding.ivWeatherIcon.setImageResource(weatherIcon(weatherCode, isDay))
+        holder.binding.ivWeatherIcon.setImageResource(WeatherCodeMapper.getIcon(weatherCode, isDay))
 
         // Card weather effect background
         WeatherBackgroundHelper.applyWeatherEffect(
@@ -85,15 +84,6 @@ class SavedLocationsAdapter(
         holder.binding.root.setOnClickListener { onSelect(location) }
         holder.binding.deleteButton.setOnClickListener { onDelete(location) }
     }
-}
-
-private fun weatherIcon(code: Int, isDay: Boolean = true): Int = when (WeatherCodeMapper.map(code).condition) {
-    com.k3weather.app.data.mapper.WeatherCondition.CLEAR -> if (isDay) R.drawable.ic_weather_clear_day else R.drawable.ic_weather_clear_night
-    com.k3weather.app.data.mapper.WeatherCondition.CLOUDY -> if (isDay) R.drawable.ic_weather_partly_cloudy else R.drawable.ic_weather_cloudy
-    com.k3weather.app.data.mapper.WeatherCondition.FOG -> R.drawable.ic_weather_fog
-    com.k3weather.app.data.mapper.WeatherCondition.RAIN -> R.drawable.ic_weather_rain
-    com.k3weather.app.data.mapper.WeatherCondition.SNOW -> R.drawable.ic_weather_snow
-    com.k3weather.app.data.mapper.WeatherCondition.THUNDER -> R.drawable.ic_weather_thunder
 }
 
 class SavedLocationsBinder(private val adapter: SavedLocationsAdapter) {

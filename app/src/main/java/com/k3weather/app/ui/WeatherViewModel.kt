@@ -13,6 +13,8 @@ import kotlinx.coroutines.launch
 
 data class WeatherUiState(
     val selectedLocation: LocationItem? = null,
+    val detectedCurrentLocation: LocationItem? = null,
+    val currentLocationForecast: ForecastData? = null,
     val forecast: ForecastData? = null,
     val savedLocations: List<LocationItem> = emptyList(),
     val searchResults: List<LocationItem> = emptyList(),
@@ -38,6 +40,20 @@ class WeatherViewModel(private val repository: WeatherRepository) : ViewModel() 
         }
     }
 
+    fun setDetectedCurrentLocation(location: LocationItem) {
+        _state.value = _state.value.copy(detectedCurrentLocation = location)
+        viewModelScope.launch {
+            repository.getForecast(location, forceRefresh = false).onSuccess { forecast ->
+                _state.value = _state.value.copy(currentLocationForecast = forecast)
+            }
+        }
+    }
+
+    fun returnToCurrentLocation() {
+        val current = _state.value.detectedCurrentLocation ?: return
+        selectLocation(current)
+    }
+
     fun refresh(force: Boolean = true) {
         val location = _state.value.selectedLocation ?: return
         viewModelScope.launch { loadForecast(location, force) }
@@ -46,7 +62,14 @@ class WeatherViewModel(private val repository: WeatherRepository) : ViewModel() 
     private suspend fun loadForecast(location: LocationItem, force: Boolean = false) {
         _state.value = _state.value.copy(selectedLocation = location, loading = true, error = null)
         repository.getForecast(location, force).fold(
-            onSuccess = { forecast -> _state.value = _state.value.copy(forecast = forecast, loading = false) },
+            onSuccess = { forecast ->
+                val isCurrent = location.isCurrentLocation || location.id == _state.value.detectedCurrentLocation?.id
+                _state.value = _state.value.copy(
+                    forecast = forecast,
+                    loading = false,
+                    currentLocationForecast = if (isCurrent) forecast else _state.value.currentLocationForecast
+                )
+            },
             onFailure = { error ->
                 val cached = repository.getCachedForecast(location.id)
                 _state.value = _state.value.copy(forecast = cached, loading = false, error = error.message ?: "Unable to load forecast")
@@ -55,7 +78,10 @@ class WeatherViewModel(private val repository: WeatherRepository) : ViewModel() 
     }
 
     fun selectLocation(location: LocationItem) {
-        viewModelScope.launch { repository.setSelectedLocation(location); loadForecast(location) }
+        viewModelScope.launch {
+            repository.setSelectedLocation(location)
+            loadForecast(location)
+        }
     }
 
     fun search(query: String) {
@@ -89,6 +115,9 @@ class WeatherViewModel(private val repository: WeatherRepository) : ViewModel() 
     }
 
     fun updateSettings(settings: AppSettings) {
-        viewModelScope.launch { repository.updateSettings(settings); _state.value = _state.value.copy(settings = settings) }
+        viewModelScope.launch {
+            repository.updateSettings(settings)
+            _state.value = _state.value.copy(settings = settings)
+        }
     }
 }

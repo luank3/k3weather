@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">K3 Weather</string>
+    <string name="app_name">Thời tiết</string>
 
     <!-- Navigation Tabs -->
     <string name="tab_forecast">Dự báo</string>
@@ -13,6 +13,9 @@
     <string name="day_today">Hôm nay</string>
     <string name="showing_saved_forecast">Hiển thị dữ liệu đã lưu</string>
     <string name="current_location">Vị trí hiện tại</string>
+    <string name="my_location">Vị trí của tôi</string>
+    <string name="return_to_current_location">Về vị trí hiện tại</string>
+    <string name="switched_to_current_location">Đã chuyển về vị trí hiện tại</string>
 
     <!-- Search Screen -->
     <string name="search_locations">Tìm kiếm địa điểm</string>
@@ -70,11 +73,14 @@
     <string name="condition_drizzle">Mưa phùn</string>
     <string name="condition_freezing_drizzle">Mưa phùn băng giá</string>
     <string name="condition_rain">Mưa</string>
+    <string name="condition_heavy_rain">Mưa to</string>
     <string name="condition_freezing_rain">Mưa băng giá</string>
     <string name="condition_snow">Tuyết rơi</string>
+    <string name="condition_heavy_snow">Tuyết rơi dày</string>
     <string name="condition_rain_showers">Mưa rào</string>
     <string name="condition_snow_showers">Mưa tuyết rào</string>
     <string name="condition_thunderstorm">Dông bão</string>
+    <string name="condition_thunderstorm_hail">Dông bão kèm mưa đá</string>
     <string name="condition_unknown">Không xác định</string>
 
     <!-- Location Messages -->

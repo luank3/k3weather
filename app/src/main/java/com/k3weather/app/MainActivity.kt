@@ -29,6 +29,7 @@ import androidx.lifecycle.repeatOnLifecycle
 import com.k3weather.app.core.model.AppColorScheme
 import com.k3weather.app.core.model.ForecastData
 import com.k3weather.app.core.model.LocationItem
+import com.k3weather.app.data.mapper.WeatherCodeMapper
 import com.k3weather.app.data.remote.LocationResolver
 import com.k3weather.app.databinding.ActivityMainBinding
 import com.k3weather.app.databinding.LayoutForecastBinding
@@ -176,11 +177,13 @@ class MainActivity : AppCompatActivity() {
     private fun resolveInitialLocation() {
         val repository = (application as WeatherApplication).repository
         lifecycleScope.launch {
+            val detected = LocationResolver.resolveDefaultLocation(this@MainActivity)
+            viewModel.setDetectedCurrentLocation(detected)
+
             val hasExplicit = withContext(Dispatchers.IO) { repository.hasSelectedLocation() }
             val settings = withContext(Dispatchers.IO) { repository.getSettings() }
 
             if (!hasExplicit || settings.useCurrentLocation) {
-                val detected = LocationResolver.resolveDefaultLocation(this@MainActivity)
                 viewModel.selectLocation(detected)
             }
         }
@@ -263,12 +266,37 @@ class MainActivity : AppCompatActivity() {
                     forecastBinder.bind(
                         state = state,
                         onSearch = { openSearch(SearchSource.FORECAST) },
-                        onRefresh = { viewModel.refresh(force = true) }
+                        onRefresh = { viewModel.refresh(force = true) },
+                        onReturnToCurrentLocation = {
+                            viewModel.returnToCurrentLocation()
+                            Toast.makeText(this@MainActivity, getString(R.string.switched_to_current_location), Toast.LENGTH_SHORT).show()
+                        }
                     )
 
                     // Update Saved
                     savedBinder.bind(state, savedForecasts)
                     savedBinding.emptyState.visibility = if (state.savedLocations.isEmpty()) View.VISIBLE else View.GONE
+
+                    // Update Saved Current Location Card
+                    val cur = state.detectedCurrentLocation
+                    if (cur != null) {
+                        savedBinding.cardCurrentLocation.visibility = View.VISIBLE
+                        savedBinding.tvCurrentLocName.text = if (cur.subtitle.isNotBlank()) "${cur.name}, ${cur.subtitle}" else cur.name
+                        val curForecast = state.currentLocationForecast
+                        if (curForecast != null) {
+                            savedBinding.tvCurrentLocTemp.text = state.settings.tempUnit.format(curForecast.current.temperatureC)
+                            savedBinding.ivCurrentLocWeatherIcon.setImageResource(
+                                WeatherCodeMapper.getIcon(curForecast.current.weatherCode, curForecast.current.isDay)
+                            )
+                        }
+                        savedBinding.cardCurrentLocation.setOnClickListener {
+                            viewModel.returnToCurrentLocation()
+                            selectTab(Tab.FORECAST)
+                            Toast.makeText(this@MainActivity, getString(R.string.switched_to_current_location), Toast.LENGTH_SHORT).show()
+                        }
+                    } else {
+                        savedBinding.cardCurrentLocation.visibility = View.GONE
+                    }
 
                     // Update Settings
                     settingsBinder.bind(state.settings)
@@ -310,8 +338,10 @@ class MainActivity : AppCompatActivity() {
         binding.indicatorSaved.backgroundTintList = tintList
         binding.indicatorSettings.backgroundTintList = tintList
 
-        // Saved add button
+        // Saved add button & current location quick card
         savedBinding.addCityButton.imageTintList = tintList
+        savedBinding.ivCurrentLocIcon.imageTintList = tintList
+        savedBinding.tvCurrentLocLabel.setTextColor(accentColor)
 
         // Search pill border
         val searchPill = GradientDrawable().apply {
@@ -453,6 +483,7 @@ class MainActivity : AppCompatActivity() {
             )
 
             withContext(Dispatchers.Main) {
+                viewModel.setDetectedCurrentLocation(currentLocItem)
                 viewModel.selectLocation(currentLocItem)
                 selectTab(Tab.FORECAST)
                 Toast.makeText(this@MainActivity, getString(R.string.location_updated, placeName), Toast.LENGTH_SHORT).show()

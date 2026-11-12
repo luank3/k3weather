@@ -1,0 +1,20 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="32dp"
+    android:height="32dp"
+    android:viewportWidth="32"
+    android:viewportHeight="32">
+    <!-- Puffy Light Cloud -->
+    <path
+        android:fillColor="#ECEFF1"
+        android:pathData="M10.5,5 A5.5,5.5 0 0,1 15.5,8.8 A6.5,6.5 0 0,1 23,15 A6,6 0 0,1 17,21 L7.5,21 A7,7 0 0,1 7.5,7 A6.5,6.5 0 0,1 10.5,5 Z"/>
+    <!-- Fine Drizzle Drops -->
+    <path
+        android:fillColor="#80DEEA"
+        android:pathData="M10,23 A1.5,2 0 1,0 10,27 A1.5,2 0 1,0 10,23 Z"/>
+    <path
+        android:fillColor="#80DEEA"
+        android:pathData="M16,24 A1.5,2 0 1,0 16,28 A1.5,2 0 1,0 16,24 Z"/>
+    <path
+        android:fillColor="#80DEEA"
+        android:pathData="M22,23 A1.5,2 0 1,0 22,27 A1.5,2 0 1,0 22,23 Z"/>
+</vector>

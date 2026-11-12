@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">K3 Weather</string>
+    <string name="app_name">Weather</string>
 
     <!-- Navigation Tabs -->
     <string name="tab_forecast">Forecast</string>
@@ -13,6 +13,9 @@
     <string name="day_today">Today</string>
     <string name="showing_saved_forecast">Showing saved forecast</string>
     <string name="current_location">Current location</string>
+    <string name="my_location">My Location</string>
+    <string name="return_to_current_location">Return to current location</string>
+    <string name="switched_to_current_location">Switched to current location</string>
 
     <!-- Search Screen -->
     <string name="search_locations">Search locations</string>
@@ -70,11 +73,14 @@
     <string name="condition_drizzle">Drizzle</string>
     <string name="condition_freezing_drizzle">Freezing drizzle</string>
     <string name="condition_rain">Rain</string>
+    <string name="condition_heavy_rain">Heavy rain</string>
     <string name="condition_freezing_rain">Freezing rain</string>
     <string name="condition_snow">Snow</string>
+    <string name="condition_heavy_snow">Heavy snow</string>
     <string name="condition_rain_showers">Rain showers</string>
     <string name="condition_snow_showers">Snow showers</string>
     <string name="condition_thunderstorm">Thunderstorm</string>
+    <string name="condition_thunderstorm_hail">Thunderstorm with hail</string>
     <string name="condition_unknown">Unknown</string>
 
     <!-- Location Messages -->

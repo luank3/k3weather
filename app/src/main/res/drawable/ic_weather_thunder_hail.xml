@@ -1,0 +1,21 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="32dp"
+    android:height="32dp"
+    android:viewportWidth="32"
+    android:viewportHeight="32">
+    <!-- Dark storm cloud -->
+    <path
+        android:fillColor="#546E7A"
+        android:pathData="M11,4 A5.5,5.5 0 0,1 16.2,7.8 A7,7 0 0,1 24,14.5 A6.5,6.5 0 0,1 17.5,21 L8,21 A7.5,7.5 0 0,1 8,6 A7,7 0 0,1 11,4 Z"/>
+    <!-- Yellow Lightning Bolt -->
+    <path
+        android:fillColor="#FFD600"
+        android:pathData="M14,14 L10,21 L13,21 L11,28 L17,19 L14,19 Z"/>
+    <!-- Hail pellets -->
+    <path
+        android:fillColor="#E0F7FA"
+        android:pathData="M20,22 A2,2 0 1,0 20,26 A2,2 0 1,0 20,22 Z"/>
+    <path
+        android:fillColor="#E0F7FA"
+        android:pathData="M25,24 A1.8,1.8 0 1,0 25,27.6 A1.8,1.8 0 1,0 25,24 Z"/>
+</vector>

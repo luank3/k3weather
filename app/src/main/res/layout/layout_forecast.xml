@@ -14,7 +14,7 @@
         android:paddingTop="12dp"
         android:paddingBottom="24dp">
 
-        <!-- Top Header: Pin, City, Region, Search -->
+        <!-- Top Header: Pin, City, Region, Return to current, Search -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -56,6 +56,19 @@
                     android:fontFamily="sans-serif" />
             </LinearLayout>
 
+            <!-- Quick switch to current location button (appears when viewing another location) -->
+            <ImageButton
+                android:id="@+id/btnCurrentLocation"
+                android:layout_width="44dp"
+                android:layout_height="44dp"
+                android:layout_marginEnd="6dp"
+                android:background="@drawable/bg_circle_translucent"
+                android:contentDescription="@string/my_location"
+                android:padding="10dp"
+                android:src="@drawable/ic_my_location"
+                android:visibility="gone"
+                app:tint="@color/accent_cyan" />
+
             <ImageButton
                 android:id="@+id/searchButton"
                 android:layout_width="48dp"
@@ -64,6 +77,40 @@
                 android:contentDescription="Search cities"
                 android:src="@drawable/ic_search"
                 app:tint="@android:color/white" />
+        </LinearLayout>
+
+        <!-- Prominent Pill to Return to Current Location -->
+        <LinearLayout
+            android:id="@+id/btnReturnCurrentLocation"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:background="@drawable/bg_pill_accent_translucent"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingHorizontal="12dp"
+            android:paddingVertical="6dp"
+            android:clickable="true"
+            android:focusable="true"
+            android:visibility="gone">
+
+            <ImageView
+                android:id="@+id/ivReturnIcon"
+                android:layout_width="14dp"
+                android:layout_height="14dp"
+                android:layout_marginEnd="6dp"
+                android:contentDescription="@null"
+                android:src="@drawable/ic_my_location"
+                app:tint="@color/accent_cyan" />
+
+            <TextView
+                android:id="@+id/tvReturnLabel"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/return_to_current_location"
+                android:textColor="@color/accent_cyan"
+                android:textSize="12sp"
+                android:fontFamily="sans-serif-medium" />
         </LinearLayout>
 
         <TextView
@@ -94,7 +141,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:gravity="center"
-            android:layout_marginTop="16dp"
+            android:layout_marginTop="14dp"
             android:text="--°"
             android:textColor="@android:color/white"
             android:textSize="96sp"
@@ -114,23 +161,54 @@
             android:textStyle="bold"
             android:fontFamily="sans-serif-medium" />
 
-        <!-- High / Low -->
-        <TextView
-            android:id="@+id/highLow"
-            android:layout_width="match_parent"
+        <!-- Weather Details Row: High/Low & Wind Speed -->
+        <LinearLayout
+            android:id="@+id/rowDetails"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:gravity="center"
-            android:layout_marginTop="4dp"
-            android:text="H 22° • L 14°"
-            android:textColor="#E0FFFFFF"
-            android:textSize="16sp"
-            android:fontFamily="sans-serif-medium" />
+            android:layout_gravity="center_horizontal"
+            android:layout_marginTop="6dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/highLow"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="H 22° • L 14°"
+                android:textColor="#E0FFFFFF"
+                android:textSize="16sp"
+                android:fontFamily="sans-serif-medium" />
+
+            <View
+                android:layout_width="1dp"
+                android:layout_height="14dp"
+                android:layout_marginHorizontal="10dp"
+                android:background="#40FFFFFF" />
+
+            <ImageView
+                android:layout_width="16dp"
+                android:layout_height="16dp"
+                android:layout_marginEnd="5dp"
+                android:contentDescription="@null"
+                android:src="@drawable/ic_wind"
+                app:tint="#CCFFFFFF" />
+
+            <TextView
+                android:id="@+id/tvWindSpeed"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="12 km/h"
+                android:textColor="#CCFFFFFF"
+                android:textSize="15sp"
+                android:fontFamily="sans-serif" />
+        </LinearLayout>
 
         <!-- Hourly Forecast Card -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="28dp"
+            android:layout_marginTop="26dp"
             android:background="@drawable/bg_card_translucent"
             android:orientation="vertical"
             android:padding="18dp">
