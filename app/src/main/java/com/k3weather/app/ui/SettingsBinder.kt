@@ -1,6 +1,7 @@
 package com.k3weather.app.ui
 
 import android.content.res.ColorStateList
+import com.k3weather.app.BuildConfig
 import com.k3weather.app.core.model.*
 import com.k3weather.app.databinding.LayoutSettingsBinding
 
@@ -48,9 +49,7 @@ class SettingsBinder(
             }
             send(settings.copy(pressureUnit = next))
         }
-        binding.tvVersionValue.text = runCatching {
-            context.packageManager.getPackageInfo(context.packageName, 0).versionName
-        }.getOrNull() ?: "1.0"
+        binding.tvVersionValue.text = "${BuildConfig.VERSION_SEMVER} (${BuildConfig.GIT_HASH})"
 
         // Stateful theme color for switches
         val accentColor = settings.colorScheme.primaryAccent

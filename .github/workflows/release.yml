@@ -1,0 +1,44 @@
+name: Release
+
+# Push a tag like v1.2.3 to build a signed APK and publish a GitHub Release.
+on:
+  push:
+    tags: ["v*.*.*"]
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+      - uses: gradle/actions/setup-gradle@v4
+      - name: Verify tag matches VERSION_NAME
+        run: |
+          v=$(grep '^VERSION_NAME=' gradle.properties | cut -d= -f2)
+          [ "v$v" = "${GITHUB_REF_NAME}" ] || { echo "Tag ${GITHUB_REF_NAME} != v$v"; exit 1; }
+      - name: Decode keystore
+        run: echo "${{ secrets.K3_KEYSTORE_BASE64 }}" | base64 -d > "$RUNNER_TEMP/release.jks"
+      - name: Build signed release APK
+        env:
+          K3_KEYSTORE_FILE: ${{ runner.temp }}/release.jks
+          K3_KEYSTORE_PASSWORD: ${{ secrets.K3_KEYSTORE_PASSWORD }}
+          K3_KEY_ALIAS: ${{ secrets.K3_KEY_ALIAS }}
+          K3_KEY_PASSWORD: ${{ secrets.K3_KEY_PASSWORD }}
+        run: ./gradlew testDebugUnitTest assembleRelease --no-daemon
+      - name: Name artifact
+        run: |
+          mkdir -p dist
+          cp app/build/outputs/apk/release/app-release.apk "dist/k3weather-${GITHUB_REF_NAME}-$(git rev-parse --short=7 HEAD).apk"
+          (cd dist && sha256sum *.apk > SHA256SUMS.txt)
+      - uses: softprops/action-gh-release@v2
+        with:
+          generate_release_notes: true
+          files: dist/*

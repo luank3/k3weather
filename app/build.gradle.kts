@@ -1,7 +1,31 @@
+import java.io.ByteArrayOutputStream
+import java.util.Properties
+
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
 }
+
+// ---- Versioning: SemVer from gradle.properties + git commit hash ----
+val semver = providers.gradleProperty("VERSION_NAME").get()
+val (vMajor, vMinor, vPatch) = semver.substringBefore("-").split(".").map { it.toInt() }
+val gitHash: String = runCatching {
+    val out = ByteArrayOutputStream()
+    exec {
+        commandLine("git", "rev-parse", "--short=7", "HEAD")
+        standardOutput = out
+        isIgnoreExitValue = true
+    }
+    out.toString().trim().ifEmpty { "nogit" }
+}.getOrDefault("nogit")
+
+// ---- Release signing: keystore.properties (local) or env vars (CI) ----
+val keystoreProps = Properties().apply {
+    val f = rootProject.file("keystore.properties")
+    if (f.exists()) f.inputStream().use { load(it) }
+}
+fun signingValue(key: String, env: String): String? =
+    keystoreProps.getProperty(key) ?: System.getenv(env)
 
 android {
     namespace = "com.k3weather.app"
@@ -11,19 +35,24 @@ android {
         applicationId = "com.k3weather.app"
         minSdk = 26
         targetSdk = 35
-        versionCode = 1
-        versionName = "1.0.0"
+        versionCode = vMajor * 10000 + vMinor * 100 + vPatch
+        // SemVer build metadata: 1.0.0+abc1234
+        versionName = "$semver+$gitHash"
+        buildConfigField("String", "GIT_HASH", "\"$gitHash\"")
+        buildConfigField("String", "VERSION_SEMVER", "\"$semver\"")
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
+    val releaseStoreFile = signingValue("storeFile", "K3_KEYSTORE_FILE")
     signingConfigs {
-        create("release") {
-            // Self-signed release signing for test delivery
-            storeFile = file("release-key.jks")
-            storePassword = "REDACTED"
-            keyAlias = "k3weather"
-            keyPassword = "REDACTED"
+        if (releaseStoreFile != null) {
+            create("release") {
+                storeFile = rootProject.file(releaseStoreFile)
+                storePassword = signingValue("storePassword", "K3_KEYSTORE_PASSWORD")
+                keyAlias = signingValue("keyAlias", "K3_KEY_ALIAS")
+                keyPassword = signingValue("keyPassword", "K3_KEY_PASSWORD")
+            }
         }
     }
 
@@ -35,9 +64,11 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
-            signingConfig = signingConfigs.getByName("release")
+            signingConfig = signingConfigs.findByName("release") ?: signingConfigs.getByName("debug")
         }
         debug {
+            applicationIdSuffix = ""
+            versionNameSuffix = "-debug"
             isMinifyEnabled = false
         }
     }
@@ -53,6 +84,13 @@ android {
 
     buildFeatures {
         viewBinding = true
+        buildConfig = true
+    }
+
+    lint {
+        abortOnError = true
+        warningsAsErrors = false
+        checkReleaseBuilds = true
     }
 
     packaging {
