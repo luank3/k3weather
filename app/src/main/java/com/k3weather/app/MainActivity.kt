@@ -15,6 +15,9 @@ import android.net.Uri
 import android.os.Bundle
 import android.view.View
 import android.view.ViewGroup
+import android.view.animation.AccelerateInterpolator
+import android.view.animation.DecelerateInterpolator
+import android.view.animation.OvershootInterpolator
 import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.result.contract.ActivityResultContracts
@@ -74,6 +77,7 @@ class MainActivity : AppCompatActivity() {
 
     private enum class Tab { FORECAST, SAVED, SETTINGS }
     private var currentTab = Tab.FORECAST
+    private var previousTab: Tab? = null
 
     private enum class SearchSource { FORECAST, SAVED }
     private var searchSource = SearchSource.FORECAST
@@ -252,25 +256,101 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun selectTab(tab: Tab) {
+        val oldTab = previousTab
         currentTab = tab
-        forecastBinding.root.visibility = if (tab == Tab.FORECAST) View.VISIBLE else View.GONE
-        savedBinding.root.visibility = if (tab == Tab.SAVED) View.VISIBLE else View.GONE
-        settingsBinding.root.visibility = if (tab == Tab.SETTINGS) View.VISIBLE else View.GONE
+        previousTab = tab
+
+        val reduceMotion = viewModel.state.value.settings.reduceMotion
+        val density = resources.displayMetrics.density
 
         val active = ContextCompat.getColor(this, R.color.text_primary)
         val muted = ContextCompat.getColor(this, R.color.text_muted)
 
+        // Tint icons and labels
         binding.ivTabForecast.imageTintList = ColorStateList.valueOf(if (tab == Tab.FORECAST) active else muted)
         binding.tvTabForecast.setTextColor(if (tab == Tab.FORECAST) active else muted)
-        binding.indicatorForecast.visibility = if (tab == Tab.FORECAST) View.VISIBLE else View.GONE
 
         binding.ivTabSaved.imageTintList = ColorStateList.valueOf(if (tab == Tab.SAVED) active else muted)
         binding.tvTabSaved.setTextColor(if (tab == Tab.SAVED) active else muted)
-        binding.indicatorSaved.visibility = if (tab == Tab.SAVED) View.VISIBLE else View.GONE
 
         binding.ivTabSettings.imageTintList = ColorStateList.valueOf(if (tab == Tab.SETTINGS) active else muted)
         binding.tvTabSettings.setTextColor(if (tab == Tab.SETTINGS) active else muted)
-        binding.indicatorSettings.visibility = if (tab == Tab.SETTINGS) View.VISIBLE else View.GONE
+
+        fun updateIndicator(indicator: View, isSelected: Boolean) {
+            if (reduceMotion || oldTab == null) {
+                indicator.visibility = if (isSelected) View.VISIBLE else View.GONE
+                indicator.alpha = if (isSelected) 1f else 0f
+                indicator.scaleX = if (isSelected) 1f else 0.5f
+            } else {
+                if (isSelected) {
+                    indicator.visibility = View.VISIBLE
+                    indicator.alpha = 0f
+                    indicator.scaleX = 0.3f
+                    indicator.animate()
+                        .alpha(1f)
+                        .scaleX(1f)
+                        .setDuration(220)
+                        .setInterpolator(OvershootInterpolator(1.4f))
+                        .start()
+                } else if (indicator.visibility == View.VISIBLE) {
+                    indicator.animate()
+                        .alpha(0f)
+                        .scaleX(0.4f)
+                        .setDuration(160)
+                        .withEndAction { indicator.visibility = View.GONE }
+                        .start()
+                }
+            }
+        }
+
+        updateIndicator(binding.indicatorForecast, tab == Tab.FORECAST)
+        updateIndicator(binding.indicatorSaved, tab == Tab.SAVED)
+        updateIndicator(binding.indicatorSettings, tab == Tab.SETTINGS)
+
+        fun getViewForTab(t: Tab): View = when (t) {
+            Tab.FORECAST -> forecastBinding.root
+            Tab.SAVED -> savedBinding.root
+            Tab.SETTINGS -> settingsBinding.root
+        }
+
+        val targetView = getViewForTab(tab)
+        val outgoingView = if (oldTab != null && oldTab != tab) getViewForTab(oldTab) else null
+
+        if (oldTab == null || reduceMotion || outgoingView == null) {
+            forecastBinding.root.visibility = if (tab == Tab.FORECAST) View.VISIBLE else View.GONE
+            savedBinding.root.visibility = if (tab == Tab.SAVED) View.VISIBLE else View.GONE
+            settingsBinding.root.visibility = if (tab == Tab.SETTINGS) View.VISIBLE else View.GONE
+            targetView.alpha = 1f
+            targetView.translationX = 0f
+        } else {
+            val direction = if (tab.ordinal > oldTab.ordinal) 1f else -1f
+            val distance = direction * (40f * density)
+
+            // Animate outgoing screen
+            outgoingView.animate().cancel()
+            outgoingView.animate()
+                .alpha(0f)
+                .translationX(-distance * 0.5f)
+                .setDuration(160)
+                .setInterpolator(AccelerateInterpolator())
+                .withEndAction {
+                    outgoingView.visibility = View.GONE
+                    outgoingView.translationX = 0f
+                }
+                .start()
+
+            // Animate incoming screen
+            targetView.animate().cancel()
+            targetView.visibility = View.VISIBLE
+            targetView.alpha = 0f
+            targetView.translationX = distance
+            targetView.animate()
+                .alpha(1f)
+                .translationX(0f)
+                .setDuration(220)
+                .setInterpolator(DecelerateInterpolator())
+                .start()
+        }
 
         if (tab == Tab.SAVED) {
             refreshSavedForecasts()
@@ -279,19 +359,74 @@ class MainActivity : AppCompatActivity() {
 
     private fun openSearch(source: SearchSource) {
         searchSource = source
-        binding.searchContainer.visibility = View.VISIBLE
-        binding.bottomNavBar.visibility = View.GONE
+        val reduceMotion = viewModel.state.value.settings.reduceMotion
+        val density = resources.displayMetrics.density
+
         searchBinding.searchInput.text?.clear()
         viewModel.search("")
+
+        if (reduceMotion) {
+            binding.searchContainer.visibility = View.VISIBLE
+            binding.bottomNavBar.visibility = View.GONE
+        } else {
+            binding.searchContainer.animate().cancel()
+            binding.searchContainer.visibility = View.VISIBLE
+            binding.searchContainer.alpha = 0f
+            binding.searchContainer.translationY = 50f * density
+            binding.searchContainer.animate()
+                .alpha(1f)
+                .translationY(0f)
+                .setDuration(240)
+                .setInterpolator(DecelerateInterpolator())
+                .start()
+
+            binding.bottomNavBar.animate().cancel()
+            binding.bottomNavBar.animate()
+                .alpha(0f)
+                .translationY(30f * density)
+                .setDuration(180)
+                .withEndAction { binding.bottomNavBar.visibility = View.GONE }
+                .start()
+        }
+
         searchBinding.searchInput.requestFocus()
     }
 
     private fun closeSearch() {
         val imm = getSystemService(Context.INPUT_METHOD_SERVICE) as? android.view.inputmethod.InputMethodManager
         imm?.hideSoftInputFromWindow(searchBinding.searchInput.windowToken, 0)
-        binding.searchContainer.visibility = View.GONE
-        binding.bottomNavBar.visibility = View.VISIBLE
         searchBinding.searchInput.clearFocus()
+
+        val reduceMotion = viewModel.state.value.settings.reduceMotion
+        val density = resources.displayMetrics.density
+
+        if (reduceMotion) {
+            binding.searchContainer.visibility = View.GONE
+            binding.bottomNavBar.visibility = View.VISIBLE
+        } else {
+            binding.searchContainer.animate().cancel()
+            binding.searchContainer.animate()
+                .alpha(0f)
+                .translationY(40f * density)
+                .setDuration(180)
+                .setInterpolator(AccelerateInterpolator())
+                .withEndAction {
+                    binding.searchContainer.visibility = View.GONE
+                    binding.searchContainer.translationY = 0f
+                }
+                .start()
+
+            binding.bottomNavBar.animate().cancel()
+            binding.bottomNavBar.visibility = View.VISIBLE
+            binding.bottomNavBar.alpha = 0f
+            binding.bottomNavBar.translationY = 30f * density
+            binding.bottomNavBar.animate()
+                .alpha(1f)
+                .translationY(0f)
+                .setDuration(220)
+                .setInterpolator(DecelerateInterpolator())
+                .start()
+        }
     }
 
     private fun setupBackPress() {

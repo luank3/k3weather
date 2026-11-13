@@ -87,6 +87,8 @@
     <string name="lang_system">System default</string>
     <string name="lang_en">English</string>
     <string name="lang_vi">Tiếng Việt</string>
+    <string name="select_language_subtitle">Choose your display language</string>
+    <string name="close">Close</string>
 
     <!-- Weather Conditions -->
     <string name="condition_clear_sky">Clear sky</string>

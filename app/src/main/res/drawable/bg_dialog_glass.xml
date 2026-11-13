@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Deep refractive glass fill -->
+    <item>
+        <shape android:shape="rectangle">
+            <gradient
+                android:angle="135"
+                android:startColor="#F20A1E2E"
+                android:centerColor="#E6071521"
+                android:endColor="#F00C2233"
+                android:type="linear" />
+            <corners android:radius="28dp" />
+        </shape>
+    </item>
+    <!-- Specular frost rim -->
+    <item>
+        <shape android:shape="rectangle">
+            <gradient
+                android:angle="135"
+                android:startColor="#3DFFFFFF"
+                android:centerColor="#14FFFFFF"
+                android:endColor="#24FFFFFF"
+                android:type="linear" />
+            <corners android:radius="28dp" />
+            <stroke
+                android:width="1dp"
+                android:color="#4DFFFFFF" />
+        </shape>
+    </item>
+    <!-- Top edge specular reflection sheen -->
+    <item
+        android:top="1dp"
+        android:left="24dp"
+        android:right="24dp"
+        android:gravity="top">
+        <shape android:shape="rectangle">
+            <size android:height="1dp" />
+            <gradient
+                android:angle="0"
+                android:startColor="#00FFFFFF"
+                android:centerColor="#80FFFFFF"
+                android:endColor="#00FFFFFF"
+                android:type="linear" />
+        </shape>
+    </item>
+</layer-list>
