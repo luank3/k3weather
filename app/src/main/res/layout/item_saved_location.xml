@@ -2,8 +2,8 @@
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
-    android:layout_height="148dp"
-    android:layout_marginBottom="14dp"
+    android:layout_height="124dp"
+    android:layout_marginBottom="12dp"
     android:background="@drawable/bg_saved_location_card"
     android:outlineProvider="background"
     android:clipToOutline="true"
@@ -45,7 +45,7 @@
             android:layout_alignParentStart="true"
             android:layout_alignParentTop="true"
             android:layout_toStartOf="@id/deleteButton"
-            android:layout_marginEnd="10dp"
+            android:layout_marginEnd="56dp"
             android:orientation="vertical">
 
             <TextView
@@ -82,15 +82,15 @@
         <!-- Top-right: Delete button -->
         <ImageButton
             android:id="@+id/deleteButton"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
             android:layout_alignParentEnd="true"
             android:layout_alignParentTop="true"
             android:background="@drawable/bg_circle_translucent"
             android:contentDescription="@string/remove_location"
-            android:padding="10dp"
+            android:padding="7dp"
             android:src="@drawable/ic_delete"
-            app:tint="#D9FFFFFF" />
+            app:tint="#CCFFFFFF" />
 
         <!-- Bottom-left: Weather Icon + High/Low -->
         <LinearLayout
@@ -127,14 +127,13 @@
             android:layout_alignParentEnd="true"
             android:text="--°"
             android:textColor="@android:color/white"
-            android:textSize="42sp"
-            android:textStyle="bold"
-            android:letterSpacing="-0.03"
+            android:textSize="46sp"
+            android:letterSpacing="-0.04"
             android:includeFontPadding="false"
-            android:shadowColor="#40000000"
+            android:shadowColor="#33000000"
             android:shadowDx="0"
             android:shadowDy="2"
-            android:shadowRadius="6"
-            android:fontFamily="sans-serif-medium" />
+            android:shadowRadius="4"
+            android:fontFamily="sans-serif-light" />
     </RelativeLayout>
 </FrameLayout>

@@ -59,9 +59,23 @@ class ForecastView(private val binding: LayoutForecastBinding) {
             longitude = 108.2208
         )
 
-        // Location Badge Pill
-        val locationTitle = if (loc.country.isNotBlank()) "${loc.name}, ${loc.country}" else loc.name
-        binding.cityName.text = locationTitle
+        // Location Hero Heading (Apple Weather style: clean place name + subtle uppercase subtitle)
+        binding.cityName.text = loc.name
+        val isCurrentLoc = loc.isCurrentLocation || loc.id == state.detectedCurrentLocation?.id
+        val subtitleText = when {
+            isCurrentLoc && loc.region.isNotBlank() && !loc.region.equals(loc.name, ignoreCase = true) ->
+                "${context.getString(R.string.my_location)} • ${loc.region}"
+            isCurrentLoc -> context.getString(R.string.my_location)
+            loc.region.isNotBlank() && !loc.region.equals(loc.name, ignoreCase = true) -> loc.region
+            loc.country.isNotBlank() -> loc.country
+            else -> ""
+        }
+        if (subtitleText.isNotBlank()) {
+            binding.citySubtitle.visibility = View.VISIBLE
+            binding.citySubtitle.text = subtitleText.uppercase(Locale.getDefault())
+        } else {
+            binding.citySubtitle.visibility = View.GONE
+        }
 
         if (forecast == null) return
 
@@ -259,7 +273,7 @@ class ForecastView(private val binding: LayoutForecastBinding) {
                             marginEnd = (5 * density).toInt()
                         }
                         setImageResource(R.drawable.ic_arrow_current_location)
-                        imageTintList = ColorStateList.valueOf(if (isSelected) 0xFF7DD3FC.toInt() else 0xBF38BDF8.toInt())
+                        imageTintList = ColorStateList.valueOf(if (isSelected) 0xFFFFFFFF.toInt() else 0xCCFFFFFF.toInt())
                     }
                     addView(icon)
                 }
@@ -300,7 +314,7 @@ class ForecastView(private val binding: LayoutForecastBinding) {
             }
 
             row.dayLabel.text = dayName
-            row.dayLabel.setTextColor(if (index == 0) colorScheme.primaryAccent else 0xFFFFFFFF.toInt())
+            row.dayLabel.setTextColor(0xFFFFFFFF.toInt())
             row.dayIcon.setImageResource(WeatherCodeMapper.getIcon(day.weatherCode, isDay = true))
 
             if (day.precipitationProbabilityMax >= 20) {

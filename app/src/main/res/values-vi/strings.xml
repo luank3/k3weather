@@ -33,8 +33,8 @@
     <string name="my_location">VỊ TRÍ CỦA TÔI</string>
     <string name="return_to_current_location">Về vị trí hiện tại</string>
     <string name="switched_to_current_location">Đã chuyển về vị trí hiện tại</string>
-    <string name="high_low_feels_format">Cao %1$s   Thấp %2$s</string>
-    <string name="high_low_short_format">C: %1$s  T: %2$s</string>
+    <string name="high_low_feels_format">C:%1$s   T:%2$s</string>
+    <string name="high_low_short_format">C:%1$s  T:%2$s</string>
 
     <!-- Weather Detail Bento Cards -->
     <string name="metric_uv_index">CHỈ SỐ UV</string>
@@ -42,7 +42,7 @@
     <string name="metric_wind">GIÓ</string>
     <string name="metric_humidity">ĐỘ ẨM</string>
     <string name="metric_sun">MẶT TRỜI</string>
-    <string name="metric_visibility">TẦM NHÌN &amp; ÁP SUẤT</string>
+    <string name="metric_visibility">TẦM NHÌN</string>
 
     <string name="uv_low">Thấp</string>
     <string name="uv_moderate">Trung bình</string>

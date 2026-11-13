@@ -49,7 +49,7 @@ class SavedLocationsAdapter(
         val binding = ItemSavedLocationBinding.inflate(LayoutInflater.from(parent.context), parent, false)
         binding.root.outlineProvider = object : android.view.ViewOutlineProvider() {
             override fun getOutline(view: android.view.View, outline: android.graphics.Outline) {
-                outline.setRoundRect(0, 0, view.width, view.height, 24f * view.resources.displayMetrics.density)
+                outline.setRoundRect(0, 0, view.width, view.height, 20f * view.resources.displayMetrics.density)
             }
         }
         binding.root.clipToOutline = true
@@ -104,7 +104,7 @@ class SavedLocationsAdapter(
         holder.binding.root.setOnClickListener { onSelect(location) }
         if (location.isCurrentLocation) {
             holder.binding.deleteButton.setImageResource(R.drawable.ic_my_location)
-            holder.binding.deleteButton.imageTintList = ColorStateList.valueOf(colorScheme.primaryAccent)
+            holder.binding.deleteButton.imageTintList = ColorStateList.valueOf(0xE6FFFFFF.toInt())
             holder.binding.deleteButton.contentDescription = context.getString(R.string.current_location)
             holder.binding.deleteButton.setOnClickListener { onSelect(location) }
         } else {

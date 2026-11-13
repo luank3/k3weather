@@ -519,7 +519,7 @@ class MainActivity : AppCompatActivity() {
             container.isSelected = isSelected
             text.visibility = View.VISIBLE
             if (isSelected) {
-                icon.imageTintList = ColorStateList.valueOf(0xFF7DD3FC.toInt())
+                icon.imageTintList = ColorStateList.valueOf(0xFFFFFFFF.toInt())
                 text.setTextColor(0xFFFFFFFF.toInt())
                 text.alpha = 1f
             } else {
@@ -743,15 +743,15 @@ class MainActivity : AppCompatActivity() {
         val accentColor = colorScheme.primaryAccent
         val tintList = ColorStateList.valueOf(accentColor)
 
-        savedBinding.addCityButton.backgroundTintList = tintList
+        savedBinding.addCityButton.backgroundTintList = null
         savedBinding.ivCurrentLocIcon.imageTintList = tintList
         savedBinding.tvCurrentLocLabel.setTextColor(accentColor)
 
         val searchPill = GradientDrawable().apply {
             shape = GradientDrawable.RECTANGLE
             cornerRadius = 999f
-            setColor(0x660B2233)
-            setStroke((1.2f * resources.displayMetrics.density).toInt(), accentColor)
+            setColor(0x47162B42)
+            setStroke((0.9f * resources.displayMetrics.density).toInt().coerceAtLeast(1), 0x40FFFFFF)
         }
         searchBinding.root.findViewById<View>(R.id.searchInput)?.parent?.let {
             if (it is View) it.background = searchPill

@@ -33,8 +33,8 @@
     <string name="my_location">MY LOCATION</string>
     <string name="return_to_current_location">Switch to current location</string>
     <string name="switched_to_current_location">Switched to current location</string>
-    <string name="high_low_feels_format">H %1$s   L %2$s</string>
-    <string name="high_low_short_format">H: %1$s  L: %2$s</string>
+    <string name="high_low_feels_format">H:%1$s   L:%2$s</string>
+    <string name="high_low_short_format">H:%1$s  L:%2$s</string>
 
     <!-- Weather Detail Bento Cards -->
     <string name="metric_uv_index">UV INDEX</string>
@@ -42,7 +42,7 @@
     <string name="metric_wind">WIND</string>
     <string name="metric_humidity">HUMIDITY</string>
     <string name="metric_sun">SUNRISE &amp; SUNSET</string>
-    <string name="metric_visibility">VISIBILITY &amp; PRESSURE</string>
+    <string name="metric_visibility">VISIBILITY</string>
 
     <string name="uv_low">Low</string>
     <string name="uv_moderate">Moderate</string>
