@@ -547,6 +547,16 @@ class MainActivity : AppCompatActivity() {
 
     private var lastAppliedLanguage: String? = null
 
+    override fun onConfigurationChanged(newConfig: Configuration) {
+        super.onConfigurationChanged(newConfig)
+        val lang = viewModel.state.value.settings.language
+        val locale = if (lang == "vi") Locale("vi") else Locale("en")
+        val config = Configuration(newConfig)
+        config.setLocale(locale)
+        config.setLayoutDirection(locale)
+        resources.updateConfiguration(config, resources.displayMetrics)
+    }
+
     private fun applyLanguage(language: String) {
         if (lastAppliedLanguage == null) {
             lastAppliedLanguage = language
@@ -555,6 +565,15 @@ class MainActivity : AppCompatActivity() {
         if (lastAppliedLanguage == language) return
         lastAppliedLanguage = language
 
+        val locale = if (language == "vi") Locale("vi") else Locale("en")
+        Locale.setDefault(locale)
+
+        val config = Configuration(resources.configuration)
+        config.setLocale(locale)
+        config.setLayoutDirection(locale)
+        resources.updateConfiguration(config, resources.displayMetrics)
+        applicationContext.resources.updateConfiguration(config, resources.displayMetrics)
+
         val targetLocale = when (language) {
             "vi" -> LocaleListCompat.forLanguageTags("vi")
             "en" -> LocaleListCompat.forLanguageTags("en")
@@ -562,12 +581,56 @@ class MainActivity : AppCompatActivity() {
         }
         AppCompatDelegate.setApplicationLocales(targetLocale)
 
-        intent.putExtra(KEY_ACTIVE_TAB, currentTab.name)
-        overridePendingTransition(0, 0)
-        finish()
-        overridePendingTransition(0, 0)
-        startActivity(intent)
-        overridePendingTransition(0, 0)
+        reloadChildViews()
+    }
+
+    private fun reloadChildViews() {
+        val oldForecast = forecastBinding.root
+        val oldSaved = savedBinding.root
+        val oldSettings = settingsBinding.root
+        val oldSearch = searchBinding.root
+
+        setupChildViews(currentTab)
+
+        binding.fragmentContainer.removeView(oldForecast)
+        binding.fragmentContainer.removeView(oldSaved)
+        binding.fragmentContainer.removeView(oldSettings)
+        binding.searchContainer.removeView(oldSearch)
+
+        // Update bottom navigation bar labels in new locale
+        binding.tvTabForecast.text = getString(R.string.tab_forecast)
+        binding.tvTabSaved.text = getString(R.string.tab_saved)
+        binding.tvTabSettings.text = getString(R.string.tab_settings)
+
+        // Re-bind current data in new locale
+        val state = viewModel.state.value
+        settingsBinder.bind(state.settings)
+        forecastBinder.bind(
+            state = state,
+            onSearch = { openSearch(SearchSource.FORECAST) },
+            onRefresh = { viewModel.refresh(force = true) },
+            onReturnToCurrentLocation = {
+                viewModel.returnToCurrentLocation()
+                Toast.makeText(this@MainActivity, getString(R.string.switched_to_current_location), Toast.LENGTH_SHORT).show()
+            }
+        )
+        savedBinder.bind(state, savedForecasts)
+        searchBinder.bind(
+            state = state,
+            onBack = { closeSearch() },
+            onQuery = { query -> viewModel.search(query) },
+            onSelect = { location ->
+                if (searchSource == SearchSource.FORECAST) {
+                    viewModel.selectLocation(location)
+                    closeSearch()
+                    selectTab(Tab.FORECAST)
+                } else {
+                    viewModel.saveLocation(location)
+                    closeSearch()
+                    selectTab(Tab.SAVED)
+                }
+            }
+        )
     }
 
     private fun updateMainBackground(state: WeatherUiState) {
