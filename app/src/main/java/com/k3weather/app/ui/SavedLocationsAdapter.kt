@@ -1,6 +1,7 @@
 package com.k3weather.app.ui
 
 import android.view.LayoutInflater
+import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import com.k3weather.app.R
@@ -20,6 +21,7 @@ class SavedLocationsAdapter(
     private var backgroundsEnabled = true
     private var reduceMotion = false
     private var colorScheme = AppColorScheme.CYAN
+    private var selectedLocationId: String? = null
 
     class Holder(val binding: ItemSavedLocationBinding) : RecyclerView.ViewHolder(binding.root)
 
@@ -29,7 +31,8 @@ class SavedLocationsAdapter(
         unit: TemperatureUnit,
         backgroundsEnabled: Boolean,
         reduceMotion: Boolean = false,
-        colorScheme: AppColorScheme = AppColorScheme.CYAN
+        colorScheme: AppColorScheme = AppColorScheme.CYAN,
+        selectedLocationId: String? = null
     ) {
         this.locations = locations
         this.forecasts = forecasts
@@ -37,6 +40,7 @@ class SavedLocationsAdapter(
         this.backgroundsEnabled = backgroundsEnabled
         this.reduceMotion = reduceMotion
         this.colorScheme = colorScheme
+        this.selectedLocationId = selectedLocationId
         notifyDataSetChanged()
     }
 
@@ -84,6 +88,10 @@ class SavedLocationsAdapter(
         // Weather icon
         holder.binding.ivWeatherIcon.setImageResource(WeatherCodeMapper.getIcon(weatherCode, isDay))
 
+        // Active city indicator border
+        holder.binding.activeBorderOverlay.visibility =
+            if (location.id == selectedLocationId) View.VISIBLE else View.GONE
+
         // Card weather effect background
         WeatherBackgroundHelper.applyWeatherEffect(
             view = holder.binding.weatherEffectBackground,
@@ -107,7 +115,8 @@ class SavedLocationsBinder(private val adapter: SavedLocationsAdapter) {
             unit = state.settings.tempUnit,
             backgroundsEnabled = state.settings.weatherBackgroundsEnabled,
             reduceMotion = state.settings.reduceMotion,
-            colorScheme = state.settings.colorScheme
+            colorScheme = state.settings.colorScheme,
+            selectedLocationId = state.selectedLocation?.id
         )
     }
 }

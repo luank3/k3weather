@@ -25,6 +25,7 @@ class HeroWeatherArtworkView @JvmOverloads constructor(
     enum class Theme { SUNNY, RAINY, CLOUDY, NIGHT }
 
     private var theme: Theme = Theme.SUNNY
+    private var reduceMotion = false
     private var sunRotation = 0f
     private var cloudOffset = 0f
     private var rainPhase = 0f
@@ -66,7 +67,25 @@ class HeroWeatherArtworkView @JvmOverloads constructor(
         }
     }
 
+    fun setReduceMotion(reduce: Boolean) {
+        if (reduceMotion != reduce) {
+            reduceMotion = reduce
+            if (reduce) {
+                animator?.cancel()
+                sunRotation = 0f
+                cloudOffset = 0f
+                rainPhase = 0.25f
+                starAlpha = 0.85f
+                auraScale = 1f
+                invalidate()
+            } else {
+                startAnimation()
+            }
+        }
+    }
+
     private fun startAnimation() {
+        if (reduceMotion) return
         animator?.cancel()
         animator = ValueAnimator.ofFloat(0f, 1f).apply {
             duration = 10000L
@@ -92,7 +111,7 @@ class HeroWeatherArtworkView @JvmOverloads constructor(
 
     override fun onAttachedToWindow() {
         super.onAttachedToWindow()
-        if (animator?.isStarted != true) startAnimation()
+        if (!reduceMotion && animator?.isStarted != true) startAnimation()
     }
 
     override fun onDraw(canvas: Canvas) {
@@ -101,15 +120,19 @@ class HeroWeatherArtworkView @JvmOverloads constructor(
         val h = height.toFloat()
         if (w <= 0 || h <= 0) return
 
-        val cx = w / 2f
-        val cy = h / 2f
-
+        // Design space is 280px; scale to the view so artwork fills it on any density
+        val s = w / 280f
+        val cx = 140f
+        val cy = (h / s) / 2f
+        canvas.save()
+        canvas.scale(s, s)
         when (theme) {
             Theme.SUNNY -> drawSunny(canvas, cx, cy)
             Theme.RAINY -> drawRainy(canvas, cx, cy)
             Theme.NIGHT -> drawNight(canvas, cx, cy)
             Theme.CLOUDY -> drawCloudy(canvas, cx, cy)
         }
+        canvas.restore()
     }
 
     private fun drawSunny(canvas: Canvas, cx: Float, cy: Float) {

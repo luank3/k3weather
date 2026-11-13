@@ -78,12 +78,13 @@ class ForecastView(private val binding: LayoutForecastBinding) {
             else -> HeroWeatherArtworkView.Theme.SUNNY
         }
         binding.heroWeatherArtwork.setTheme(effectiveTheme)
+        binding.heroWeatherArtwork.setReduceMotion(state.settings.reduceMotion)
 
         // Hero Temperature
         binding.temperature.text = tempUnit.format(current.temperatureC)
 
-        // Weather Condition Badge Pill
-        val conditionLabel = WeatherCodeMapper.getLocalizedLabel(context, current.weatherCode).uppercase(Locale.getDefault())
+        // Weather Condition Subtitle (sentence-case)
+        val conditionLabel = WeatherCodeMapper.getLocalizedLabel(context, current.weatherCode)
         binding.condition.text = conditionLabel
 
         // High / Low & Feels Like Summary
@@ -94,11 +95,9 @@ class ForecastView(private val binding: LayoutForecastBinding) {
             tempUnit.format(current.apparentTemperatureC)
         )
 
-        // Narrative Weather Description
-        binding.tvWeatherDescription.text = generateNarrativeDescription(context, current, loc.name)
-
-        // Hourly Forecast Ribbon
-        val maxHourlyPop = forecast.hourly.take(12).maxOfOrNull { it.precipitationProbability } ?: 0
+        // Hourly Forecast Ribbon (24-hour window)
+        val hourlyWindow = forecast.hourly.take(24)
+        val maxHourlyPop = hourlyWindow.maxOfOrNull { it.precipitationProbability } ?: 0
         binding.tvHourlyPrecipChance.text = context.getString(R.string.precip_chance_format, maxHourlyPop)
         binding.hourlyList.adapter = HourlyAdapter(
             items = forecast.hourly,
@@ -106,6 +105,14 @@ class ForecastView(private val binding: LayoutForecastBinding) {
             nowLabel = context.getString(R.string.time_now),
             accentColor = accentColor,
             zoneId = locationZone
+        )
+
+        // Data-backed Narrative Weather Description
+        binding.tvWeatherDescription.text = generateNarrativeDescription(
+            context = context,
+            current = current,
+            maxPop24h = maxHourlyPop,
+            windUnit = windUnit
         )
 
         // 7-Day Forecast With Range Bars
@@ -126,9 +133,9 @@ class ForecastView(private val binding: LayoutForecastBinding) {
         binding.uvBarContainer.post {
             val w = binding.uvBarContainer.width
             if (w > 0) {
-                val ratio = (current.uvIndex / 11.0).coerceIn(0.08, 1.0).toFloat()
+                val ratio = (current.uvIndex / 11.0).coerceIn(0.0, 1.0).toFloat()
                 val lp = binding.uvProgressFill.layoutParams
-                lp.width = (w * ratio).toInt().coerceAtLeast(14)
+                lp.width = if (current.uvIndex <= 0.1) 0 else (w * ratio).toInt().coerceAtLeast(10)
                 binding.uvProgressFill.layoutParams = lp
             }
         }
@@ -143,19 +150,42 @@ class ForecastView(private val binding: LayoutForecastBinding) {
         // Bento Grid Card 3: Humidity & Dew Point
         binding.tvHumidityValue.text = "${current.humidityPercent}%"
         binding.tvDewPointNote.text = context.getString(R.string.dew_point_format, tempUnit.format(current.dewPointC))
-
-        // Bento Grid Card 4: Air Quality (AQI)
-        // Approximate AQI based on visibility and humidity if direct AQI not present
-        val calculatedAqi = ((50.0 - current.visibilityKm).coerceIn(0.0, 45.0) * 1.8 + (current.humidityPercent * 0.15)).roundToInt().coerceIn(15, 120)
-        binding.tvAqiValue.text = calculatedAqi.toString()
-        val (aqiLabelRes, aqiAdviceRes, aqiColor) = when {
-            calculatedAqi <= 50 -> Triple(R.string.aqi_good, R.string.aqi_advice_good, 0xFF34D399.toInt())
-            calculatedAqi <= 100 -> Triple(R.string.aqi_moderate, R.string.aqi_advice_moderate, 0xFFFBBF24.toInt())
-            else -> Triple(R.string.aqi_unhealthy, R.string.aqi_advice_moderate, 0xFFF87171.toInt())
+        binding.humidityBarContainer.post {
+            val w = binding.humidityBarContainer.width
+            if (w > 0) {
+                val ratio = (current.humidityPercent / 100f).coerceIn(0f, 1f)
+                val lp = binding.humidityProgressFill.layoutParams
+                lp.width = (w * ratio).toInt().coerceAtLeast(if (current.humidityPercent > 0) 10 else 0)
+                binding.humidityProgressFill.layoutParams = lp
+            }
         }
-        binding.tvAqiLabel.text = context.getString(aqiLabelRes)
-        binding.tvAqiLabel.setTextColor(aqiColor)
-        binding.tvAqiAdvice.text = context.getString(aqiAdviceRes)
+
+        // Bento Grid Card 4: Feels Like (Thermal Comfort)
+        binding.tvAqiValue.text = tempUnit.format(current.apparentTemperatureC)
+        val actualVal = if (tempUnit == TemperatureUnit.CELSIUS) current.temperatureC.roundToInt() else ((current.temperatureC * 9.0 / 5.0) + 32.0).roundToInt()
+        val feelsVal = if (tempUnit == TemperatureUnit.CELSIUS) current.apparentTemperatureC.roundToInt() else ((current.apparentTemperatureC * 9.0 / 5.0) + 32.0).roundToInt()
+        val tempDiff = feelsVal - actualVal
+        binding.tvAqiLabel.text = when {
+            tempDiff > 0 -> "+$tempDiff°"
+            tempDiff < 0 -> "$tempDiff°"
+            else -> "0°"
+        }
+        val (feelsColor, feelsAdviceRes) = when {
+            tempDiff >= 2 -> 0xFFFBBF24.toInt() to R.string.feels_warmer
+            tempDiff <= -2 -> 0xFF38BDF8.toInt() to R.string.feels_cooler
+            else -> 0xCCFFFFFF.toInt() to R.string.feels_similar
+        }
+        binding.tvAqiLabel.setTextColor(feelsColor)
+        binding.tvAqiAdvice.text = context.getString(feelsAdviceRes)
+        binding.aqiBarContainer.post {
+            val w = binding.aqiBarContainer.width
+            if (w > 0) {
+                val ratio = (current.apparentTemperatureC / 45.0).coerceIn(0.08, 1.0).toFloat()
+                val lp = binding.aqiProgressFill.layoutParams
+                lp.width = (w * ratio).toInt().coerceAtLeast(12)
+                binding.aqiProgressFill.layoutParams = lp
+            }
+        }
 
         // Bento Grid Card 5: Visibility & Surface Pressure
         val visStr = if (windUnit == WindSpeedUnit.MPH) {
@@ -195,7 +225,7 @@ class ForecastView(private val binding: LayoutForecastBinding) {
         }
 
         val activeId = state.selectedLocation?.id ?: allCities.firstOrNull()?.id
-        val pillHeightPx = (38 * density).toInt()
+        val pillHeightPx = (42 * density).toInt()
 
         allCities.forEach { city ->
             val isSelected = city.id == activeId
@@ -217,7 +247,7 @@ class ForecastView(private val binding: LayoutForecastBinding) {
                 layoutParams = params
 
                 if (isSelected) {
-                    setBackgroundResource(R.drawable.bg_nav_active_pill)
+                    setBackgroundResource(R.drawable.bg_city_pill_active)
                 } else {
                     setBackgroundResource(R.drawable.bg_pill_accent_translucent)
                 }
@@ -229,7 +259,7 @@ class ForecastView(private val binding: LayoutForecastBinding) {
                             marginEnd = (5 * density).toInt()
                         }
                         setImageResource(R.drawable.ic_arrow_current_location)
-                        imageTintList = ColorStateList.valueOf(if (isSelected) 0xFF0F172A.toInt() else 0xFF38BDF8.toInt())
+                        imageTintList = ColorStateList.valueOf(if (isSelected) 0xFF7DD3FC.toInt() else 0xBF38BDF8.toInt())
                     }
                     addView(icon)
                 }
@@ -238,7 +268,7 @@ class ForecastView(private val binding: LayoutForecastBinding) {
                     this.text = city.name
                     textSize = 12f
                     typeface = android.graphics.Typeface.create("sans-serif-medium", android.graphics.Typeface.BOLD)
-                    setTextColor(if (isSelected) 0xFF0F172A.toInt() else 0xE6FFFFFF.toInt())
+                    setTextColor(if (isSelected) 0xFFFFFFFF.toInt() else 0xCCFFFFFF.toInt())
                 }
                 addView(text)
 
@@ -297,8 +327,11 @@ class ForecastView(private val binding: LayoutForecastBinding) {
                 if (totalWidth > 0) {
                     val minRatio = ((day.minTempC - minGlobal) / tempRange).coerceIn(0.0, 1.0).toFloat()
                     val maxRatio = ((day.maxTempC - minGlobal) / tempRange).coerceIn(0.0, 1.0).toFloat()
-                    val leftMargin = (totalWidth * minRatio).toInt()
-                    val barWidth = (totalWidth * (maxRatio - minRatio)).toInt().coerceAtLeast(20)
+                    val minBarPx = (16 * context.resources.displayMetrics.density).toInt()
+                    val leftMargin = (totalWidth * minRatio).toInt().coerceIn(0, (totalWidth - minBarPx).toInt().coerceAtLeast(0))
+                    val barWidth = (totalWidth * (maxRatio - minRatio)).toInt()
+                        .coerceAtLeast(minBarPx)
+                        .coerceAtMost((totalWidth - leftMargin).toInt().coerceAtLeast(0))
 
                     val lp = row.temperatureRange.layoutParams as FrameLayout.LayoutParams
                     lp.leftMargin = leftMargin
@@ -336,23 +369,30 @@ class ForecastView(private val binding: LayoutForecastBinding) {
         }
     }
 
-    private fun generateNarrativeDescription(context: Context, current: CurrentWeather, cityName: String): String {
+    private fun generateNarrativeDescription(
+        context: Context,
+        current: CurrentWeather,
+        maxPop24h: Int,
+        windUnit: WindSpeedUnit
+    ): String {
         val isVi = context.resources.configuration.locales[0]?.language == "vi"
+        val windStr = windUnit.format(current.windSpeedKmh)
+        val compass = degreesToCompass(context, current.windDirectionDeg)
         return if (isVi) {
+            val windPart = "Gió $compass $windStr, độ ẩm ${current.humidityPercent}%"
             when {
-                current.precipitationMm > 0.5 -> "Mưa rải rác tại $cityName. Đường ướt và có thể có gió giật vào chiều tối."
-                current.weatherCode in listOf(0, 1) && current.isDay -> "Trời quang đãng với gió nhẹ tại $cityName. Chỉ số UV cao vào giữa trưa."
-                !current.isDay -> "Đêm quang đãng, trời đầy sao tại $cityName với tầm nhìn xa tốt."
-                current.weatherCode in listOf(2, 3) -> "Trời nhiều mây tại $cityName với ánh sáng dịu nhẹ và nhiệt độ dễ chịu."
-                else -> "Thời tiết dễ chịu tại $cityName với áp suất khí quyển ổn định."
+                current.precipitationMm > 0.5 -> "Đang có mưa (${String.format(Locale.US, "%.1f", current.precipitationMm)} mm) • $windPart."
+                maxPop24h >= 40 -> "Khả năng mưa lên tới $maxPop24h% trong 24 giờ tới • $windPart."
+                current.uvIndex >= 6.0 && current.isDay -> "Chỉ số UV hiện tại ${current.uvIndexInt} • $windPart."
+                else -> "$windPart • Tầm nhìn ${current.visibilityKm.roundToInt().coerceAtLeast(1)} km."
             }
         } else {
+            val windPart = "$compass wind at $windStr, ${current.humidityPercent}% humidity"
             when {
-                current.precipitationMm > 0.5 -> "Steady showers over $cityName. Coastal swell and wet roads expected through the evening."
-                current.weatherCode in listOf(0, 1) && current.isDay -> "Clear skies with a gentle breeze across $cityName. High UV index around midday."
-                !current.isDay -> "Crisp, starry night over $cityName with clear visibility. Light breeze."
-                current.weatherCode in listOf(2, 3) -> "Soft overcast skies over $cityName with diffused sunlight and pleasant temperatures."
-                else -> "Comfortable seasonal conditions across $cityName with steady atmospheric pressure."
+                current.precipitationMm > 0.5 -> "Active precipitation (${String.format(Locale.US, "%.1f", current.precipitationMm)} mm) • $windPart."
+                maxPop24h >= 40 -> "Rain chance up to $maxPop24h% over the next 24h • $windPart."
+                current.uvIndex >= 6.0 && current.isDay -> "UV index at ${current.uvIndexInt} • $windPart."
+                else -> "$windPart • Visibility ${current.visibilityKm.roundToInt().coerceAtLeast(1)} km."
             }
         }
     }
@@ -417,9 +457,9 @@ private class HourlyAdapter(
         val isNow = position == 0
 
         if (isNow) {
-            holder.binding.hourlyCard.setBackgroundResource(R.drawable.bg_pill_accent_translucent)
+            holder.binding.hourlyCard.setBackgroundResource(R.drawable.bg_hourly_card_active)
         } else {
-            holder.binding.hourlyCard.setBackgroundResource(R.drawable.bg_circle_translucent)
+            holder.binding.hourlyCard.setBackgroundResource(R.drawable.bg_hourly_card)
         }
 
         holder.binding.hourTime.text = if (isNow) {
@@ -433,11 +473,11 @@ private class HourlyAdapter(
         holder.binding.hourTime.setTextColor(if (isNow) 0xFFFFFFFF.toInt() else 0xD9FFFFFF.toInt())
         holder.binding.hourIcon.setImageResource(WeatherCodeMapper.getIcon(item.weatherCode, item.isDay))
         if (item.precipitationProbability >= 15) {
+            holder.binding.hourPop.visibility = View.VISIBLE
             holder.binding.hourPop.text = "${item.precipitationProbability}%"
-            holder.binding.hourPop.setTextColor(0xFF38BDF8.toInt())
+            holder.binding.hourPop.setTextColor(0xFF7DD3FC.toInt())
         } else {
-            holder.binding.hourPop.text = "—"
-            holder.binding.hourPop.setTextColor(0x66FFFFFF.toInt())
+            holder.binding.hourPop.visibility = View.INVISIBLE
         }
         holder.binding.hourTemperature.text = unit.format(item.temperatureC)
     }

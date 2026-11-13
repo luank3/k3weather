@@ -160,12 +160,7 @@ class MainActivity : AppCompatActivity() {
             binding.fragmentContainer.setPadding(0, systemBars.top, 0, 0)
             binding.searchContainer.setPadding(0, systemBars.top, 0, systemBars.bottom)
 
-            val dockMarginBottom = systemBars.bottom + (14 * resources.displayMetrics.density).toInt()
-            val lp = binding.bottomNavBar.layoutParams as? ViewGroup.MarginLayoutParams
-            if (lp != null) {
-                lp.bottomMargin = dockMarginBottom
-                binding.bottomNavBar.layoutParams = lp
-            }
+            binding.bottomNavBar.setPadding(0, 0, 0, systemBars.bottom)
             insets
         }
     }
@@ -262,53 +257,200 @@ class MainActivity : AppCompatActivity() {
     }
 
     private var isBottomNavHidden = false
+    private var isScrubbingNav = false
+    private var navIndicatorAnimator: android.animation.ValueAnimator? = null
 
     private fun setupScrollAwareBottomNav() {
         val density = resources.displayMetrics.density
-        val hideDistance = 120f * density
+        val hideDistance = 160f * density
 
         val showNav = {
             if (isBottomNavHidden) {
                 isBottomNavHidden = false
-                binding.bottomNavBar.animate()
-                    .translationY(0f)
-                    .alpha(1f)
-                    .setDuration(220)
-                    .setInterpolator(DecelerateInterpolator())
-                    .start()
+                binding.bottomNavBar.animate().cancel()
+                if (viewModel.state.value.settings.reduceMotion) {
+                    binding.bottomNavBar.translationY = 0f
+                    binding.bottomNavBar.alpha = 1f
+                } else {
+                    binding.bottomNavBar.animate()
+                        .translationY(0f)
+                        .alpha(1f)
+                        .setDuration(220)
+                        .setInterpolator(DecelerateInterpolator())
+                        .start()
+                }
             }
         }
 
         val hideNav = {
-            if (!isBottomNavHidden) {
+            if (!isBottomNavHidden && !isScrubbingNav) {
                 isBottomNavHidden = true
-                binding.bottomNavBar.animate()
-                    .translationY(hideDistance)
-                    .alpha(0f)
-                    .setDuration(220)
-                    .setInterpolator(AccelerateInterpolator())
-                    .start()
+                binding.bottomNavBar.animate().cancel()
+                if (viewModel.state.value.settings.reduceMotion) {
+                    binding.bottomNavBar.translationY = hideDistance
+                    binding.bottomNavBar.alpha = 0f
+                } else {
+                    binding.bottomNavBar.animate()
+                        .translationY(hideDistance)
+                        .alpha(0f)
+                        .setDuration(220)
+                        .setInterpolator(AccelerateInterpolator())
+                        .start()
+                }
             }
         }
 
         forecastBinding.forecastScrollView.setOnScrollChangeListener { _, _, scrollY, _, oldScrollY ->
             val dy = scrollY - oldScrollY
-            if (dy > 14 && scrollY > (100 * density).toInt()) {
-                hideNav()
-            } else if (dy < -14 || scrollY < (50 * density).toInt()) {
+            val child = forecastBinding.forecastScrollView.getChildAt(0)
+            val atBottom = child != null && (scrollY + forecastBinding.forecastScrollView.height >= child.height - (48 * density).toInt())
+            if (dy < -14 || scrollY < (50 * density).toInt() || atBottom) {
                 showNav()
+            } else if (dy > 14 && scrollY > (100 * density).toInt()) {
+                hideNav()
             }
         }
     }
 
+    private fun tabViewFor(tab: Tab): LinearLayout = when (tab) {
+        Tab.FORECAST -> binding.tabForecast
+        Tab.SAVED -> binding.tabSaved
+        Tab.SETTINGS -> binding.tabSettings
+    }
+
+    private fun positionNavIndicator(tab: Tab, immediate: Boolean) {
+        val target = tabViewFor(tab)
+        val targetWidth = target.width
+        val targetX = target.left.toFloat()
+        if (targetWidth <= 0) return
+
+        val lp = binding.navActiveIndicator.layoutParams
+        navIndicatorAnimator?.cancel()
+        if (immediate) {
+            lp.width = targetWidth
+            binding.navActiveIndicator.layoutParams = lp
+            binding.navActiveIndicator.translationX = targetX
+        } else {
+            val startX = binding.navActiveIndicator.translationX
+            val startW = if (lp.width > 0) lp.width else targetWidth
+            navIndicatorAnimator = android.animation.ValueAnimator.ofFloat(0f, 1f).apply {
+                duration = 200L
+                interpolator = DecelerateInterpolator()
+                addUpdateListener { va ->
+                    val f = va.animatedFraction
+                    binding.navActiveIndicator.translationX = startX + (targetX - startX) * f
+                    val wLp = binding.navActiveIndicator.layoutParams
+                    wLp.width = (startW + (targetWidth - startW) * f).toInt()
+                    binding.navActiveIndicator.layoutParams = wLp
+                }
+                start()
+            }
+        }
+    }
+
+    private fun updateIndicatorForScrub(localX: Float) {
+        navIndicatorAnimator?.cancel()
+        val tabs = listOf(binding.tabForecast, binding.tabSaved, binding.tabSettings)
+        val firstCenter = tabs.first().let { it.left + it.width * 0.5f }
+        val lastCenter = tabs.last().let { it.left + it.width * 0.5f }
+        val clampedCenterX = localX.coerceIn(firstCenter, lastCenter)
+
+        var leftTab = tabs.first()
+        var rightTab = tabs.last()
+        for (i in 0 until tabs.lastIndex) {
+            val c1 = tabs[i].left + tabs[i].width * 0.5f
+            val c2 = tabs[i + 1].left + tabs[i + 1].width * 0.5f
+            if (clampedCenterX in c1..c2) {
+                leftTab = tabs[i]
+                rightTab = tabs[i + 1]
+                break
+            }
+        }
+
+        val c1 = leftTab.left + leftTab.width * 0.5f
+        val c2 = rightTab.left + rightTab.width * 0.5f
+        val frac = if (c2 > c1) ((clampedCenterX - c1) / (c2 - c1)).coerceIn(0f, 1f) else 0f
+        val interpWidth = (leftTab.width + (rightTab.width - leftTab.width) * frac).toInt()
+        val interpX = leftTab.left + (rightTab.left - leftTab.left) * frac
+
+        val lp = binding.navActiveIndicator.layoutParams
+        lp.width = interpWidth
+        binding.navActiveIndicator.layoutParams = lp
+        binding.navActiveIndicator.translationX = interpX
+    }
+
+    @android.annotation.SuppressLint("ClickableViewAccessibility")
     private fun setupBottomNavigation(initialTab: Tab) {
         binding.tabForecast.setOnClickListener { selectTab(Tab.FORECAST) }
         binding.tabSaved.setOnClickListener { selectTab(Tab.SAVED) }
         binding.tabSettings.setOnClickListener { selectTab(Tab.SETTINGS) }
+
+        val touchSlop = android.view.ViewConfiguration.get(this).scaledTouchSlop
+        var startRawX = 0f
+
+        val scrubTouchListener = View.OnTouchListener { view, event ->
+            when (event.actionMasked) {
+                android.view.MotionEvent.ACTION_DOWN -> {
+                    startRawX = event.rawX
+                    isScrubbingNav = false
+                    false
+                }
+                android.view.MotionEvent.ACTION_MOVE -> {
+                    val dx = kotlin.math.abs(event.rawX - startRawX)
+                    if (!isScrubbingNav && dx > touchSlop * 0.35f) {
+                        isScrubbingNav = true
+                        view.parent?.requestDisallowInterceptTouchEvent(true)
+                        binding.bottomNavBar.requestDisallowInterceptTouchEvent(true)
+                        view.isPressed = false
+                    }
+                    if (isScrubbingNav) {
+                        val contentLoc = IntArray(2)
+                        binding.bottomNavContent.getLocationOnScreen(contentLoc)
+                        val localX = (event.rawX - contentLoc[0]).coerceIn(0f, binding.bottomNavContent.width.toFloat())
+                        updateIndicatorForScrub(localX)
+
+                        val hoveredTab = when {
+                            localX < binding.tabSaved.left -> Tab.FORECAST
+                            localX < binding.tabSettings.left -> Tab.SAVED
+                            else -> Tab.SETTINGS
+                        }
+                        if (hoveredTab != currentTab) {
+                            binding.bottomNavBar.performHapticFeedback(android.view.HapticFeedbackConstants.CLOCK_TICK)
+                            selectTab(hoveredTab, fromScrub = true)
+                        }
+                        true
+                    } else {
+                        false
+                    }
+                }
+                android.view.MotionEvent.ACTION_UP, android.view.MotionEvent.ACTION_CANCEL -> {
+                    if (isScrubbingNav) {
+                        isScrubbingNav = false
+                        view.isPressed = false
+                        view.parent?.requestDisallowInterceptTouchEvent(false)
+                        binding.bottomNavBar.requestDisallowInterceptTouchEvent(false)
+                        positionNavIndicator(currentTab, immediate = viewModel.state.value.settings.reduceMotion)
+                        true
+                    } else {
+                        false
+                    }
+                }
+                else -> false
+            }
+        }
+
+        binding.tabForecast.setOnTouchListener(scrubTouchListener)
+        binding.tabSaved.setOnTouchListener(scrubTouchListener)
+        binding.tabSettings.setOnTouchListener(scrubTouchListener)
+        binding.bottomNavBar.setOnTouchListener(scrubTouchListener)
+
         selectTab(initialTab)
+        binding.bottomNavContent.post {
+            positionNavIndicator(currentTab, immediate = true)
+        }
     }
 
-    private fun selectTab(tab: Tab) {
+    private fun selectTab(tab: Tab, fromScrub: Boolean = false) {
         val oldTab = previousTab
         currentTab = tab
         previousTab = tab
@@ -318,6 +460,7 @@ class MainActivity : AppCompatActivity() {
 
         if (isBottomNavHidden) {
             isBottomNavHidden = false
+            binding.bottomNavBar.animate().cancel()
             binding.bottomNavBar.animate()
                 .translationY(0f)
                 .alpha(1f)
@@ -328,23 +471,37 @@ class MainActivity : AppCompatActivity() {
 
         // 3-Tab Liquid Glass Capsule Pill Styling
         fun styleTabItem(container: LinearLayout, icon: ImageView, text: TextView, isSelected: Boolean) {
+            container.isSelected = isSelected
+            text.visibility = View.VISIBLE
             if (isSelected) {
-                container.setBackgroundResource(R.drawable.bg_nav_active_pill)
-                container.setPadding((16 * density).toInt(), 0, (16 * density).toInt(), 0)
-                icon.imageTintList = ColorStateList.valueOf(0xFF0F172A.toInt())
-                text.visibility = View.VISIBLE
-                text.setTextColor(0xFF0F172A.toInt())
+                icon.imageTintList = ColorStateList.valueOf(0xFF7DD3FC.toInt())
+                text.setTextColor(0xFFFFFFFF.toInt())
+                text.alpha = 1f
             } else {
-                container.background = null
-                container.setPadding((16 * density).toInt(), 0, (16 * density).toInt(), 0)
-                icon.imageTintList = ColorStateList.valueOf(0xB3FFFFFF.toInt())
-                text.visibility = View.GONE
+                icon.imageTintList = ColorStateList.valueOf(0x99FFFFFF.toInt())
+                text.setTextColor(0x99FFFFFF.toInt())
+                text.alpha = 0.85f
             }
         }
 
         styleTabItem(binding.tabForecast, binding.ivTabForecast, binding.tvTabForecast, tab == Tab.FORECAST)
         styleTabItem(binding.tabSaved, binding.ivTabSaved, binding.tvTabSaved, tab == Tab.SAVED)
         styleTabItem(binding.tabSettings, binding.ivTabSettings, binding.tvTabSettings, tab == Tab.SETTINGS)
+
+        if (!fromScrub) {
+            val targetView = tabViewFor(tab)
+            if (targetView.width > 0) {
+                positionNavIndicator(tab, immediate = oldTab == null || oldTab == tab || reduceMotion)
+            } else {
+                binding.bottomNavContent.post { positionNavIndicator(tab, immediate = true) }
+            }
+        }
+
+        binding.bottomNavContent.post {
+            val targetView = tabViewFor(tab)
+            val scrollX = (targetView.left - (binding.bottomNavBar.width - targetView.width) / 2).coerceAtLeast(0)
+            binding.bottomNavBar.smoothScrollTo(scrollX, 0)
+        }
 
         fun getViewForTab(t: Tab): View = when (t) {
             Tab.FORECAST -> forecastBinding.root
@@ -506,7 +663,7 @@ class MainActivity : AppCompatActivity() {
                     val cur = state.detectedCurrentLocation
                     if (cur != null) {
                         savedBinding.cardCurrentLocation.visibility = View.VISIBLE
-                        savedBinding.tvCurrentLocCity.text = if (cur.subtitle.isNotBlank()) "${cur.name}, ${cur.subtitle}" else cur.name
+                        savedBinding.tvCurrentLocCity.text = cur.name
                         val curForecast = state.currentLocationForecast
                         if (curForecast != null) {
                             savedBinding.tvCurrentLocTemp.text = state.settings.tempUnit.format(curForecast.current.temperatureC)
@@ -625,6 +782,9 @@ class MainActivity : AppCompatActivity() {
         binding.tvTabForecast.text = getString(R.string.tab_forecast)
         binding.tvTabSaved.text = getString(R.string.tab_saved)
         binding.tvTabSettings.text = getString(R.string.tab_settings)
+        binding.bottomNavContent.post {
+            positionNavIndicator(currentTab, immediate = true)
+        }
 
         // Re-bind current data in new locale
         val state = viewModel.state.value
@@ -668,26 +828,6 @@ class MainActivity : AppCompatActivity() {
             colorScheme = colorScheme,
             enabled = true
         )
-
-        // Dynamic Ambient Mesh Glow Blobs based on atmosphere
-        when {
-            !isDay -> {
-                binding.glowBlobTop.backgroundTintList = ColorStateList.valueOf(0x40A855F7.toInt())
-                binding.glowBlobMid.backgroundTintList = ColorStateList.valueOf(0x334F46E5.toInt())
-            }
-            code in listOf(51, 53, 55, 61, 63, 65, 80, 81, 82, 95, 96, 99) -> {
-                binding.glowBlobTop.backgroundTintList = ColorStateList.valueOf(0x3322D3EE.toInt())
-                binding.glowBlobMid.backgroundTintList = ColorStateList.valueOf(0x333B82F6.toInt())
-            }
-            code in listOf(2, 3, 45, 48) -> {
-                binding.glowBlobTop.backgroundTintList = ColorStateList.valueOf(0x33818CF8.toInt())
-                binding.glowBlobMid.backgroundTintList = ColorStateList.valueOf(0x2694A3B8.toInt())
-            }
-            else -> {
-                binding.glowBlobTop.backgroundTintList = ColorStateList.valueOf(0x4DFBBF24.toInt())
-                binding.glowBlobMid.backgroundTintList = ColorStateList.valueOf(0x3338BDF8.toInt())
-            }
-        }
     }
 
     private fun refreshSavedForecasts() {

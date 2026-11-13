@@ -20,7 +20,7 @@
             android:orientation="vertical"
             android:paddingHorizontal="16dp"
             android:paddingTop="8dp"
-            android:paddingBottom="160dp">
+            android:paddingBottom="120dp">
 
             <!-- TOP HEADER: Quick-Switch City Pills + Search + Unit Toggle -->
             <LinearLayout
@@ -36,6 +36,8 @@
                     android:layout_weight="1"
                     android:layout_marginEnd="8dp"
                     android:overScrollMode="never"
+                    android:requiresFadingEdge="horizontal"
+                    android:fadingEdgeLength="28dp"
                     android:scrollbars="none">
 
                     <LinearLayout
@@ -49,10 +51,10 @@
                 <!-- Right Header Controls: Search Button -->
                 <ImageButton
                     android:id="@+id/searchButton"
-                    android:layout_width="38dp"
-                    android:layout_height="38dp"
+                    android:layout_width="42dp"
+                    android:layout_height="42dp"
                     android:background="@drawable/bg_circle_translucent"
-                    android:padding="9dp"
+                    android:padding="10dp"
                     android:contentDescription="@string/search_locations"
                     android:src="@drawable/ic_search"
                     app:tint="@android:color/white" />
@@ -62,29 +64,30 @@
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="12dp"
+                android:layout_marginTop="10dp"
                 android:gravity="center_horizontal"
                 android:orientation="vertical">
 
-                <!-- Location Badge Pill -->
+                <!-- Clean Location Heading -->
                 <LinearLayout
                     android:id="@+id/badgeLocationPill"
+                    android:visibility="gone"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:background="@drawable/bg_pill_accent_translucent"
                     android:gravity="center_vertical"
                     android:orientation="horizontal"
-                    android:paddingHorizontal="14dp"
-                    android:paddingVertical="5dp">
+                    android:paddingHorizontal="8dp"
+                    android:paddingVertical="2dp">
 
                     <ImageView
                         android:id="@+id/ivLocationPin"
-                        android:layout_width="14dp"
-                        android:layout_height="14dp"
+                        android:visibility="gone"
+                        android:layout_width="16dp"
+                        android:layout_height="16dp"
                         android:layout_marginEnd="6dp"
                         android:contentDescription="@null"
                         android:src="@drawable/ic_location"
-                        app:tint="#FDE047" />
+                        app:tint="#7DD3FC" />
 
                     <TextView
                         android:id="@+id/cityName"
@@ -92,8 +95,8 @@
                         android:layout_height="wrap_content"
                         android:text="Da Nang, Vietnam"
                         android:textColor="@android:color/white"
-                        android:textSize="13sp"
-                        android:textStyle="bold"
+                        android:textSize="15sp"
+                        android:alpha="0.8"
                         android:fontFamily="sans-serif-medium" />
                 </LinearLayout>
 
@@ -139,22 +142,22 @@
                     android:layout_height="wrap_content"
                     android:visibility="gone" />
 
-                <!-- Custom Animated SVG Hero Weather Illustration -->
+                <!-- Custom Animated Hero Weather Illustration -->
                 <com.k3weather.app.ui.common.HeroWeatherArtworkView
                     android:id="@+id/heroWeatherArtwork"
-                    android:layout_width="168dp"
-                    android:layout_height="168dp"
-                    android:layout_marginTop="2dp" />
+                    android:layout_width="132dp"
+                    android:layout_height="132dp"
+                    android:layout_marginTop="0dp" />
 
                 <!-- Large Crisp Temperature Readout -->
                 <TextView
                     android:id="@+id/temperature"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="-4dp"
+                    android:layout_marginTop="-6dp"
                     android:text="29°C"
                     android:textColor="@android:color/white"
-                    android:textSize="78sp"
+                    android:textSize="92sp"
                     android:letterSpacing="-0.04"
                     android:fontFamily="sans-serif-light"
                     android:includeFontPadding="false"
@@ -163,20 +166,15 @@
                     android:shadowDy="4"
                     android:shadowRadius="14" />
 
-                <!-- Weather Condition Pill Badge -->
+                <!-- Weather Condition Subtitle -->
                 <TextView
                     android:id="@+id/condition"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="4dp"
-                    android:background="@drawable/bg_pill_accent_translucent"
-                    android:paddingHorizontal="16dp"
-                    android:paddingVertical="5dp"
-                    android:text="MOSTLY SUNNY"
-                    android:textColor="@android:color/white"
-                    android:textSize="12sp"
-                    android:textStyle="bold"
-                    android:letterSpacing="0.08"
+                    android:layout_marginTop="2dp"
+                    android:text="Mostly sunny"
+                    android:textColor="#F2FFFFFF"
+                    android:textSize="16sp"
                     android:fontFamily="sans-serif-medium" />
 
                 <!-- High / Low & Feels Like Summary -->
@@ -229,7 +227,7 @@
                         android:layout_marginEnd="6dp"
                         android:contentDescription="@null"
                         android:src="@drawable/ic_clock"
-                        app:tint="#38BDF8" />
+                        app:tint="#99FFFFFF" />
 
                     <TextView
                         android:layout_width="0dp"
@@ -239,7 +237,7 @@
                         android:textColor="#B3FFFFFF"
                         android:textSize="11sp"
                         android:textStyle="bold"
-                        android:letterSpacing="0.08"
+                        android:letterSpacing="0.03"
                         android:fontFamily="sans-serif-medium" />
 
                     <TextView
@@ -290,7 +288,7 @@
                         android:layout_marginEnd="6dp"
                         android:contentDescription="@null"
                         android:src="@drawable/ic_calendar"
-                        app:tint="#FDE047" />
+                        app:tint="#99FFFFFF" />
 
                     <TextView
                         android:layout_width="0dp"
@@ -300,7 +298,7 @@
                         android:textColor="#B3FFFFFF"
                         android:textSize="11sp"
                         android:textStyle="bold"
-                        android:letterSpacing="0.08"
+                        android:letterSpacing="0.03"
                         android:fontFamily="sans-serif-medium" />
 
                     <TextView
@@ -338,7 +336,8 @@
                 <!-- 1. UV Index Card -->
                 <LinearLayout
                     android:layout_width="0dp"
-                    android:layout_height="156dp"
+                    android:layout_height="match_parent"
+                    android:minHeight="152dp"
                     android:layout_weight="1"
                     android:layout_marginEnd="7dp"
                     android:background="@drawable/bg_card_translucent"
@@ -359,7 +358,7 @@
                             android:textColor="#B3FFFFFF"
                             android:textSize="11sp"
                             android:textStyle="bold"
-                            android:letterSpacing="0.08"
+                            android:letterSpacing="0.03"
                             android:fontFamily="sans-serif-medium" />
 
                         <ImageView
@@ -367,7 +366,7 @@
                             android:layout_height="14dp"
                             android:contentDescription="@null"
                             android:src="@drawable/ic_uv_sun"
-                            app:tint="#FDE047" />
+                            app:tint="#99FFFFFF" />
                     </LinearLayout>
 
                     <LinearLayout
@@ -434,7 +433,8 @@
                 <!-- 2. Wind & Compass Card -->
                 <LinearLayout
                     android:layout_width="0dp"
-                    android:layout_height="156dp"
+                    android:layout_height="match_parent"
+                    android:minHeight="152dp"
                     android:layout_weight="1"
                     android:layout_marginStart="7dp"
                     android:background="@drawable/bg_card_translucent"
@@ -455,7 +455,7 @@
                             android:textColor="#B3FFFFFF"
                             android:textSize="11sp"
                             android:textStyle="bold"
-                            android:letterSpacing="0.08"
+                            android:letterSpacing="0.03"
                             android:fontFamily="sans-serif-medium" />
 
                         <ImageView
@@ -463,7 +463,7 @@
                             android:layout_height="14dp"
                             android:contentDescription="@null"
                             android:src="@drawable/ic_wind"
-                            app:tint="#38BDF8" />
+                            app:tint="#99FFFFFF" />
                     </LinearLayout>
 
                     <LinearLayout
@@ -532,7 +532,8 @@
                 <!-- 3. Humidity Card -->
                 <LinearLayout
                     android:layout_width="0dp"
-                    android:layout_height="156dp"
+                    android:layout_height="match_parent"
+                    android:minHeight="152dp"
                     android:layout_weight="1"
                     android:layout_marginEnd="7dp"
                     android:background="@drawable/bg_card_translucent"
@@ -553,7 +554,7 @@
                             android:textColor="#B3FFFFFF"
                             android:textSize="11sp"
                             android:textStyle="bold"
-                            android:letterSpacing="0.08"
+                            android:letterSpacing="0.03"
                             android:fontFamily="sans-serif-medium" />
 
                         <ImageView
@@ -561,7 +562,7 @@
                             android:layout_height="14dp"
                             android:contentDescription="@null"
                             android:src="@drawable/ic_humidity_drop"
-                            app:tint="#22D3EE" />
+                            app:tint="#99FFFFFF" />
                     </LinearLayout>
 
                     <TextView
@@ -577,6 +578,7 @@
                         android:fontFamily="sans-serif-medium" />
 
                     <FrameLayout
+                        android:id="@+id/humidityBarContainer"
                         android:layout_width="match_parent"
                         android:layout_height="6dp"
                         android:layout_marginTop="8dp"
@@ -584,7 +586,7 @@
 
                         <View
                             android:id="@+id/humidityProgressFill"
-                            android:layout_width="70dp"
+                            android:layout_width="0dp"
                             android:layout_height="match_parent"
                             android:background="@color/accent_cyan" />
                     </FrameLayout>
@@ -606,10 +608,11 @@
                         android:fontFamily="sans-serif" />
                 </LinearLayout>
 
-                <!-- 4. Air Quality (AQI) Card -->
+                <!-- 4. Feels Like (Thermal Comfort) Card -->
                 <LinearLayout
                     android:layout_width="0dp"
-                    android:layout_height="156dp"
+                    android:layout_height="match_parent"
+                    android:minHeight="152dp"
                     android:layout_weight="1"
                     android:layout_marginStart="7dp"
                     android:background="@drawable/bg_card_translucent"
@@ -626,19 +629,19 @@
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
-                            android:text="@string/metric_aqi"
+                            android:text="@string/metric_feels_like"
                             android:textColor="#B3FFFFFF"
                             android:textSize="11sp"
                             android:textStyle="bold"
-                            android:letterSpacing="0.08"
+                            android:letterSpacing="0.03"
                             android:fontFamily="sans-serif-medium" />
 
                         <ImageView
                             android:layout_width="14dp"
                             android:layout_height="14dp"
                             android:contentDescription="@null"
-                            android:src="@drawable/ic_gauge"
-                            app:tint="#34D399" />
+                            android:src="@drawable/ic_thermometer"
+                            app:tint="#99FFFFFF" />
                     </LinearLayout>
 
                     <LinearLayout
@@ -652,7 +655,7 @@
                             android:id="@+id/tvAqiValue"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="38"
+                            android:text="30°"
                             android:textColor="@android:color/white"
                             android:textSize="28sp"
                             android:textStyle="bold"
@@ -667,14 +670,15 @@
                             android:background="@drawable/bg_pill_accent_translucent"
                             android:paddingHorizontal="8dp"
                             android:paddingVertical="2dp"
-                            android:text="Good"
-                            android:textColor="#34D399"
+                            android:text="+2°"
+                            android:textColor="#FBBF24"
                             android:textSize="11sp"
                             android:textStyle="bold"
                             android:fontFamily="sans-serif-medium" />
                     </LinearLayout>
 
                     <FrameLayout
+                        android:id="@+id/aqiBarContainer"
                         android:layout_width="match_parent"
                         android:layout_height="6dp"
                         android:layout_marginTop="8dp"
@@ -682,7 +686,7 @@
 
                         <View
                             android:id="@+id/aqiProgressFill"
-                            android:layout_width="45dp"
+                            android:layout_width="0dp"
                             android:layout_height="match_parent"
                             android:background="@drawable/bg_temp_range_gradient" />
                     </FrameLayout>
@@ -698,7 +702,7 @@
                         android:layout_height="wrap_content"
                         android:maxLines="2"
                         android:ellipsize="end"
-                        android:text="Air quality is ideal for outdoor exercise."
+                        android:text="@string/feels_similar"
                         android:textColor="#CCFFFFFF"
                         android:textSize="11sp"
                         android:fontFamily="sans-serif" />
@@ -716,7 +720,8 @@
                 <!-- 5. Visibility & Pressure Card -->
                 <LinearLayout
                     android:layout_width="0dp"
-                    android:layout_height="156dp"
+                    android:layout_height="match_parent"
+                    android:minHeight="152dp"
                     android:layout_weight="1"
                     android:layout_marginEnd="7dp"
                     android:background="@drawable/bg_card_translucent"
@@ -737,7 +742,7 @@
                             android:textColor="#B3FFFFFF"
                             android:textSize="11sp"
                             android:textStyle="bold"
-                            android:letterSpacing="0.08"
+                            android:letterSpacing="0.03"
                             android:fontFamily="sans-serif-medium" />
 
                         <ImageView
@@ -745,7 +750,7 @@
                             android:layout_height="14dp"
                             android:contentDescription="@null"
                             android:src="@drawable/ic_visibility"
-                            app:tint="#C084FC" />
+                            app:tint="#99FFFFFF" />
                     </LinearLayout>
 
                     <TextView
@@ -790,7 +795,8 @@
                 <!-- 6. Sun Cycle & Solar Arc Card -->
                 <LinearLayout
                     android:layout_width="0dp"
-                    android:layout_height="156dp"
+                    android:layout_height="match_parent"
+                    android:minHeight="152dp"
                     android:layout_weight="1"
                     android:layout_marginStart="7dp"
                     android:background="@drawable/bg_card_translucent"
@@ -811,7 +817,7 @@
                             android:textColor="#B3FFFFFF"
                             android:textSize="11sp"
                             android:textStyle="bold"
-                            android:letterSpacing="0.08"
+                            android:letterSpacing="0.03"
                             android:fontFamily="sans-serif-medium" />
 
                         <ImageView
@@ -819,7 +825,7 @@
                             android:layout_height="14dp"
                             android:contentDescription="@null"
                             android:src="@drawable/ic_sunrise"
-                            app:tint="#FDE047" />
+                            app:tint="#99FFFFFF" />
                     </LinearLayout>
 
                     <!-- Solar Path Arc View -->
@@ -844,9 +850,10 @@
                             android:orientation="vertical">
 
                             <TextView
+                                android:id="@+id/tvSunriseLabel"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="SUNRISE"
+                                android:text="@string/sunrise_label"
                                 android:textColor="#80FFFFFF"
                                 android:textSize="9sp"
                                 android:textStyle="bold" />
@@ -868,9 +875,10 @@
                             android:orientation="vertical">
 
                             <TextView
+                                android:id="@+id/tvSunsetLabel"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="SUNSET"
+                                android:text="@string/sunset_label"
                                 android:textColor="#80FFFFFF"
                                 android:textSize="9sp"
                                 android:textStyle="bold" />

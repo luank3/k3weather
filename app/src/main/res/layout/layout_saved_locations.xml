@@ -128,7 +128,7 @@
                     android:textColor="@color/accent_cyan"
                     android:textSize="11sp"
                     android:textStyle="bold"
-                    android:letterSpacing="0.08"
+                    android:letterSpacing="0.03"
                     android:fontFamily="sans-serif-medium" />
 
                 <TextView
@@ -186,7 +186,7 @@
         android:layout_weight="1"
         android:clipToPadding="false"
         android:overScrollMode="never"
-        android:paddingBottom="160dp"
+        android:paddingBottom="120dp"
         app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager" />
 
 </LinearLayout>

@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/hourlyCard"
-    android:layout_width="64dp"
+    android:layout_width="66dp"
     android:layout_height="wrap_content"
-    android:layout_marginEnd="6dp"
-    android:background="@drawable/bg_circle_translucent"
+    android:layout_marginEnd="8dp"
+    android:background="@drawable/bg_hourly_card"
     android:gravity="center"
     android:orientation="vertical"
     android:paddingHorizontal="4dp"
-    android:paddingVertical="10dp">
+    android:paddingVertical="12dp">
 
     <TextView
         android:id="@+id/hourTime"

@@ -12,11 +12,11 @@ class SettingsBinder(
         val context = binding.root.context
 
         // Units
-        binding.tvTemperatureUnitValue.text = if (settings.tempUnit == TemperatureUnit.CELSIUS) "°C  ›" else "°F  ›"
+        binding.tvTemperatureUnitValue.text = if (settings.tempUnit == TemperatureUnit.CELSIUS) "°C" else "°F"
         binding.tvWindSpeedUnitValue.text = when (settings.windSpeedUnit) {
-            WindSpeedUnit.KMH -> "km/h  ›"
-            WindSpeedUnit.MS -> "m/s  ›"
-            WindSpeedUnit.MPH -> "mph  ›"
+            WindSpeedUnit.KMH -> "km/h"
+            WindSpeedUnit.MS -> "m/s"
+            WindSpeedUnit.MPH -> "mph"
         }
 
         binding.rowTemperature.setOnClickListener {
@@ -65,7 +65,7 @@ class SettingsBinder(
 
         // Language: simple click to toggle directly like wind speed and temperature
         val langLabel = if (settings.language == "vi") "Tiếng Việt" else "English"
-        binding.tvLanguageValue.text = "$langLabel  ›"
+        binding.tvLanguageValue.text = langLabel
         binding.rowLanguage.setOnClickListener {
             val next = if (settings.language == "vi") "en" else "vi"
             send(settings.copy(language = next))

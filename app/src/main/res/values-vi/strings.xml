@@ -58,12 +58,14 @@
     <string name="feels_cooler">Gió thổi làm dịu mát hơn</string>
     <string name="feels_similar">Tương đương nhiệt độ thực tế</string>
 
-    <string name="wind_gusts_format">Gió giật tới %1$s</string>
+    <string name="wind_gusts_format">Giật %1$s</string>
     <string name="wind_dir_format">Hướng: %1$s (%2$d°)</string>
     <string name="dew_point_format">Điểm sương hiện tại %1$s</string>
     <string name="precip_today_format">Lượng mưa: %1$.1f mm</string>
     <string name="sunset_at_format">Lặn lúc %1$s</string>
     <string name="sunrise_at_format">Mọc lúc %1$s</string>
+    <string name="sunrise_label">BÌNH MINH</string>
+    <string name="sunset_label">HOÀNG HÔN</string>
     <string name="pressure_format">Áp suất: %1$d hPa</string>
     <string name="visibility_good">Tầm nhìn quang đãng</string>
     <string name="visibility_moderate">Có sương nhẹ hoặc mù</string>
@@ -78,6 +80,7 @@
     <string name="saved_locations">Địa điểm</string>
     <string name="empty_saved_locations">Chưa có địa điểm nào được lưu</string>
     <string name="add_city">Thêm địa điểm</string>
+    <string name="remove_location">Xóa địa điểm</string>
     <string name="keep_one_city">Cần giữ lại ít nhất một thành phố</string>
 
     <!-- Settings Screen -->
@@ -90,7 +93,7 @@
     <string name="settings_color_scheme">Chủ đề màu sắc</string>
     <string name="settings_language">Ngôn ngữ</string>
     <string name="settings_section_location">VỊ TRÍ</string>
-    <string name="settings_use_current_location">Định vị GPS chính xác</string>
+    <string name="settings_use_current_location">Sử dụng vị trí hiện tại</string>
     <string name="settings_attribution">Dữ liệu thời tiết bởi Open-Meteo · Bản đồ © OpenStreetMap</string>
 
     <!-- Color Scheme Names -->

@@ -58,12 +58,14 @@
     <string name="feels_cooler">Wind makes it feel cooler</string>
     <string name="feels_similar">Similar to the actual temperature</string>
 
-    <string name="wind_gusts_format">Gusts up to %1$s</string>
+    <string name="wind_gusts_format">Gusts %1$s</string>
     <string name="wind_dir_format">Direction: %1$s (%2$d°)</string>
     <string name="dew_point_format">Dew point is %1$s right now</string>
     <string name="precip_today_format">Precipitation: %1$.1f mm</string>
     <string name="sunset_at_format">Sunset at %1$s</string>
     <string name="sunrise_at_format">Sunrise at %1$s</string>
+    <string name="sunrise_label">SUNRISE</string>
+    <string name="sunset_label">SUNSET</string>
     <string name="pressure_format">Pressure: %1$d hPa</string>
     <string name="visibility_good">Clear horizon visibility</string>
     <string name="visibility_moderate">Moderate mist or haze</string>
@@ -78,6 +80,7 @@
     <string name="saved_locations">Locations</string>
     <string name="empty_saved_locations">No saved locations</string>
     <string name="add_city">Add city</string>
+    <string name="remove_location">Remove location</string>
     <string name="keep_one_city">Keep at least one saved city</string>
 
     <!-- Settings Screen -->
@@ -90,7 +93,7 @@
     <string name="settings_color_scheme">Accent theme</string>
     <string name="settings_language">Language</string>
     <string name="settings_section_location">LOCATION</string>
-    <string name="settings_use_current_location">Precise GPS location</string>
+    <string name="settings_use_current_location">Use current location</string>
     <string name="settings_attribution">Weather data by Open-Meteo · Map data © OpenStreetMap</string>
 
     <!-- Color Scheme Names -->

@@ -23,6 +23,14 @@
         android:layout_height="match_parent"
         android:background="@drawable/bg_card_photo_scrim" />
 
+    <!-- Active Selection Border -->
+    <View
+        android:id="@+id/activeBorderOverlay"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@drawable/bg_saved_location_card_active"
+        android:visibility="gone" />
+
     <!-- Content overlay -->
     <RelativeLayout
         android:layout_width="match_parent"
@@ -74,13 +82,13 @@
         <!-- Top-right: Delete button -->
         <ImageButton
             android:id="@+id/deleteButton"
-            android:layout_width="36dp"
-            android:layout_height="36dp"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
             android:layout_alignParentEnd="true"
             android:layout_alignParentTop="true"
             android:background="@drawable/bg_circle_translucent"
-            android:contentDescription="Remove location"
-            android:padding="8dp"
+            android:contentDescription="@string/remove_location"
+            android:padding="10dp"
             android:src="@drawable/ic_delete"
             app:tint="#D9FFFFFF" />
 

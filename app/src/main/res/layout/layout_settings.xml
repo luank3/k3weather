@@ -14,7 +14,7 @@
         android:orientation="vertical"
         android:paddingHorizontal="18dp"
         android:paddingTop="12dp"
-        android:paddingBottom="160dp">
+        android:paddingBottom="120dp">
 
         <!-- Title -->
         <TextView
@@ -40,7 +40,7 @@
             android:textColor="#B3FFFFFF"
             android:textSize="11sp"
             android:textStyle="bold"
-            android:letterSpacing="0.08"
+            android:letterSpacing="0.03"
             android:fontFamily="sans-serif-medium"
             android:layout_marginBottom="8dp" />
 
@@ -84,9 +84,13 @@
                     android:id="@+id/tvTemperatureUnitValue"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="°C  ›"
-                    android:textColor="#E6FFFFFF"
-                    android:textSize="15sp"
+                    android:background="@drawable/bg_pill_accent_translucent"
+                    android:paddingHorizontal="12dp"
+                    android:paddingVertical="5dp"
+                    android:text="°C"
+                    android:textColor="@android:color/white"
+                    android:textSize="13sp"
+                    android:textStyle="bold"
                     android:fontFamily="sans-serif-medium" />
             </LinearLayout>
 
@@ -129,9 +133,13 @@
                     android:id="@+id/tvWindSpeedUnitValue"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="km/h  ›"
-                    android:textColor="#E6FFFFFF"
-                    android:textSize="15sp"
+                    android:background="@drawable/bg_pill_accent_translucent"
+                    android:paddingHorizontal="12dp"
+                    android:paddingVertical="5dp"
+                    android:text="km/h"
+                    android:textColor="@android:color/white"
+                    android:textSize="13sp"
+                    android:textStyle="bold"
                     android:fontFamily="sans-serif-medium" />
             </LinearLayout>
         </LinearLayout>
@@ -146,7 +154,7 @@
             android:textColor="#B3FFFFFF"
             android:textSize="11sp"
             android:textStyle="bold"
-            android:letterSpacing="0.08"
+            android:letterSpacing="0.03"
             android:fontFamily="sans-serif-medium" />
 
         <LinearLayout
@@ -189,9 +197,13 @@
                     android:id="@+id/tvLanguageValue"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="English  ›"
-                    android:textColor="#E6FFFFFF"
-                    android:textSize="15sp"
+                    android:background="@drawable/bg_pill_accent_translucent"
+                    android:paddingHorizontal="12dp"
+                    android:paddingVertical="5dp"
+                    android:text="English"
+                    android:textColor="@android:color/white"
+                    android:textSize="13sp"
+                    android:textStyle="bold"
                     android:fontFamily="sans-serif-medium" />
             </LinearLayout>
 
@@ -249,7 +261,7 @@
             android:textColor="#B3FFFFFF"
             android:textSize="11sp"
             android:textStyle="bold"
-            android:letterSpacing="0.08"
+            android:letterSpacing="0.03"
             android:fontFamily="sans-serif-medium" />
 
         <LinearLayout

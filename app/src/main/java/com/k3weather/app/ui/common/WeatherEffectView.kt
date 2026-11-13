@@ -402,26 +402,21 @@ class WeatherEffectView @JvmOverloads constructor(
             sunCorePaint.shader = sunCoreGradient
         }
 
-        // Subtle atmospheric light rays
+        // Soft atmospheric corona glow (avoids hard-edged rectangular ray clipping on cards)
         if (fullHalo) {
+            val coronaRadius = outerRadius * 1.18f
             rayPaint.style = Paint.Style.FILL
-            val baseAngle = if (reduceMotion) 0f else (System.currentTimeMillis() * 0.00008).toFloat()
-            for (i in 0 until 5) {
-                val angle = baseAngle + i * 0.42f + 1.65f
-                val rayLen = h * 0.55f
-                val endX = cx + cos(angle) * rayLen
-                val endY = cy + sin(angle) * rayLen
-                rayPaint.shader = LinearGradient(
-                    cx, cy, endX, endY,
-                    intArrayOf(Color.argb(18, 255, 250, 210), Color.TRANSPARENT),
-                    null,
-                    Shader.TileMode.CLAMP
-                )
-                canvas.save()
-                canvas.rotate(Math.toDegrees(angle.toDouble()).toFloat() - 90f, cx, cy)
-                canvas.drawRect(cx - w * 0.06f, cy, cx + w * 0.06f, cy + rayLen, rayPaint)
-                canvas.restore()
-            }
+            rayPaint.shader = RadialGradient(
+                cx, cy, coronaRadius,
+                intArrayOf(
+                    Color.argb(42, 255, 248, 200),
+                    Color.argb(16, 255, 224, 130),
+                    Color.TRANSPARENT
+                ),
+                floatArrayOf(0f, 0.5f, 1f),
+                Shader.TileMode.CLAMP
+            )
+            canvas.drawCircle(cx, cy, coronaRadius, rayPaint)
         }
 
         canvas.drawCircle(cx, cy, outerRadius, sunPaint)
