@@ -70,11 +70,13 @@ class SettingsBinder(
 
 
         // Language: simple click to toggle directly like wind speed and temperature
-        val langLabel = if (settings.language == "vi") "Tiếng Việt" else "English"
-        binding.tvLanguageValue.text = langLabel
+        // "system" must resolve to the language the app is actually displaying
+        val effective = if (settings.language == "system") {
+            if (context.resources.configuration.locales[0]?.language == "vi") "vi" else "en"
+        } else settings.language
+        binding.tvLanguageValue.text = if (effective == "vi") "Tiếng Việt" else "English"
         binding.rowLanguage.setOnClickListener {
-            val next = if (settings.language == "vi") "en" else "vi"
-            send(settings.copy(language = next))
+            send(settings.copy(language = if (effective == "vi") "en" else "vi"))
         }
     }
 
