@@ -5,6 +5,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.content.res.ColorStateList
+import android.content.res.Configuration
 import android.graphics.drawable.GradientDrawable
 import android.location.Geocoder
 import android.location.Location
@@ -30,6 +31,7 @@ import androidx.lifecycle.repeatOnLifecycle
 import com.k3weather.app.core.model.AppColorScheme
 import com.k3weather.app.core.model.ForecastData
 import com.k3weather.app.core.model.LocationItem
+import com.k3weather.app.data.local.WeatherPreferences
 import com.k3weather.app.data.mapper.WeatherCodeMapper
 import com.k3weather.app.data.remote.LocationResolver
 import com.k3weather.app.databinding.ActivityMainBinding
@@ -92,6 +94,22 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    override fun attachBaseContext(newBase: Context) {
+        val prefs = WeatherPreferences(newBase)
+        val lang = prefs.getSettings().language
+        val context = if (lang == "en" || lang == "vi") {
+            val locale = Locale(lang)
+            Locale.setDefault(locale)
+            val config = Configuration(newBase.resources.configuration)
+            config.setLocale(locale)
+            config.setLayoutDirection(locale)
+            newBase.createConfigurationContext(config)
+        } else {
+            newBase
+        }
+        super.attachBaseContext(context)
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         WindowCompat.setDecorFitsSystemWindows(window, false)
@@ -99,16 +117,29 @@ class MainActivity : AppCompatActivity() {
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        val repository = (application as WeatherApplication).repository
-        viewModel = WeatherViewModel(repository)
+        val app = application as WeatherApplication
+        val repository = app.repository
+        val initialSettings = app.preferences.getSettings()
+        lastAppliedLanguage = initialSettings.language
+        viewModel = WeatherViewModel(repository, initialSettings)
+
+        val initialTabName = savedInstanceState?.getString(KEY_ACTIVE_TAB)
+        val initialTab = initialTabName?.let {
+            runCatching { Tab.valueOf(it) }.getOrNull()
+        } ?: Tab.FORECAST
 
         setupInsets()
         setupChildViews()
-        setupBottomNavigation()
+        setupBottomNavigation(initialTab)
         setupBackPress()
         observeState()
         preloadSavedForecastCaches()
         resolveInitialLocation()
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        outState.putString(KEY_ACTIVE_TAB, currentTab.name)
     }
 
     private fun setupInsets() {
@@ -140,6 +171,13 @@ class MainActivity : AppCompatActivity() {
         binding.searchContainer.addView(searchBinding.root)
 
         forecastBinder = ForecastBinder(ForecastView(forecastBinding))
+
+        savedBinding.cardCurrentLocation.outlineProvider = object : android.view.ViewOutlineProvider() {
+            override fun getOutline(view: View, outline: android.graphics.Outline) {
+                outline.setRoundRect(0, 0, view.width, view.height, 24f * view.resources.displayMetrics.density)
+            }
+        }
+        savedBinding.cardCurrentLocation.clipToOutline = true
 
         savedAdapter = SavedLocationsAdapter(
             onSelect = { location ->
@@ -206,11 +244,11 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun setupBottomNavigation() {
+    private fun setupBottomNavigation(initialTab: Tab) {
         binding.tabForecast.setOnClickListener { selectTab(Tab.FORECAST) }
         binding.tabSaved.setOnClickListener { selectTab(Tab.SAVED) }
         binding.tabSettings.setOnClickListener { selectTab(Tab.SETTINGS) }
-        selectTab(Tab.FORECAST)
+        selectTab(initialTab)
     }
 
     private fun selectTab(tab: Tab) {
@@ -365,15 +403,23 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    private var lastAppliedLanguage: String? = null
+
     private fun applyLanguage(language: String) {
+        if (lastAppliedLanguage == null) {
+            lastAppliedLanguage = language
+            return
+        }
+        if (lastAppliedLanguage == language) return
+        lastAppliedLanguage = language
+
         val targetLocale = when (language) {
             "vi" -> LocaleListCompat.forLanguageTags("vi")
             "en" -> LocaleListCompat.forLanguageTags("en")
             else -> LocaleListCompat.getEmptyLocaleList()
         }
-        if (AppCompatDelegate.getApplicationLocales() != targetLocale) {
-            AppCompatDelegate.setApplicationLocales(targetLocale)
-        }
+        AppCompatDelegate.setApplicationLocales(targetLocale)
+        recreate()
     }
 
     private fun updateMainBackground(state: WeatherUiState) {
@@ -502,5 +548,9 @@ class MainActivity : AppCompatActivity() {
                 Toast.makeText(this@MainActivity, getString(R.string.location_updated, placeName), Toast.LENGTH_SHORT).show()
             }
         }
+    }
+
+    companion object {
+        private const val KEY_ACTIVE_TAB = "key_active_tab"
     }
 }

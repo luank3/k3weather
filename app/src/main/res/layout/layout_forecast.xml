@@ -1,21 +1,26 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.swiperefreshlayout.widget.SwipeRefreshLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:id="@+id/forecastScrollView"
+    android:id="@+id/swipeRefresh"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:fillViewport="true"
-    android:clipToPadding="false"
-    android:overScrollMode="never"
-    android:background="@android:color/transparent">
+    android:layout_height="match_parent">
 
-    <LinearLayout
+    <androidx.core.widget.NestedScrollView
+        android:id="@+id/forecastScrollView"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:paddingHorizontal="18dp"
-        android:paddingTop="12dp"
-        android:paddingBottom="108dp">
+        android:layout_height="match_parent"
+        android:fillViewport="true"
+        android:clipToPadding="false"
+        android:overScrollMode="never"
+        android:background="@android:color/transparent">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingHorizontal="18dp"
+            android:paddingTop="12dp"
+            android:paddingBottom="160dp">
 
         <!-- Top Header: City, Subtitle, Refresh & Search Actions -->
         <LinearLayout
@@ -91,17 +96,6 @@
                     android:letterSpacing="0.01"
                     android:fontFamily="sans-serif" />
             </LinearLayout>
-
-            <ImageButton
-                android:id="@+id/refreshButton"
-                android:layout_width="42dp"
-                android:layout_height="42dp"
-                android:layout_marginEnd="8dp"
-                android:background="@drawable/bg_circle_translucent"
-                android:padding="11dp"
-                android:contentDescription="Refresh forecast"
-                android:src="@drawable/ic_refresh"
-                app:tint="@android:color/white" />
 
             <ImageButton
                 android:id="@+id/searchButton"
@@ -788,3 +782,4 @@
 
     </LinearLayout>
 </androidx.core.widget.NestedScrollView>
+</androidx.swiperefreshlayout.widget.SwipeRefreshLayout>

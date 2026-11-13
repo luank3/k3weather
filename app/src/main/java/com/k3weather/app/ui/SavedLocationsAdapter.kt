@@ -40,8 +40,16 @@ class SavedLocationsAdapter(
         notifyDataSetChanged()
     }
 
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): Holder =
-        Holder(ItemSavedLocationBinding.inflate(LayoutInflater.from(parent.context), parent, false))
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): Holder {
+        val binding = ItemSavedLocationBinding.inflate(LayoutInflater.from(parent.context), parent, false)
+        binding.root.outlineProvider = object : android.view.ViewOutlineProvider() {
+            override fun getOutline(view: android.view.View, outline: android.graphics.Outline) {
+                outline.setRoundRect(0, 0, view.width, view.height, 24f * view.resources.displayMetrics.density)
+            }
+        }
+        binding.root.clipToOutline = true
+        return Holder(binding)
+    }
 
     override fun getItemCount(): Int = locations.size
 

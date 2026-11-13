@@ -48,11 +48,12 @@
         android:layout_height="84dp"
         android:layout_marginTop="14dp"
         android:layout_marginBottom="10dp"
-        android:background="@drawable/bg_card_translucent"
+        android:background="@drawable/bg_saved_location_card"
+        android:outlineProvider="background"
         android:clipToOutline="true"
         android:clickable="true"
         android:focusable="true"
-        android:foreground="?attr/selectableItemBackground"
+        android:foreground="?attr/selectableItemBackgroundBorderless"
         android:visibility="gone">
 
         <LinearLayout
@@ -153,6 +154,6 @@
         android:clipToPadding="false"
         android:overScrollMode="never"
         android:paddingTop="4dp"
-        android:paddingBottom="108dp"
+        android:paddingBottom="160dp"
         app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager" />
 </LinearLayout>

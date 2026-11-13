@@ -57,14 +57,6 @@ class SettingsBinder(
             binding.reduceMotionSwitch.toggle()
         }
 
-        // Color scheme
-        val colorSchemeName = context.getString(settings.colorScheme.nameResId)
-        binding.tvColorSchemeValue.text = "$colorSchemeName  ›"
-        binding.tvColorSchemeValue.setTextColor(accentColor)
-        binding.rowColorScheme.setOnClickListener {
-            showColorSchemeDialog(settings)
-        }
-
         // Language
         val langLabel = when (settings.language) {
             "en" -> context.getString(R.string.lang_en)
@@ -85,23 +77,6 @@ class SettingsBinder(
         binding.rowCurrentLocation.setOnClickListener {
             binding.currentLocationSwitch.toggle()
         }
-    }
-
-    private fun showColorSchemeDialog(settings: AppSettings) {
-        val context = binding.root.context
-        val schemes = AppColorScheme.entries.toTypedArray()
-        val names = schemes.map { context.getString(it.nameResId) }.toTypedArray()
-        val currentIndex = schemes.indexOf(settings.colorScheme).coerceAtLeast(0)
-
-        AlertDialog.Builder(context)
-            .setTitle(R.string.settings_color_scheme)
-            .setSingleChoiceItems(names, currentIndex) { dialog, which ->
-                val selectedScheme = schemes[which]
-                dialog.dismiss()
-                send(settings.copy(colorScheme = selectedScheme))
-            }
-            .setNegativeButton(android.R.string.cancel, null)
-            .show()
     }
 
     private fun showLanguageDialog(settings: AppSettings) {

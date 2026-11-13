@@ -25,8 +25,11 @@ data class WeatherUiState(
     val searchError: String? = null
 )
 
-class WeatherViewModel(private val repository: WeatherRepository) : ViewModel() {
-    private val _state = MutableStateFlow(WeatherUiState())
+class WeatherViewModel(
+    private val repository: WeatherRepository,
+    initialSettings: AppSettings = AppSettings()
+) : ViewModel() {
+    private val _state = MutableStateFlow(WeatherUiState(settings = initialSettings))
     val state: StateFlow<WeatherUiState> = _state.asStateFlow()
     private var searchJob: Job? = null
 

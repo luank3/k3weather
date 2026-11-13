@@ -36,11 +36,14 @@ class ForecastView(private val binding: LayoutForecastBinding) {
         val accentTintList = ColorStateList.valueOf(accentColor)
 
         binding.searchButton.setOnClickListener { onSearch() }
-        binding.refreshButton.setOnClickListener { onRefresh() }
         binding.staleBadge.setOnClickListener { onRefresh() }
         binding.btnReturnCurrentLocation.setOnClickListener { onReturnToCurrentLocation() }
 
-        binding.forecastProgress.visibility = if (state.loading) View.VISIBLE else View.GONE
+        binding.swipeRefresh.setColorSchemeColors(accentColor)
+        binding.swipeRefresh.setProgressBackgroundColorSchemeColor(0xE60A1E2E.toInt())
+        binding.swipeRefresh.setOnRefreshListener { onRefresh() }
+        binding.swipeRefresh.isRefreshing = state.loading
+        binding.forecastProgress.visibility = View.GONE
         binding.staleBadge.visibility = if (state.forecast?.isStale == true) View.VISIBLE else View.GONE
 
         // Accent styling

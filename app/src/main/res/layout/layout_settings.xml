@@ -14,7 +14,7 @@
         android:orientation="vertical"
         android:paddingHorizontal="18dp"
         android:paddingTop="12dp"
-        android:paddingBottom="108dp">
+        android:paddingBottom="160dp">
 
         <!-- Title -->
         <TextView
@@ -155,51 +155,6 @@
             android:background="@drawable/bg_card_translucent"
             android:orientation="vertical"
             android:clipToOutline="true">
-
-            <!-- Color scheme Row -->
-            <LinearLayout
-                android:id="@+id/rowColorScheme"
-                android:layout_width="match_parent"
-                android:layout_height="58dp"
-                android:background="?attr/selectableItemBackground"
-                android:clickable="true"
-                android:focusable="true"
-                android:gravity="center_vertical"
-                android:orientation="horizontal"
-                android:paddingHorizontal="18dp">
-
-                <ImageView
-                    android:layout_width="20dp"
-                    android:layout_height="20dp"
-                    android:contentDescription="@null"
-                    android:src="@drawable/ic_palette"
-                    app:tint="#E6FFFFFF" />
-
-                <TextView
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:layout_marginStart="14dp"
-                    android:text="@string/settings_color_scheme"
-                    android:textColor="@android:color/white"
-                    android:textSize="16sp"
-                    android:fontFamily="sans-serif-medium" />
-
-                <TextView
-                    android:id="@+id/tvColorSchemeValue"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Liquid Cyan  ›"
-                    android:textColor="#D9FFFFFF"
-                    android:textSize="15sp"
-                    android:fontFamily="sans-serif-medium" />
-            </LinearLayout>
-
-            <View
-                android:layout_width="match_parent"
-                android:layout_height="1dp"
-                android:layout_marginStart="52dp"
-                android:background="#1FFFFFFF" />
 
             <!-- Language Row -->
             <LinearLayout
