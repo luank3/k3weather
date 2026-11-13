@@ -18,14 +18,28 @@ enum class TemperatureUnit(val symbol: String) {
 
 enum class WindSpeedUnit(val symbol: String) {
     KMH("km/h"),
+    MS("m/s"),
     MPH("mph");
 
     fun fromKmh(kmh: Double): Double = when (this) {
         KMH -> kmh
+        MS -> kmh / 3.6
         MPH -> kmh * 0.621371
     }
 
-    fun format(kmh: Double): String = "${Math.round(fromKmh(kmh))} $symbol"
+    fun format(kmh: Double): String = when (this) {
+        MS -> {
+            val v = fromKmh(kmh)
+            if (v < 10.0) {
+                val rounded10 = (v * 10).roundToInt()
+                if (rounded10 % 10 == 0) "${rounded10 / 10} $symbol"
+                else String.format(java.util.Locale.US, "%.1f %s", v, symbol)
+            } else {
+                "${v.roundToInt()} $symbol"
+            }
+        }
+        else -> "${fromKmh(kmh).roundToInt()} $symbol"
+    }
 }
 
 enum class AppColorScheme(

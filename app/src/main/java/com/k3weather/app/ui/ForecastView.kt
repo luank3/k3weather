@@ -30,15 +30,12 @@ import kotlin.math.roundToInt
 
 class ForecastView(private val binding: LayoutForecastBinding) {
 
-    private var themeOverride: HeroWeatherArtworkView.Theme? = null
-    var onThemeOverrideChanged: ((HeroWeatherArtworkView.Theme?) -> Unit)? = null
-
     fun bind(
         state: WeatherUiState,
         onSearch: () -> Unit,
         onRefresh: () -> Unit,
         onSelectCity: (LocationItem) -> Unit,
-        onToggleUnit: () -> Unit
+        onToggleUnit: (() -> Unit)? = null
     ) {
         val context = binding.root.context
         val colorScheme = state.settings.colorScheme
@@ -50,15 +47,16 @@ class ForecastView(private val binding: LayoutForecastBinding) {
         binding.swipeRefresh.setOnRefreshListener { onRefresh() }
         binding.swipeRefresh.isRefreshing = state.loading
 
-        // Unit Toggle Button
-        binding.btnUnitToggle.text = state.settings.tempUnit.symbol
-        binding.btnUnitToggle.setOnClickListener { onToggleUnit() }
+        // Top Header Location Button (matches Search Button size 38dp x 38dp)
+        val isCurrent = state.selectedLocation?.isCurrentLocation == true ||
+                (state.detectedCurrentLocation != null && state.selectedLocation?.id == state.detectedCurrentLocation.id)
+        binding.btnCurrentLocation.imageTintList = ColorStateList.valueOf(if (isCurrent) 0xFF38BDF8.toInt() else 0xFFFFFFFF.toInt())
+        binding.btnCurrentLocation.setOnClickListener {
+            state.detectedCurrentLocation?.let { loc -> onSelectCity(loc) } ?: onRefresh()
+        }
 
         // Setup City Quick-Pills Header
         setupCityPills(state, onSelectCity)
-
-        // Setup Atmosphere Preview Strip
-        setupAtmosphereStrip()
 
         val forecast = state.forecast
         val loc = forecast?.location ?: state.selectedLocation ?: LocationItem(
@@ -80,8 +78,8 @@ class ForecastView(private val binding: LayoutForecastBinding) {
         val windUnit = state.settings.windSpeedUnit
         val locationZone = runCatching { ZoneId.of(forecast.location.timezone) }.getOrDefault(ZoneId.systemDefault())
 
-        // Hero Weather Artwork Theme
-        val effectiveTheme = themeOverride ?: when {
+        // Natural Atmosphere Theme derived directly from weather code & day/night
+        val effectiveTheme = when {
             !current.isDay -> HeroWeatherArtworkView.Theme.NIGHT
             current.weatherCode in listOf(51, 53, 55, 61, 63, 65, 80, 81, 82, 95, 96, 99) -> HeroWeatherArtworkView.Theme.RAINY
             current.weatherCode in listOf(2, 3, 45, 48) -> HeroWeatherArtworkView.Theme.CLOUDY
@@ -97,7 +95,12 @@ class ForecastView(private val binding: LayoutForecastBinding) {
         binding.condition.text = conditionLabel
 
         // High / Low & Feels Like Summary
-        binding.highLow.text = "H: ${tempUnit.format(current.maxTempC)}  •  L: ${tempUnit.format(current.minTempC)}  •  Feels ${tempUnit.format(current.apparentTemperatureC)}"
+        binding.highLow.text = context.getString(
+            R.string.high_low_feels_format,
+            tempUnit.format(current.maxTempC),
+            tempUnit.format(current.minTempC),
+            tempUnit.format(current.apparentTemperatureC)
+        )
 
         // Narrative Weather Description
         binding.tvWeatherDescription.text = generateNarrativeDescription(context, current, loc.name)
@@ -140,9 +143,9 @@ class ForecastView(private val binding: LayoutForecastBinding) {
 
         // Bento Grid Card 2: Wind & Compass Dial
         binding.tvWindValue.text = windUnit.format(current.windSpeedKmh)
-        val compass = degreesToCompass(current.windDirectionDeg)
-        binding.tvWindDirection.text = "Dir: $compass (${current.windDirectionDeg}°)"
-        binding.tvWindGusts.text = "Gusts ${windUnit.format(current.windGustsKmh)}"
+        val compass = degreesToCompass(context, current.windDirectionDeg)
+        binding.tvWindDirection.text = context.getString(R.string.wind_dir_format, compass, current.windDirectionDeg)
+        binding.tvWindGusts.text = context.getString(R.string.wind_gusts_format, windUnit.format(current.windGustsKmh))
         binding.compassDialView.setWindDirection(current.windDirectionDeg)
 
         // Bento Grid Card 3: Humidity & Dew Point
@@ -169,8 +172,10 @@ class ForecastView(private val binding: LayoutForecastBinding) {
             "${current.visibilityKm.roundToInt().coerceAtLeast(1)} km"
         }
         binding.tvVisibilityValue.text = visStr
-        binding.tvPressureNote.text = "Pressure: ${current.surfacePressureHpa.roundToInt()} hPa"
-        binding.tvVisibilityDesc.text = if (current.visibilityKm >= 10.0) "Perfectly clear horizon." else "Light atmospheric haze."
+        binding.tvPressureNote.text = context.getString(R.string.pressure_format, current.surfacePressureHpa.roundToInt())
+        binding.tvVisibilityDesc.text = context.getString(
+            if (current.visibilityKm >= 10.0) R.string.visibility_good else R.string.visibility_moderate
+        )
 
         // Bento Grid Card 6: Sun Cycle & Solar Arc
         val sunriseTime = formatIsoTime(current.sunriseIso, "05:48")
@@ -184,6 +189,7 @@ class ForecastView(private val binding: LayoutForecastBinding) {
 
     private fun setupCityPills(state: WeatherUiState, onSelectCity: (LocationItem) -> Unit) {
         val context = binding.root.context
+        val density = context.resources.displayMetrics.density
         binding.cityPillsContainer.removeAllViews()
 
         val allCities = mutableListOf<LocationItem>()
@@ -197,6 +203,7 @@ class ForecastView(private val binding: LayoutForecastBinding) {
         }
 
         val activeId = state.selectedLocation?.id ?: allCities.firstOrNull()?.id
+        val pillHeightPx = (38 * density).toInt()
 
         allCities.forEach { city ->
             val isSelected = city.id == activeId
@@ -204,16 +211,16 @@ class ForecastView(private val binding: LayoutForecastBinding) {
                 orientation = LinearLayout.HORIZONTAL
                 gravity = android.view.Gravity.CENTER_VERTICAL
                 setPadding(
-                    (12 * resources.displayMetrics.density).toInt(),
-                    (6 * resources.displayMetrics.density).toInt(),
-                    (12 * resources.displayMetrics.density).toInt(),
-                    (6 * resources.displayMetrics.density).toInt()
+                    (14 * density).toInt(),
+                    0,
+                    (14 * density).toInt(),
+                    0
                 )
                 val params = LinearLayout.LayoutParams(
                     ViewGroup.LayoutParams.WRAP_CONTENT,
-                    ViewGroup.LayoutParams.WRAP_CONTENT
+                    pillHeightPx
                 ).apply {
-                    marginEnd = (6 * resources.displayMetrics.density).toInt()
+                    marginEnd = (6 * density).toInt()
                 }
                 layoutParams = params
 
@@ -225,9 +232,9 @@ class ForecastView(private val binding: LayoutForecastBinding) {
 
                 if (city.isCurrentLocation || city.id == state.detectedCurrentLocation?.id) {
                     val icon = ImageView(context).apply {
-                        val size = (12 * resources.displayMetrics.density).toInt()
+                        val size = (14 * density).toInt()
                         layoutParams = LinearLayout.LayoutParams(size, size).apply {
-                            marginEnd = (4 * resources.displayMetrics.density).toInt()
+                            marginEnd = (5 * density).toInt()
                         }
                         setImageResource(R.drawable.ic_arrow_current_location)
                         imageTintList = ColorStateList.valueOf(if (isSelected) 0xFF0F172A.toInt() else 0xFF38BDF8.toInt())
@@ -247,54 +254,6 @@ class ForecastView(private val binding: LayoutForecastBinding) {
             }
             binding.cityPillsContainer.addView(pill)
         }
-    }
-
-    private fun setupAtmosphereStrip() {
-        val updateStripButtons = {
-            val activeBg = R.drawable.bg_nav_active_pill
-            val inactiveBg = R.drawable.bg_pill_accent_translucent
-            val activeText = 0xFF0F172A.toInt()
-            val inactiveText = 0xB3FFFFFF.toInt()
-
-            binding.btnThemeSunny.setBackgroundResource(if (themeOverride == HeroWeatherArtworkView.Theme.SUNNY) activeBg else inactiveBg)
-            binding.btnThemeSunny.setTextColor(if (themeOverride == HeroWeatherArtworkView.Theme.SUNNY) activeText else inactiveText)
-
-            binding.btnThemeRainy.setBackgroundResource(if (themeOverride == HeroWeatherArtworkView.Theme.RAINY) activeBg else inactiveBg)
-            binding.btnThemeRainy.setTextColor(if (themeOverride == HeroWeatherArtworkView.Theme.RAINY) activeText else inactiveText)
-
-            binding.btnThemeCloudy.setBackgroundResource(if (themeOverride == HeroWeatherArtworkView.Theme.CLOUDY) activeBg else inactiveBg)
-            binding.btnThemeCloudy.setTextColor(if (themeOverride == HeroWeatherArtworkView.Theme.CLOUDY) activeText else inactiveText)
-
-            binding.btnThemeNight.setBackgroundResource(if (themeOverride == HeroWeatherArtworkView.Theme.NIGHT) activeBg else inactiveBg)
-            binding.btnThemeNight.setTextColor(if (themeOverride == HeroWeatherArtworkView.Theme.NIGHT) activeText else inactiveText)
-        }
-
-        binding.btnThemeSunny.setOnClickListener {
-            themeOverride = if (themeOverride == HeroWeatherArtworkView.Theme.SUNNY) null else HeroWeatherArtworkView.Theme.SUNNY
-            updateStripButtons()
-            onThemeOverrideChanged?.invoke(themeOverride)
-            themeOverride?.let { binding.heroWeatherArtwork.setTheme(it) }
-        }
-        binding.btnThemeRainy.setOnClickListener {
-            themeOverride = if (themeOverride == HeroWeatherArtworkView.Theme.RAINY) null else HeroWeatherArtworkView.Theme.RAINY
-            updateStripButtons()
-            onThemeOverrideChanged?.invoke(themeOverride)
-            themeOverride?.let { binding.heroWeatherArtwork.setTheme(it) }
-        }
-        binding.btnThemeCloudy.setOnClickListener {
-            themeOverride = if (themeOverride == HeroWeatherArtworkView.Theme.CLOUDY) null else HeroWeatherArtworkView.Theme.CLOUDY
-            updateStripButtons()
-            onThemeOverrideChanged?.invoke(themeOverride)
-            themeOverride?.let { binding.heroWeatherArtwork.setTheme(it) }
-        }
-        binding.btnThemeNight.setOnClickListener {
-            themeOverride = if (themeOverride == HeroWeatherArtworkView.Theme.NIGHT) null else HeroWeatherArtworkView.Theme.NIGHT
-            updateStripButtons()
-            onThemeOverrideChanged?.invoke(themeOverride)
-            themeOverride?.let { binding.heroWeatherArtwork.setTheme(it) }
-        }
-
-        updateStripButtons()
     }
 
     private fun setupWeeklyForecast(forecast: ForecastData, tempUnit: TemperatureUnit, colorScheme: AppColorScheme) {
@@ -386,12 +345,23 @@ class ForecastView(private val binding: LayoutForecastBinding) {
     }
 
     private fun generateNarrativeDescription(context: Context, current: CurrentWeather, cityName: String): String {
-        return when {
-            current.precipitationMm > 0.5 -> "Steady showers over $cityName. Coastal swell and wet roads expected through the evening."
-            current.weatherCode in listOf(0, 1) && current.isDay -> "Clear skies with a gentle breeze across $cityName. High UV index around midday."
-            !current.isDay -> "Crisp, starry night over $cityName with clear visibility. Light breeze."
-            current.weatherCode in listOf(2, 3) -> "Soft overcast skies over $cityName with diffused sunlight and pleasant temperatures."
-            else -> "Comfortable seasonal conditions across $cityName with steady atmospheric pressure."
+        val isVi = context.resources.configuration.locales[0]?.language == "vi"
+        return if (isVi) {
+            when {
+                current.precipitationMm > 0.5 -> "Mưa rải rác tại $cityName. Đường ướt và có thể có gió giật vào chiều tối."
+                current.weatherCode in listOf(0, 1) && current.isDay -> "Trời quang đãng với gió nhẹ tại $cityName. Chỉ số UV cao vào giữa trưa."
+                !current.isDay -> "Đêm quang đãng, trời đầy sao tại $cityName với tầm nhìn xa tốt."
+                current.weatherCode in listOf(2, 3) -> "Trời nhiều mây tại $cityName với ánh sáng dịu nhẹ và nhiệt độ dễ chịu."
+                else -> "Thời tiết dễ chịu tại $cityName với áp suất khí quyển ổn định."
+            }
+        } else {
+            when {
+                current.precipitationMm > 0.5 -> "Steady showers over $cityName. Coastal swell and wet roads expected through the evening."
+                current.weatherCode in listOf(0, 1) && current.isDay -> "Clear skies with a gentle breeze across $cityName. High UV index around midday."
+                !current.isDay -> "Crisp, starry night over $cityName with clear visibility. Light breeze."
+                current.weatherCode in listOf(2, 3) -> "Soft overcast skies over $cityName with diffused sunlight and pleasant temperatures."
+                else -> "Comfortable seasonal conditions across $cityName with steady atmospheric pressure."
+            }
         }
     }
 
@@ -404,8 +374,13 @@ class ForecastView(private val binding: LayoutForecastBinding) {
         }.getOrDefault(0.6f)
     }
 
-    private fun degreesToCompass(deg: Int): String {
-        val dirs = arrayOf("N", "NE", "E", "SE", "S", "SW", "W", "NW")
+    private fun degreesToCompass(context: Context, deg: Int): String {
+        val isVi = context.resources.configuration.locales[0]?.language == "vi"
+        val dirs = if (isVi) {
+            arrayOf("B", "ĐB", "Đ", "ĐN", "N", "TN", "T", "TB")
+        } else {
+            arrayOf("N", "NE", "E", "SE", "S", "SW", "W", "NW")
+        }
         val idx = (((deg % 360) + 360) % 360 + 22) / 45 % 8
         return dirs[idx]
     }
@@ -426,7 +401,7 @@ class ForecastBinder(private val view: ForecastView) {
         onSearch: () -> Unit,
         onRefresh: () -> Unit,
         onSelectCity: (LocationItem) -> Unit,
-        onToggleUnit: () -> Unit
+        onToggleUnit: (() -> Unit)? = null
     ) = view.bind(state, onSearch, onRefresh, onSelectCity, onToggleUnit)
 }
 

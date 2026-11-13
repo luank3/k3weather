@@ -13,7 +13,11 @@ class SettingsBinder(
 
         // Units
         binding.tvTemperatureUnitValue.text = if (settings.tempUnit == TemperatureUnit.CELSIUS) "°C  ›" else "°F  ›"
-        binding.tvWindSpeedUnitValue.text = if (settings.windSpeedUnit == WindSpeedUnit.KMH) "km/h  ›" else "mph  ›"
+        binding.tvWindSpeedUnitValue.text = when (settings.windSpeedUnit) {
+            WindSpeedUnit.KMH -> "km/h  ›"
+            WindSpeedUnit.MS -> "m/s  ›"
+            WindSpeedUnit.MPH -> "mph  ›"
+        }
 
         binding.rowTemperature.setOnClickListener {
             val next = if (settings.tempUnit == TemperatureUnit.CELSIUS) TemperatureUnit.FAHRENHEIT else TemperatureUnit.CELSIUS
@@ -21,7 +25,11 @@ class SettingsBinder(
         }
 
         binding.rowWindSpeed.setOnClickListener {
-            val next = if (settings.windSpeedUnit == WindSpeedUnit.KMH) WindSpeedUnit.MPH else WindSpeedUnit.KMH
+            val next = when (settings.windSpeedUnit) {
+                WindSpeedUnit.KMH -> WindSpeedUnit.MS
+                WindSpeedUnit.MS -> WindSpeedUnit.MPH
+                WindSpeedUnit.MPH -> WindSpeedUnit.KMH
+            }
             send(settings.copy(windSpeedUnit = next))
         }
 

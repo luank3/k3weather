@@ -3,23 +3,9 @@
 
     <!-- Navigation Tabs -->
     <string name="tab_forecast">Thời tiết</string>
-    <string name="tab_radar">Ra-đa</string>
     <string name="tab_saved">Địa điểm</string>
     <string name="tab_settings">Cài đặt</string>
 
-    <!-- Radar Screen -->
-    <string name="radar_title">Ra-đa Doppler Trực tiếp</string>
-    <string name="radar_subtitle">%1$s • Lớp khí quyển độ phân giải cao</string>
-    <string name="layer_rain">Mưa</string>
-    <string name="layer_wind">Gió</string>
-    <string name="layer_temp">Nhiệt</string>
-    <string name="radar_advisory_title">Trạng thái Cảnh báo • %1$s</string>
-    <string name="radar_advisory_text">Không có cảnh báo thời tiết nguy hiểm trong 24 giờ tới. Sóng biển và gió giật duy trì ở mức bình thường theo mùa.</string>
-    <string name="atmosphere_label">Bầu không khí:</string>
-    <string name="atmosphere_sunny">Nắng</string>
-    <string name="atmosphere_rainy">Mưa</string>
-    <string name="atmosphere_cloudy">Mây</string>
-    <string name="atmosphere_night">Đêm</string>
     <string name="precip_chance_format">Xác suất mưa %1$d%%</string>
     <string name="min_max_range">Biên độ nhiệt</string>
     <string name="metric_aqi">CHẤT LƯỢNG KHÔNG KHÍ</string>
@@ -78,7 +64,7 @@
     <string name="precip_today_format">Lượng mưa: %1$.1f mm</string>
     <string name="sunset_at_format">Lặn lúc %1$s</string>
     <string name="sunrise_at_format">Mọc lúc %1$s</string>
-    <string name="pressure_format">%1$d hPa</string>
+    <string name="pressure_format">Áp suất: %1$d hPa</string>
     <string name="visibility_good">Tầm nhìn quang đãng</string>
     <string name="visibility_moderate">Có sương nhẹ hoặc mù</string>
 

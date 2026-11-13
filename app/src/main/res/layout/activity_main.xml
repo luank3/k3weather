@@ -65,18 +65,17 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 
-    <!-- Floating Glassmorphic Bottom Navigation Capsule (4 Tabs: Weather, Radar, Cities, Settings) -->
+    <!-- Floating Glassmorphic Bottom Navigation Capsule (3 Tabs: Weather, Cities, Settings) -->
     <LinearLayout
         android:id="@+id/bottomNavBar"
-        android:layout_width="0dp"
-        android:layout_height="62dp"
-        android:layout_marginHorizontal="20dp"
-        android:layout_marginBottom="16dp"
+        android:layout_width="wrap_content"
+        android:layout_height="58dp"
+        android:layout_marginBottom="24dp"
         android:orientation="horizontal"
         android:gravity="center"
         android:background="@drawable/bg_nav_glass"
         android:elevation="12dp"
-        android:paddingHorizontal="6dp"
+        android:paddingHorizontal="8dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent">
@@ -86,10 +85,10 @@
             android:id="@+id/tabForecast"
             android:layout_width="wrap_content"
             android:layout_height="40dp"
-            android:layout_marginHorizontal="3dp"
+            android:layout_marginHorizontal="4dp"
             android:gravity="center"
             android:orientation="horizontal"
-            android:paddingHorizontal="14dp"
+            android:paddingHorizontal="16dp"
             android:background="@drawable/bg_nav_active_pill"
             android:clickable="true"
             android:focusable="true">
@@ -115,49 +114,15 @@
                 android:fontFamily="sans-serif-medium" />
         </LinearLayout>
 
-        <!-- 2. Radar Tab -->
-        <LinearLayout
-            android:id="@+id/tabRadar"
-            android:layout_width="wrap_content"
-            android:layout_height="40dp"
-            android:layout_marginHorizontal="3dp"
-            android:gravity="center"
-            android:orientation="horizontal"
-            android:paddingHorizontal="12dp"
-            android:background="@android:color/transparent"
-            android:clickable="true"
-            android:focusable="true">
-
-            <ImageView
-                android:id="@+id/ivTabRadar"
-                android:layout_width="18dp"
-                android:layout_height="18dp"
-                android:src="@drawable/ic_nav_radar"
-                app:tint="#B3FFFFFF"
-                android:contentDescription="@string/tab_radar" />
-
-            <TextView
-                android:id="@+id/tvTabRadar"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="6dp"
-                android:text="@string/tab_radar"
-                android:textColor="#0F172A"
-                android:textSize="12sp"
-                android:textStyle="bold"
-                android:visibility="gone"
-                android:fontFamily="sans-serif-medium" />
-        </LinearLayout>
-
-        <!-- 3. Saved Cities Tab -->
+        <!-- 2. Saved Cities Tab -->
         <LinearLayout
             android:id="@+id/tabSaved"
             android:layout_width="wrap_content"
             android:layout_height="40dp"
-            android:layout_marginHorizontal="3dp"
+            android:layout_marginHorizontal="4dp"
             android:gravity="center"
             android:orientation="horizontal"
-            android:paddingHorizontal="12dp"
+            android:paddingHorizontal="16dp"
             android:background="@android:color/transparent"
             android:clickable="true"
             android:focusable="true">
@@ -183,15 +148,15 @@
                 android:fontFamily="sans-serif-medium" />
         </LinearLayout>
 
-        <!-- 4. Settings Tab -->
+        <!-- 3. Settings Tab -->
         <LinearLayout
             android:id="@+id/tabSettings"
             android:layout_width="wrap_content"
             android:layout_height="40dp"
-            android:layout_marginHorizontal="3dp"
+            android:layout_marginHorizontal="4dp"
             android:gravity="center"
             android:orientation="horizontal"
-            android:paddingHorizontal="12dp"
+            android:paddingHorizontal="16dp"
             android:background="@android:color/transparent"
             android:clickable="true"
             android:focusable="true">

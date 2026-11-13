@@ -46,12 +46,23 @@
                         android:orientation="horizontal" />
                 </HorizontalScrollView>
 
-                <!-- Right Header Controls: Search & Unit Toggle -->
+                <!-- Right Header Controls: Current Location & Search -->
                 <LinearLayout
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:gravity="center_vertical"
                     android:orientation="horizontal">
+
+                    <ImageButton
+                        android:id="@+id/btnCurrentLocation"
+                        android:layout_width="38dp"
+                        android:layout_height="38dp"
+                        android:layout_marginEnd="6dp"
+                        android:background="@drawable/bg_circle_translucent"
+                        android:padding="9dp"
+                        android:contentDescription="@string/return_to_current_location"
+                        android:src="@drawable/ic_arrow_current_location"
+                        app:tint="@android:color/white" />
 
                     <ImageButton
                         android:id="@+id/searchButton"
@@ -62,104 +73,7 @@
                         android:contentDescription="@string/search_locations"
                         android:src="@drawable/ic_search"
                         app:tint="@android:color/white" />
-
-                    <TextView
-                        android:id="@+id/btnUnitToggle"
-                        android:layout_width="wrap_content"
-                        android:layout_height="38dp"
-                        android:layout_marginStart="6dp"
-                        android:background="@drawable/bg_pill_accent_translucent"
-                        android:gravity="center"
-                        android:paddingHorizontal="12dp"
-                        android:text="°C"
-                        android:textColor="@android:color/white"
-                        android:textSize="12sp"
-                        android:textStyle="bold"
-                        android:clickable="true"
-                        android:focusable="true" />
                 </LinearLayout>
-            </LinearLayout>
-
-            <!-- Atmosphere Theme Interactive Preview Strip -->
-            <LinearLayout
-                android:id="@+id/atmosphereStrip"
-                android:layout_width="match_parent"
-                android:layout_height="38dp"
-                android:layout_marginTop="10dp"
-                android:background="@drawable/bg_nav_glass"
-                android:gravity="center_vertical"
-                android:orientation="horizontal"
-                android:paddingHorizontal="12dp">
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/atmosphere_label"
-                    android:textColor="#B3FFFFFF"
-                    android:textSize="11sp"
-                    android:textStyle="bold"
-                    android:fontFamily="sans-serif-medium" />
-
-                <View
-                    android:layout_width="0dp"
-                    android:layout_height="1dp"
-                    android:layout_weight="1" />
-
-                <TextView
-                    android:id="@+id/btnThemeSunny"
-                    android:layout_width="wrap_content"
-                    android:layout_height="26dp"
-                    android:background="@drawable/bg_pill_accent_translucent"
-                    android:gravity="center"
-                    android:paddingHorizontal="8dp"
-                    android:text="@string/atmosphere_sunny"
-                    android:textColor="@android:color/white"
-                    android:textSize="11sp"
-                    android:textStyle="bold"
-                    android:clickable="true"
-                    android:focusable="true" />
-
-                <TextView
-                    android:id="@+id/btnThemeRainy"
-                    android:layout_width="wrap_content"
-                    android:layout_height="26dp"
-                    android:layout_marginStart="4dp"
-                    android:gravity="center"
-                    android:paddingHorizontal="8dp"
-                    android:text="@string/atmosphere_rainy"
-                    android:textColor="#B3FFFFFF"
-                    android:textSize="11sp"
-                    android:textStyle="bold"
-                    android:clickable="true"
-                    android:focusable="true" />
-
-                <TextView
-                    android:id="@+id/btnThemeCloudy"
-                    android:layout_width="wrap_content"
-                    android:layout_height="26dp"
-                    android:layout_marginStart="4dp"
-                    android:gravity="center"
-                    android:paddingHorizontal="8dp"
-                    android:text="@string/atmosphere_cloudy"
-                    android:textColor="#B3FFFFFF"
-                    android:textSize="11sp"
-                    android:textStyle="bold"
-                    android:clickable="true"
-                    android:focusable="true" />
-
-                <TextView
-                    android:id="@+id/btnThemeNight"
-                    android:layout_width="wrap_content"
-                    android:layout_height="26dp"
-                    android:layout_marginStart="4dp"
-                    android:gravity="center"
-                    android:paddingHorizontal="8dp"
-                    android:text="@string/atmosphere_night"
-                    android:textColor="#B3FFFFFF"
-                    android:textSize="11sp"
-                    android:textStyle="bold"
-                    android:clickable="true"
-                    android:focusable="true" />
             </LinearLayout>
 
             <!-- HERO CURRENT WEATHER SECTION -->

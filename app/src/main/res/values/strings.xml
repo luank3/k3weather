@@ -3,23 +3,9 @@
 
     <!-- Navigation Tabs -->
     <string name="tab_forecast">Weather</string>
-    <string name="tab_radar">Radar</string>
     <string name="tab_saved">Cities</string>
     <string name="tab_settings">Settings</string>
 
-    <!-- Radar Screen -->
-    <string name="radar_title">Live Doppler Radar</string>
-    <string name="radar_subtitle">%1$s • High-Resolution Atmospheric Layer</string>
-    <string name="layer_rain">Rain</string>
-    <string name="layer_wind">Wind</string>
-    <string name="layer_temp">Temp</string>
-    <string name="radar_advisory_title">Advisory Status • %1$s</string>
-    <string name="radar_advisory_text">No severe weather alerts in effect for the next 24 hours. Coastal swell and wind gusts remain within normal seasonal averages.</string>
-    <string name="atmosphere_label">Atmosphere:</string>
-    <string name="atmosphere_sunny">Sunny</string>
-    <string name="atmosphere_rainy">Rainy</string>
-    <string name="atmosphere_cloudy">Cloudy</string>
-    <string name="atmosphere_night">Night</string>
     <string name="precip_chance_format">Precip chance %1$d%%</string>
     <string name="min_max_range">Min / Max Range</string>
     <string name="metric_aqi">AIR QUALITY</string>
@@ -78,7 +64,7 @@
     <string name="precip_today_format">Precipitation: %1$.1f mm</string>
     <string name="sunset_at_format">Sunset at %1$s</string>
     <string name="sunrise_at_format">Sunrise at %1$s</string>
-    <string name="pressure_format">%1$d hPa</string>
+    <string name="pressure_format">Pressure: %1$d hPa</string>
     <string name="visibility_good">Clear horizon visibility</string>
     <string name="visibility_moderate">Moderate mist or haze</string>
 
