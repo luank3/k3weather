@@ -30,7 +30,7 @@
         android:layout_height="0dp"
         android:visibility="gone"
         android:elevation="16dp"
-        android:background="#66071320"
+        android:background="@android:color/transparent"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"

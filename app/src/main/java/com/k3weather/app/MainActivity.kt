@@ -607,17 +607,25 @@ class MainActivity : AppCompatActivity() {
         viewModel.search("")
 
         if (reduceMotion) {
+            binding.fragmentContainer.visibility = View.INVISIBLE
             binding.searchContainer.visibility = View.VISIBLE
             binding.bottomNavBar.visibility = View.GONE
         } else {
+            binding.fragmentContainer.animate().cancel()
+            binding.fragmentContainer.animate()
+                .alpha(0f)
+                .setDuration(180)
+                .withEndAction { binding.fragmentContainer.visibility = View.INVISIBLE }
+                .start()
+
             binding.searchContainer.animate().cancel()
             binding.searchContainer.visibility = View.VISIBLE
             binding.searchContainer.alpha = 0f
-            binding.searchContainer.translationY = 50f * density
+            binding.searchContainer.translationY = 40f * density
             binding.searchContainer.animate()
                 .alpha(1f)
                 .translationY(0f)
-                .setDuration(240)
+                .setDuration(220)
                 .setInterpolator(DecelerateInterpolator())
                 .start()
 
@@ -643,8 +651,17 @@ class MainActivity : AppCompatActivity() {
 
         if (reduceMotion) {
             binding.searchContainer.visibility = View.GONE
+            binding.fragmentContainer.alpha = 1f
+            binding.fragmentContainer.visibility = View.VISIBLE
             binding.bottomNavBar.visibility = View.VISIBLE
         } else {
+            binding.fragmentContainer.animate().cancel()
+            binding.fragmentContainer.visibility = View.VISIBLE
+            binding.fragmentContainer.animate()
+                .alpha(1f)
+                .setDuration(200)
+                .start()
+
             binding.searchContainer.animate().cancel()
             binding.searchContainer.animate()
                 .alpha(0f)

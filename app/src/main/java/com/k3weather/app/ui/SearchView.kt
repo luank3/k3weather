@@ -46,17 +46,28 @@ class SearchView(private val binding: LayoutSearchBinding) {
             state.savedLocations.forEach { add(it.name.lowercase()) }
         }
 
+        val isVi = context.resources.configuration.locales[0]?.language == "vi"
+        val popular = buildPopularLocations(isVi, state.detectedCurrentLocation)
+
         if (!hasQuery) {
             binding.tvResultsHeader.text = context.getString(R.string.popular_locations_header)
-            val isVi = context.resources.configuration.locales[0]?.language == "vi"
-            val popular = buildPopularLocations(isVi, state.detectedCurrentLocation)
             adapter.submit(popular, savedIds, savedNames)
             binding.emptyState.visibility = View.GONE
             binding.searchResults.visibility = View.VISIBLE
         } else {
+            val queryStr = binding.searchInput.text?.toString()?.trim().orEmpty()
             binding.tvResultsHeader.text = context.getString(R.string.search_results_header)
-            adapter.submit(state.searchResults, savedIds, savedNames)
-            val showEmpty = !state.searching && state.searchResults.isEmpty()
+            val instantMatches = if (state.searchResults.isEmpty()) {
+                popular.filter {
+                    it.name.contains(queryStr, ignoreCase = true) ||
+                        it.region.contains(queryStr, ignoreCase = true) ||
+                        it.country.contains(queryStr, ignoreCase = true)
+                }
+            } else {
+                state.searchResults
+            }
+            adapter.submit(instantMatches, savedIds, savedNames)
+            val showEmpty = !state.searching && instantMatches.isEmpty()
             binding.emptyState.visibility = if (showEmpty) View.VISIBLE else View.GONE
             binding.searchResults.visibility = if (showEmpty) View.GONE else View.VISIBLE
             binding.emptyState.text = state.searchError ?: context.getString(R.string.no_results)
