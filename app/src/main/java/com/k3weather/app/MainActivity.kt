@@ -747,16 +747,6 @@ class MainActivity : AppCompatActivity() {
         savedBinding.addCityButton.backgroundTintList = null
         savedBinding.ivCurrentLocIcon.imageTintList = tintList
         savedBinding.tvCurrentLocLabel.setTextColor(accentColor)
-
-        val searchPill = GradientDrawable().apply {
-            shape = GradientDrawable.RECTANGLE
-            cornerRadius = 999f
-            setColor(0x47162B42)
-            setStroke((0.9f * resources.displayMetrics.density).toInt().coerceAtLeast(1), 0x40FFFFFF)
-        }
-        searchBinding.root.findViewById<View>(R.id.searchInput)?.parent?.let {
-            if (it is View) it.background = searchPill
-        }
     }
 
     private var lastAppliedLanguage: String? = null

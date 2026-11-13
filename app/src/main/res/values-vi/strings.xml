@@ -21,7 +21,9 @@
     <string name="settings_morning_briefing">Tóm tắt Buổi sáng Hàng ngày</string>
     <string name="settings_morning_briefing_desc">Bản tin dự báo gửi lúc 07:30 sáng theo giờ địa phương</string>
     <string name="saved_locations_subtitle">Chạm vào thẻ bất kỳ để đổi sang thành phố đó</string>
-    <string name="search_cities_title">Tìm kiếm Thành phố Toàn cầu</string>
+    <string name="search_cities_title">Thêm địa điểm</string>
+    <string name="popular_locations_header">ĐỊA ĐIỂM PHỔ BIẾN</string>
+    <string name="location_saved_badge">Đã lưu</string>
 
     <!-- Forecast Screen -->
     <string name="hourly_forecast">DỰ BÁO 24 GIỜ</string>

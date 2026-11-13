@@ -21,7 +21,9 @@
     <string name="settings_morning_briefing">Daily Morning Briefing</string>
     <string name="settings_morning_briefing_desc">Summary forecast delivered at 07:30 local time</string>
     <string name="saved_locations_subtitle">Tap any city card to switch active view</string>
-    <string name="search_cities_title">Search Global Cities</string>
+    <string name="search_cities_title">Add Location</string>
+    <string name="popular_locations_header">POPULAR LOCATIONS</string>
+    <string name="location_saved_badge">Saved</string>
 
     <!-- Forecast Screen -->
     <string name="hourly_forecast">24-HOUR FORECAST</string>
