@@ -128,12 +128,15 @@ class MainActivity : AppCompatActivity() {
         viewModel = WeatherViewModel(repository, initialSettings)
 
         val initialTabName = savedInstanceState?.getString(KEY_ACTIVE_TAB)
+            ?: intent.getStringExtra(KEY_ACTIVE_TAB)
         val initialTab = initialTabName?.let {
             runCatching { Tab.valueOf(it) }.getOrNull()
         } ?: Tab.FORECAST
+        currentTab = initialTab
+        previousTab = initialTab
 
         setupInsets()
-        setupChildViews()
+        setupChildViews(initialTab)
         setupBottomNavigation(initialTab)
         setupBackPress()
         observeState()
@@ -162,10 +165,14 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun setupChildViews() {
+    private fun setupChildViews(initialTab: Tab) {
         forecastBinding = LayoutForecastBinding.inflate(layoutInflater, binding.fragmentContainer, false)
         savedBinding = LayoutSavedLocationsBinding.inflate(layoutInflater, binding.fragmentContainer, false)
         settingsBinding = LayoutSettingsBinding.inflate(layoutInflater, binding.fragmentContainer, false)
+
+        forecastBinding.root.visibility = if (initialTab == Tab.FORECAST) View.VISIBLE else View.GONE
+        savedBinding.root.visibility = if (initialTab == Tab.SAVED) View.VISIBLE else View.GONE
+        settingsBinding.root.visibility = if (initialTab == Tab.SETTINGS) View.VISIBLE else View.GONE
 
         binding.fragmentContainer.addView(forecastBinding.root)
         binding.fragmentContainer.addView(savedBinding.root)
@@ -554,7 +561,13 @@ class MainActivity : AppCompatActivity() {
             else -> LocaleListCompat.getEmptyLocaleList()
         }
         AppCompatDelegate.setApplicationLocales(targetLocale)
-        recreate()
+
+        intent.putExtra(KEY_ACTIVE_TAB, currentTab.name)
+        overridePendingTransition(0, 0)
+        finish()
+        overridePendingTransition(0, 0)
+        startActivity(intent)
+        overridePendingTransition(0, 0)
     }
 
     private fun updateMainBackground(state: WeatherUiState) {
