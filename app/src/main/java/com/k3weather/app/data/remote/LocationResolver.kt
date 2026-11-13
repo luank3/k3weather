@@ -47,7 +47,8 @@ object LocationResolver {
         if (activeProviders.isEmpty() && lm.getLastKnownLocation(LocationManager.PASSIVE_PROVIDER) == null) return null
 
         val fix = freshestLastKnown(lm, allCandidateProviders)
-            ?: if (activeProviders.isNotEmpty()) awaitFreshFix(lm, activeProviders, allCandidateProviders) else null
+            ?: if (activeProviders.isNotEmpty()) awaitFreshFix(lm, activeProviders, allCandidateProviders)
+            else allCandidateProviders.mapNotNull { runCatching { lm.getLastKnownLocation(it) }.getOrNull() }.maxByOrNull { it.time }
         return fix?.let { withContext(Dispatchers.IO) { toLocationItem(context, it) } }
     }
 
@@ -87,6 +88,12 @@ object LocationResolver {
         } ?: fallbackProviders.mapNotNull { runCatching { lm.getLastKnownLocation(it) }.getOrNull() }.maxByOrNull { it.time }
 
     private fun toLocationItem(context: Context, loc: Location): LocationItem {
+        val lang = Locale.getDefault().language.ifBlank { "vi" }
+
+        // 1. Try OpenStreetMap Nominatim reverse geocoding for accurate ward/district/town resolution
+        resolveNominatimReverse(loc.latitude, loc.longitude, lang)?.let { return it }
+
+        // 2. Fallback to Android Geocoder, preferring subLocality / subAdminArea over province-wide locality
         var placeName = "Current location"
         var region = ""
         var country = ""
@@ -95,8 +102,20 @@ object LocationResolver {
             val addresses = geocoder.getFromLocation(loc.latitude, loc.longitude, 1)
             if (!addresses.isNullOrEmpty()) {
                 val addr = addresses[0]
-                placeName = addr.locality ?: addr.subAdminArea ?: addr.adminArea ?: "Current location"
-                region = addr.adminArea.orEmpty()
+                val specificArea = listOfNotNull(
+                    addr.subLocality?.takeIf { it.isNotBlank() },
+                    addr.subAdminArea?.takeIf { it.isNotBlank() },
+                    addr.featureName?.takeIf { it.isNotBlank() && !it.first().isDigit() }
+                ).firstOrNull()
+                val cityOrProvince = addr.locality?.takeIf { it.isNotBlank() }
+                    ?: addr.adminArea?.takeIf { it.isNotBlank() }
+
+                placeName = specificArea ?: cityOrProvince ?: "Current location"
+                region = if (specificArea != null && cityOrProvince != null && !specificArea.equals(cityOrProvince, ignoreCase = true)) {
+                    cityOrProvince
+                } else {
+                    addr.adminArea.orEmpty()
+                }
                 country = addr.countryName.orEmpty()
             }
         } catch (_: Exception) {
@@ -111,6 +130,64 @@ object LocationResolver {
             timezone = "auto",
             isCurrentLocation = true
         )
+    }
+
+    private fun resolveNominatimReverse(lat: Double, lon: Double, lang: String): LocationItem? {
+        return try {
+            val url = URL("https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=$lat&lon=$lon&zoom=14&accept-language=$lang")
+            val connection = (url.openConnection() as HttpURLConnection).apply {
+                requestMethod = "GET"
+                connectTimeout = 3500
+                readTimeout = 3500
+                setRequestProperty("User-Agent", "K3Weather/1.0 (Android)")
+                setRequestProperty("Accept", "application/json")
+            }
+            if (connection.responseCode == 200) {
+                val body = connection.inputStream.bufferedReader().use { it.readText() }
+                val json = JSONObject(body)
+                val addr = json.optJSONObject("address") ?: return null
+                val localArea = listOf(
+                    addr.optString("suburb"),
+                    addr.optString("town"),
+                    addr.optString("city_district"),
+                    addr.optString("district"),
+                    addr.optString("village"),
+                    addr.optString("municipality"),
+                    addr.optString("county"),
+                    addr.optString("quarter")
+                ).firstOrNull { it.isNotBlank() }
+                val city = listOf(
+                    addr.optString("city"),
+                    addr.optString("state"),
+                    addr.optString("province")
+                ).firstOrNull { it.isNotBlank() }.orEmpty()
+                val country = addr.optString("country", "")
+
+                val primaryName = (localArea ?: city.takeIf { it.isNotBlank() }) ?: return null
+                val cleanPrimary = primaryName
+                    .replace(Regex("^(Phường|Xã|Thị trấn)\\s+", RegexOption.IGNORE_CASE), "")
+                    .ifBlank { primaryName }
+                val regionName = if (localArea != null && city.isNotBlank() && !localArea.equals(city, ignoreCase = true)) {
+                    city
+                } else {
+                    ""
+                }
+                LocationItem(
+                    id = "gps_${String.format(Locale.US, "%.4f_%.4f", lat, lon)}",
+                    name = cleanPrimary,
+                    region = regionName,
+                    country = country,
+                    latitude = lat,
+                    longitude = lon,
+                    timezone = "auto",
+                    isCurrentLocation = true
+                )
+            } else {
+                null
+            }
+        } catch (_: Exception) {
+            null
+        }
     }
 
     fun resolveIpLocation(): LocationItem? {

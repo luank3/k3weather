@@ -290,7 +290,13 @@ class MainActivity : AppCompatActivity() {
         viewModel.setDetectedCurrentLocation(detected)
         val hasExplicit = withContext(Dispatchers.IO) { repository.hasSelectedLocation() }
         val settings = withContext(Dispatchers.IO) { repository.getSettings() }
-        if (!hasExplicit || settings.useCurrentLocation) {
+        val currentSelected = viewModel.state.value.selectedLocation
+        val isAutoSelected = currentSelected == null ||
+            currentSelected.isCurrentLocation ||
+            currentSelected.id.startsWith("ip_") ||
+            currentSelected.id.startsWith("gps_") ||
+            currentSelected.id.startsWith("current_")
+        if (!hasExplicit || settings.useCurrentLocation || isAutoSelected) {
             viewModel.selectLocation(detected)
         }
     }
