@@ -19,7 +19,7 @@ import java.util.Locale
 
 object LocationResolver {
 
-    private val FALLBACK_DALAT = LocationItem(
+    val FALLBACK_DALAT = LocationItem(
         id = "1584071",
         name = "Đà Lạt",
         region = "Lâm Đồng",
@@ -30,59 +30,66 @@ object LocationResolver {
         isCurrentLocation = false
     )
 
-    suspend fun resolveDefaultLocation(context: Context): LocationItem = withContext(Dispatchers.IO) {
-        // Step 1: Try System Location Services
-        val systemLoc = resolveSystemLocation(context)
-        if (systemLoc != null) {
-            return@withContext systemLoc
-        }
+    fun hasLocationPermission(context: Context): Boolean =
+        ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED ||
+            ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED
 
-        // Step 2: Fallback to IP address geolocation
-        val ipLoc = resolveIpLocation()
-        if (ipLoc != null) {
-            return@withContext ipLoc
-        }
+    /**
+     * Real device location (permission must already be granted): freshest last-known fix,
+     * otherwise a live fix from the enabled providers. Never touches IP geolocation.
+     */
+    suspend fun resolveRealLocation(context: Context): LocationItem? {
+        if (!hasLocationPermission(context)) return null
+        val lm = context.getSystemService(Context.LOCATION_SERVICE) as? LocationManager ?: return null
+        val activeProviders = listOf(LocationManager.GPS_PROVIDER, LocationManager.NETWORK_PROVIDER)
+            .filter { runCatching { lm.isProviderEnabled(it) }.getOrDefault(false) }
+        val allCandidateProviders = (activeProviders + listOf(LocationManager.PASSIVE_PROVIDER, "fused")).distinct()
+        if (activeProviders.isEmpty() && lm.getLastKnownLocation(LocationManager.PASSIVE_PROVIDER) == null) return null
 
-        // Step 3: Ultimate Fallback
-        FALLBACK_DALAT
+        val fix = freshestLastKnown(lm, allCandidateProviders)
+            ?: if (activeProviders.isNotEmpty()) awaitFreshFix(lm, activeProviders, allCandidateProviders) else null
+        return fix?.let { withContext(Dispatchers.IO) { toLocationItem(context, it) } }
     }
 
-    private fun resolveSystemLocation(context: Context): LocationItem? {
-        val fineGranted = ContextCompat.checkSelfPermission(
-            context,
-            Manifest.permission.ACCESS_FINE_LOCATION
-        ) == PackageManager.PERMISSION_GRANTED
-        val coarseGranted = ContextCompat.checkSelfPermission(
-            context,
-            Manifest.permission.ACCESS_COARSE_LOCATION
-        ) == PackageManager.PERMISSION_GRANTED
+    /** IP geolocation – only for the case where the user denied the location permission. */
+    suspend fun resolveIpFallback(): LocationItem = withContext(Dispatchers.IO) {
+        resolveIpLocation() ?: FALLBACK_DALAT
+    }
 
-        if (!fineGranted && !coarseGranted) {
-            return null
-        }
+    @android.annotation.SuppressLint("MissingPermission")
+    private fun freshestLastKnown(lm: LocationManager, providers: List<String>): Location? =
+        providers.mapNotNull { runCatching { lm.getLastKnownLocation(it) }.getOrNull() }
+            .maxByOrNull { it.time }
+            ?.takeIf { System.currentTimeMillis() - it.time < 30 * 60 * 1000L }
 
-        val locationManager = context.getSystemService(Context.LOCATION_SERVICE) as? LocationManager ?: return null
-        val hasGps = locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)
-        val hasNetwork = locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER)
+    @android.annotation.SuppressLint("MissingPermission")
+    private suspend fun awaitFreshFix(
+        lm: LocationManager,
+        activeProviders: List<String>,
+        fallbackProviders: List<String>
+    ): Location? =
+        kotlinx.coroutines.withTimeoutOrNull(10_000L) {
+            kotlinx.coroutines.suspendCancellableCoroutine<Location?> { cont ->
+                val listeners = mutableListOf<android.location.LocationListener>()
+                fun finish(loc: Location?) {
+                    listeners.forEach { runCatching { lm.removeUpdates(it) } }
+                    if (cont.isActive) cont.resume(loc) {}
+                }
+                activeProviders.forEach { provider ->
+                    val l = android.location.LocationListener { loc -> finish(loc) }
+                    listeners.add(l)
+                    runCatching {
+                        lm.requestSingleUpdate(provider, l, android.os.Looper.getMainLooper())
+                    }
+                }
+                cont.invokeOnCancellation { listeners.forEach { runCatching { lm.removeUpdates(it) } } }
+            }
+        } ?: fallbackProviders.mapNotNull { runCatching { lm.getLastKnownLocation(it) }.getOrNull() }.maxByOrNull { it.time }
 
-        if (!hasGps && !hasNetwork) {
-            return null
-        }
-
-        var bestLocation: Location? = null
-        if (hasGps) {
-            bestLocation = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER)
-        }
-        if (bestLocation == null && hasNetwork) {
-            bestLocation = locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER)
-        }
-
-        val loc = bestLocation ?: return null
-
+    private fun toLocationItem(context: Context, loc: Location): LocationItem {
         var placeName = "Current location"
         var region = ""
         var country = ""
-
         try {
             val geocoder = Geocoder(context, Locale.getDefault())
             val addresses = geocoder.getFromLocation(loc.latitude, loc.longitude, 1)
@@ -93,9 +100,7 @@ object LocationResolver {
                 country = addr.countryName.orEmpty()
             }
         } catch (_: Exception) {
-            // Geocoder service may not be available on some ROMs
         }
-
         return LocationItem(
             id = "gps_${String.format(Locale.US, "%.4f_%.4f", loc.latitude, loc.longitude)}",
             name = placeName,

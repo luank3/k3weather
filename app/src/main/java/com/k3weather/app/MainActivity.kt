@@ -88,17 +88,24 @@ class MainActivity : AppCompatActivity() {
 
     private var activeColorScheme: AppColorScheme? = null
 
+    private var startupLocationPending = false
+
     private val locationPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
     ) { permissions ->
         val granted = permissions[Manifest.permission.ACCESS_FINE_LOCATION] == true ||
                 permissions[Manifest.permission.ACCESS_COARSE_LOCATION] == true
-        if (granted) {
+        val startup = startupLocationPending
+        startupLocationPending = false
+        if (startup) {
+            if (granted) resolveRealStartupLocation() else applyIpFallbackLocation()
+        } else if (granted) {
             obtainCurrentLocation()
         } else {
             Toast.makeText(this, getString(R.string.location_permission_denied), Toast.LENGTH_SHORT).show()
             val currentSettings = viewModel.state.value.settings
             viewModel.updateSettings(currentSettings.copy(useCurrentLocation = false))
+            applyIpFallbackLocation()
         }
     }
 
@@ -246,17 +253,45 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun resolveInitialLocation() {
-        val repository = (application as WeatherApplication).repository
+        if (LocationResolver.hasLocationPermission(this)) {
+            resolveRealStartupLocation()
+        } else {
+            // Ask first; IP geolocation is used only if the user denies.
+            startupLocationPending = true
+            locationPermissionLauncher.launch(
+                arrayOf(Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION)
+            )
+        }
+    }
+
+    private fun resolveRealStartupLocation() {
         lifecycleScope.launch {
-            val detected = LocationResolver.resolveDefaultLocation(this@MainActivity)
-            viewModel.setDetectedCurrentLocation(detected)
-
-            val hasExplicit = withContext(Dispatchers.IO) { repository.hasSelectedLocation() }
-            val settings = withContext(Dispatchers.IO) { repository.getSettings() }
-
-            if (!hasExplicit || settings.useCurrentLocation) {
-                viewModel.selectLocation(detected)
+            val real = LocationResolver.resolveRealLocation(this@MainActivity)
+            if (real != null) {
+                applyDetectedLocation(real)
+            } else {
+                // Permission granted but no fix (location services off / no signal): no IP guess.
+                Toast.makeText(this@MainActivity, getString(R.string.location_services_disabled), Toast.LENGTH_SHORT).show()
+                val repository = (application as WeatherApplication).repository
+                val hasExplicit = withContext(Dispatchers.IO) { repository.hasSelectedLocation() }
+                if (!hasExplicit) viewModel.selectLocation(LocationResolver.FALLBACK_DALAT)
             }
+        }
+    }
+
+    private fun applyIpFallbackLocation() {
+        lifecycleScope.launch {
+            applyDetectedLocation(LocationResolver.resolveIpFallback())
+        }
+    }
+
+    private suspend fun applyDetectedLocation(detected: LocationItem) {
+        val repository = (application as WeatherApplication).repository
+        viewModel.setDetectedCurrentLocation(detected)
+        val hasExplicit = withContext(Dispatchers.IO) { repository.hasSelectedLocation() }
+        val settings = withContext(Dispatchers.IO) { repository.getSettings() }
+        if (!hasExplicit || settings.useCurrentLocation) {
+            viewModel.selectLocation(detected)
         }
     }
 
@@ -859,9 +894,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun requestLocationPermission() {
-        val fineGranted = ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
-        val coarseGranted = ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED
-        if (fineGranted || coarseGranted) {
+        if (LocationResolver.hasLocationPermission(this)) {
             obtainCurrentLocation()
         } else {
             locationPermissionLauncher.launch(
@@ -871,77 +904,15 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun obtainCurrentLocation() {
-        val locationManager = getSystemService(Context.LOCATION_SERVICE) as? LocationManager ?: return
-        val hasGps = locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)
-        val hasNetwork = locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER)
-
-        if (!hasGps && !hasNetwork) {
-            Toast.makeText(this, getString(R.string.location_services_disabled), Toast.LENGTH_SHORT).show()
-            return
-        }
-
-        val fineGranted = ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
-        val coarseGranted = ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED
-
-        if (!fineGranted && !coarseGranted) return
-
-        var lastLocation: Location? = null
-        if (hasNetwork) {
-            lastLocation = locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER)
-        }
-        if (lastLocation == null && hasGps) {
-            lastLocation = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER)
-        }
-
-        if (lastLocation != null) {
-            handleResolvedLocation(lastLocation)
-        } else {
-            val provider = if (hasNetwork) LocationManager.NETWORK_PROVIDER else LocationManager.GPS_PROVIDER
-            locationManager.requestSingleUpdate(provider, object : LocationListener {
-                override fun onLocationChanged(loc: Location) {
-                    handleResolvedLocation(loc)
-                }
-                @Deprecated("Deprecated in Java")
-                override fun onStatusChanged(provider: String?, status: Int, extras: Bundle?) {}
-                override fun onProviderEnabled(provider: String) {}
-                override fun onProviderDisabled(provider: String) {}
-            }, mainLooper)
-        }
-    }
-
-    private fun handleResolvedLocation(loc: Location) {
-        lifecycleScope.launch(Dispatchers.IO) {
-            var placeName = getString(R.string.current_location)
-            var region = ""
-            var country = ""
-            try {
-                val geocoder = Geocoder(this@MainActivity, Locale.getDefault())
-                val addresses = geocoder.getFromLocation(loc.latitude, loc.longitude, 1)
-                if (!addresses.isNullOrEmpty()) {
-                    val addr = addresses[0]
-                    placeName = addr.locality ?: addr.subAdminArea ?: addr.adminArea ?: getString(R.string.current_location)
-                    region = addr.adminArea.orEmpty()
-                    country = addr.countryName.orEmpty()
-                }
-            } catch (_: Exception) {
-            }
-
-            val currentLocItem = LocationItem(
-                id = "current_${loc.latitude}_${loc.longitude}",
-                name = placeName,
-                region = region,
-                country = country,
-                latitude = loc.latitude,
-                longitude = loc.longitude,
-                timezone = "auto",
-                isCurrentLocation = true
-            )
-
-            withContext(Dispatchers.Main) {
-                viewModel.setDetectedCurrentLocation(currentLocItem)
-                viewModel.selectLocation(currentLocItem)
+        lifecycleScope.launch {
+            val real = LocationResolver.resolveRealLocation(this@MainActivity)
+            if (real != null) {
+                viewModel.setDetectedCurrentLocation(real)
+                viewModel.selectLocation(real)
                 selectTab(Tab.FORECAST)
-                Toast.makeText(this@MainActivity, getString(R.string.location_updated, placeName), Toast.LENGTH_SHORT).show()
+                Toast.makeText(this@MainActivity, getString(R.string.location_updated, real.name), Toast.LENGTH_SHORT).show()
+            } else {
+                Toast.makeText(this@MainActivity, getString(R.string.location_services_disabled), Toast.LENGTH_SHORT).show()
             }
         }
     }
