@@ -223,11 +223,7 @@ class MainActivity : AppCompatActivity() {
 
         searchBinder = SearchBinder(SearchView(searchBinding))
 
-        settingsBinder = SettingsBinder(settingsBinding, onClearCache = {
-            viewModel.clearCache {
-                Toast.makeText(this, getString(R.string.settings_cache_cleared), Toast.LENGTH_SHORT).show()
-            }
-        }) { newSettings ->
+        settingsBinder = SettingsBinder(settingsBinding) { newSettings ->
             if (newSettings.useCurrentLocation && !viewModel.state.value.settings.useCurrentLocation) {
                 requestLocationPermission()
             }

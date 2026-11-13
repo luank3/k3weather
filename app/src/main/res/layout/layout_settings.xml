@@ -326,54 +326,6 @@
             android:clipToOutline="true">
 
             <LinearLayout
-                android:id="@+id/rowClearCache"
-                android:layout_width="match_parent"
-                android:layout_height="58dp"
-                android:background="?attr/selectableItemBackground"
-                android:clickable="true"
-                android:focusable="true"
-                android:gravity="center_vertical"
-                android:orientation="horizontal"
-                android:paddingHorizontal="18dp">
-
-                <ImageView
-                    android:layout_width="20dp"
-                    android:layout_height="20dp"
-                    android:contentDescription="@null"
-                    android:src="@drawable/ic_refresh"
-                    app:tint="#E6FFFFFF" />
-
-                <TextView
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:layout_marginStart="14dp"
-                    android:text="@string/settings_clear_cache"
-                    android:textColor="@android:color/white"
-                    android:textSize="16sp"
-                    android:fontFamily="sans-serif-medium" />
-
-                <TextView
-                    android:id="@+id/tvCacheAction"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:background="@drawable/bg_pill_accent_translucent"
-                    android:paddingHorizontal="12dp"
-                    android:paddingVertical="5dp"
-                    android:text="@string/settings_clear_cache_action"
-                    android:textColor="@android:color/white"
-                    android:textSize="13sp"
-                    android:textStyle="bold"
-                    android:fontFamily="sans-serif-medium" />
-            </LinearLayout>
-
-            <View
-                android:layout_width="match_parent"
-                android:layout_height="1dp"
-                android:layout_marginStart="52dp"
-                android:background="#1FFFFFFF" />
-
-            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="58dp"
                 android:gravity="center_vertical"

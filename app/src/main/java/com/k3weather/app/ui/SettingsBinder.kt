@@ -51,7 +51,6 @@ class SettingsBinder(
         binding.tvVersionValue.text = runCatching {
             context.packageManager.getPackageInfo(context.packageName, 0).versionName
         }.getOrNull() ?: "1.0"
-        binding.rowClearCache.setOnClickListener { onClearCache() }
 
         // Stateful theme color for switches
         val accentColor = settings.colorScheme.primaryAccent
