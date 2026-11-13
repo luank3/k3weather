@@ -69,17 +69,6 @@ class SettingsBinder(
             intArrayOf(activeTrackColor, 0x3DFFFFFF)
         )
 
-        binding.reduceMotionSwitch.thumbTintList = thumbTintList
-        binding.reduceMotionSwitch.trackTintList = trackTintList
-
-        binding.reduceMotionSwitch.setOnCheckedChangeListener(null)
-        binding.reduceMotionSwitch.isChecked = settings.reduceMotion
-        binding.reduceMotionSwitch.setOnCheckedChangeListener { _, checked ->
-            send(settings.copy(reduceMotion = checked))
-        }
-        binding.rowReduceMotion.setOnClickListener {
-            binding.reduceMotionSwitch.toggle()
-        }
 
         // Language: simple click to toggle directly like wind speed and temperature
         val langLabel = if (settings.language == "vi") "Tiếng Việt" else "English"

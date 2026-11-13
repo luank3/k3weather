@@ -17,7 +17,7 @@ class WeatherPreferences(context: Context) {
                 precipitationUnit = runCatching { PrecipitationUnit.valueOf(it.optString("precipitationUnit", "MILLIMETERS")) }.getOrDefault(PrecipitationUnit.MILLIMETERS),
                 pressureUnit = runCatching { PressureUnit.valueOf(it.optString("pressureUnit", "HPA")) }.getOrDefault(PressureUnit.HPA),
                 weatherBackgroundsEnabled = it.optBoolean("weatherBackgroundsEnabled", true),
-                reduceMotion = it.optBoolean("reduceMotion", false),
+                reduceMotion = false,
                 useCurrentLocation = it.optBoolean("useCurrentLocation", true),
                 colorScheme = AppColorScheme.fromId(it.optString("colorScheme", "cyan")),
                 language = it.optString("language", "system"),
