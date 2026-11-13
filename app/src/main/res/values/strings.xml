@@ -7,62 +7,86 @@
     <string name="tab_settings">Settings</string>
 
     <!-- Forecast Screen -->
-    <string name="hourly_forecast">Hourly forecast</string>
-    <string name="next_3_days">Next 3 days</string>
+    <string name="hourly_forecast">24-HOUR FORECAST</string>
+    <string name="weekly_forecast">7-DAY FORECAST</string>
     <string name="time_now">Now</string>
     <string name="day_today">Today</string>
-    <string name="showing_saved_forecast">Showing saved forecast</string>
+    <string name="showing_saved_forecast">Cached forecast • Tap to refresh</string>
     <string name="current_location">Current location</string>
-    <string name="my_location">My Location</string>
-    <string name="return_to_current_location">Return to current location</string>
+    <string name="my_location">MY LOCATION</string>
+    <string name="return_to_current_location">Switch to current location</string>
     <string name="switched_to_current_location">Switched to current location</string>
+    <string name="high_low_feels_format">H: %1$s  •  L: %2$s  •  Feels like %3$s</string>
+    <string name="high_low_short_format">H: %1$s  L: %2$s</string>
+
+    <!-- Weather Detail Bento Cards -->
+    <string name="metric_uv_index">UV INDEX</string>
+    <string name="metric_feels_like">FEELS LIKE</string>
+    <string name="metric_wind">WIND</string>
+    <string name="metric_humidity">HUMIDITY</string>
+    <string name="metric_sun">SUNRISE &amp; SUNSET</string>
+    <string name="metric_visibility">VISIBILITY &amp; PRESSURE</string>
+
+    <string name="uv_low">Low</string>
+    <string name="uv_moderate">Moderate</string>
+    <string name="uv_high">High</string>
+    <string name="uv_very_high">Very High</string>
+    <string name="uv_extreme">Extreme</string>
+    <string name="uv_advice_low">Minimal sun protection needed</string>
+    <string name="uv_advice_moderate">Wear sunglasses in bright sun</string>
+    <string name="uv_advice_high">Seek shade during midday hours</string>
+    <string name="uv_advice_very_high">Extra protection required outdoors</string>
+
+    <string name="feels_warmer">Humidity makes it feel warmer</string>
+    <string name="feels_cooler">Wind makes it feel cooler</string>
+    <string name="feels_similar">Similar to the actual temperature</string>
+
+    <string name="wind_gusts_format">Gusts up to %1$s</string>
+    <string name="wind_dir_format">Direction: %1$s (%2$d°)</string>
+    <string name="dew_point_format">Dew point is %1$s right now</string>
+    <string name="precip_today_format">Precipitation: %1$.1f mm</string>
+    <string name="sunset_at_format">Sunset at %1$s</string>
+    <string name="sunrise_at_format">Sunrise at %1$s</string>
+    <string name="pressure_format">%1$d hPa</string>
+    <string name="visibility_good">Clear horizon visibility</string>
+    <string name="visibility_moderate">Moderate mist or haze</string>
 
     <!-- Search Screen -->
-    <string name="search_locations">Search locations</string>
-    <string name="search_hint">Search city, state, or country</string>
-    <string name="search_results_header">Results</string>
-    <string name="no_results">No results found</string>
+    <string name="search_locations">Search city</string>
+    <string name="search_hint">Search city, region, or country</string>
+    <string name="search_results_header">LOCATIONS</string>
+    <string name="no_results">No matching locations found</string>
 
     <!-- Saved Locations Screen -->
-    <string name="saved_locations">Saved locations</string>
+    <string name="saved_locations">Locations</string>
     <string name="empty_saved_locations">No saved locations</string>
     <string name="add_city">Add city</string>
     <string name="keep_one_city">Keep at least one saved city</string>
 
     <!-- Settings Screen -->
     <string name="settings_title">Settings</string>
-    <string name="settings_section_units">Units</string>
+    <string name="settings_section_units">UNITS</string>
     <string name="settings_temperature">Temperature</string>
     <string name="settings_wind_speed">Wind speed</string>
-    <string name="settings_section_display">Display</string>
-    <string name="settings_weather_backgrounds">Weather effect background</string>
+    <string name="settings_section_display">APPEARANCE</string>
     <string name="settings_reduce_motion">Reduce motion</string>
-    <string name="settings_color_scheme">Color scheme</string>
+    <string name="settings_color_scheme">Accent theme</string>
     <string name="settings_language">Language</string>
-    <string name="settings_section_location">Location</string>
-    <string name="settings_use_current_location">Use current location</string>
-    <string name="settings_attribution">Weather data by Open-Meteo · Map data © OpenStreetMap contributors</string>
+    <string name="settings_section_location">LOCATION</string>
+    <string name="settings_use_current_location">Precise GPS location</string>
+    <string name="settings_attribution">Weather data by Open-Meteo · Map data © OpenStreetMap</string>
 
     <!-- Color Scheme Names -->
-    <string name="color_scheme_cyan">Cyan Glow</string>
-    <string name="color_scheme_emerald">Emerald Mint</string>
-    <string name="color_scheme_sunset">Sunset Gold</string>
-    <string name="color_scheme_purple">Purple Neon</string>
-    <string name="color_scheme_sky">Sky Blue</string>
+    <string name="color_scheme_cyan">Liquid Cyan</string>
+    <string name="color_scheme_emerald">Emerald Glass</string>
+    <string name="color_scheme_sunset">Solar Amber</string>
+    <string name="color_scheme_purple">Aurora Violet</string>
+    <string name="color_scheme_sky">Glacier Blue</string>
 
     <!-- Language Names -->
     <string name="lang_system">System default</string>
     <string name="lang_en">English</string>
     <string name="lang_vi">Tiếng Việt</string>
-
-    <!-- Days of Week -->
-    <string name="day_mon">Mon</string>
-    <string name="day_tue">Tue</string>
-    <string name="day_wed">Wed</string>
-    <string name="day_thu">Thu</string>
-    <string name="day_fri">Fri</string>
-    <string name="day_sat">Sat</string>
-    <string name="day_sun">Sun</string>
 
     <!-- Weather Conditions -->
     <string name="condition_clear_sky">Clear sky</string>

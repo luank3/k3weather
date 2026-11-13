@@ -1,6 +1,8 @@
 package com.k3weather.app.core.model
 
 import com.k3weather.app.R
+import kotlin.math.ln
+import kotlin.math.roundToInt
 
 enum class TemperatureUnit(val symbol: String) {
     CELSIUS("°C"),
@@ -37,42 +39,42 @@ enum class AppColorScheme(
     CYAN(
         id = "cyan",
         nameResId = R.string.color_scheme_cyan,
-        primaryAccent = 0xFF00E5FF.toInt(),
-        secondaryAccent = 0xFF18FFFF.toInt(),
-        gradientStart = 0xFF00E5FF.toInt(),
-        gradientEnd = 0xFFFACC15.toInt()
+        primaryAccent = 0xFF38BDF8.toInt(),
+        secondaryAccent = 0xFF7DD3FC.toInt(),
+        gradientStart = 0xFF38BDF8.toInt(),
+        gradientEnd = 0xFFFBBF24.toInt()
     ),
     EMERALD(
         id = "emerald",
         nameResId = R.string.color_scheme_emerald,
-        primaryAccent = 0xFF00E676.toInt(),
-        secondaryAccent = 0xFF69F0AE.toInt(),
-        gradientStart = 0xFF00E676.toInt(),
-        gradientEnd = 0xFFEEFF41.toInt()
+        primaryAccent = 0xFF34D399.toInt(),
+        secondaryAccent = 0xFF6EE7B7.toInt(),
+        gradientStart = 0xFF34D399.toInt(),
+        gradientEnd = 0xFFFDE047.toInt()
     ),
     SUNSET(
         id = "sunset",
         nameResId = R.string.color_scheme_sunset,
-        primaryAccent = 0xFFFF9100.toInt(),
-        secondaryAccent = 0xFFFFB74D.toInt(),
-        gradientStart = 0xFFFF9100.toInt(),
-        gradientEnd = 0xFFFFD54F.toInt()
+        primaryAccent = 0xFFFB923C.toInt(),
+        secondaryAccent = 0xFFFDBA74.toInt(),
+        gradientStart = 0xFFFB923C.toInt(),
+        gradientEnd = 0xFFFDE047.toInt()
     ),
     PURPLE(
         id = "purple",
         nameResId = R.string.color_scheme_purple,
-        primaryAccent = 0xFFB388FF.toInt(),
-        secondaryAccent = 0xFFE040FB.toInt(),
-        gradientStart = 0xFFB388FF.toInt(),
-        gradientEnd = 0xFFFF80AB.toInt()
+        primaryAccent = 0xFFC084FC.toInt(),
+        secondaryAccent = 0xFFE879F9.toInt(),
+        gradientStart = 0xFFC084FC.toInt(),
+        gradientEnd = 0xFFF472B6.toInt()
     ),
     SKY(
         id = "sky",
         nameResId = R.string.color_scheme_sky,
-        primaryAccent = 0xFF40C4FF.toInt(),
-        secondaryAccent = 0xFF80D8FF.toInt(),
-        gradientStart = 0xFF40C4FF.toInt(),
-        gradientEnd = 0xFF80D8FF.toInt()
+        primaryAccent = 0xFF60A5FA.toInt(),
+        secondaryAccent = 0xFF93C5FD.toInt(),
+        gradientStart = 0xFF60A5FA.toInt(),
+        gradientEnd = 0xFF38BDF8.toInt()
     );
 
     companion object {
@@ -83,21 +85,45 @@ enum class AppColorScheme(
 
 data class CurrentWeather(
     val temperatureC: Double,
+    val apparentTemperatureC: Double = temperatureC,
     val weatherCode: Int,
     val condition: String,
     val isDay: Boolean,
     val windSpeedKmh: Double,
+    val windDirectionDeg: Int = 0,
+    val windGustsKmh: Double = windSpeedKmh,
+    val humidityPercent: Int = 65,
+    val uvIndex: Double = 0.0,
+    val surfacePressureHpa: Double = 1013.0,
+    val visibilityKm: Double = 10.0,
+    val precipitationMm: Double = 0.0,
     val minTempC: Double,
     val maxTempC: Double,
+    val sunriseIso: String = "",
+    val sunsetIso: String = "",
     val timeIso: String
-)
+) {
+    /** Approximate dew point in Celsius using Magnus formula */
+    val dewPointC: Double
+        get() {
+            val rh = humidityPercent.coerceIn(1, 100) / 100.0
+            val a = 17.27
+            val b = 237.7
+            val alpha = ((a * temperatureC) / (b + temperatureC)) + ln(rh)
+            return (b * alpha) / (a - alpha)
+        }
+
+    val uvIndexInt: Int
+        get() = uvIndex.roundToInt().coerceAtLeast(0)
+}
 
 data class HourlyForecast(
     val timeEpochSeconds: Long,
     val timeLabel: String,
     val temperatureC: Double,
     val weatherCode: Int,
-    val isDay: Boolean
+    val isDay: Boolean,
+    val precipitationProbability: Int = 0
 )
 
 data class DailyForecast(
@@ -105,7 +131,11 @@ data class DailyForecast(
     val dayLabel: String,
     val weatherCode: Int,
     val minTempC: Double,
-    val maxTempC: Double
+    val maxTempC: Double,
+    val precipitationProbabilityMax: Int = 0,
+    val uvIndexMax: Double = 0.0,
+    val sunriseIso: String = "",
+    val sunsetIso: String = ""
 )
 
 data class ForecastData(
@@ -122,7 +152,7 @@ data class AppSettings(
     val windSpeedUnit: WindSpeedUnit = WindSpeedUnit.KMH,
     val weatherBackgroundsEnabled: Boolean = true,
     val reduceMotion: Boolean = false,
-    val useCurrentLocation: Boolean = false,
+    val useCurrentLocation: Boolean = true,
     val colorScheme: AppColorScheme = AppColorScheme.CYAN,
     val language: String = "system",
     val customApiBaseUrl: String? = null

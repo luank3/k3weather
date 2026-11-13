@@ -34,15 +34,30 @@ class WeatherViewModel(private val repository: WeatherRepository) : ViewModel() 
         viewModelScope.launch {
             val settings = repository.getSettings()
             val saved = repository.getSavedLocations()
+            val detected = repository.getDetectedCurrentLocation()
             val selected = repository.getSelectedLocation()
-            _state.value = _state.value.copy(settings = settings, savedLocations = saved, selectedLocation = selected)
-            loadForecast(selected)
+            val cachedSelected = repository.getCachedForecast(selected.id)?.copy(isStale = false)
+            val cachedDetected = detected?.let { repository.getCachedForecast(it.id)?.copy(isStale = false) }
+            _state.value = _state.value.copy(
+                settings = settings,
+                savedLocations = saved,
+                detectedCurrentLocation = detected,
+                currentLocationForecast = cachedDetected,
+                selectedLocation = selected,
+                forecast = cachedSelected
+            )
+            loadForecast(selected, force = false)
         }
     }
 
     fun setDetectedCurrentLocation(location: LocationItem) {
         _state.value = _state.value.copy(detectedCurrentLocation = location)
         viewModelScope.launch {
+            repository.setDetectedCurrentLocation(location)
+            val cached = repository.getCachedForecast(location.id)?.copy(isStale = false)
+            if (cached != null && _state.value.currentLocationForecast == null) {
+                _state.value = _state.value.copy(currentLocationForecast = cached)
+            }
             repository.getForecast(location, forceRefresh = false).onSuccess { forecast ->
                 _state.value = _state.value.copy(currentLocationForecast = forecast)
             }
@@ -60,11 +75,18 @@ class WeatherViewModel(private val repository: WeatherRepository) : ViewModel() 
     }
 
     private suspend fun loadForecast(location: LocationItem, force: Boolean = false) {
-        _state.value = _state.value.copy(selectedLocation = location, loading = true, error = null)
+        val immediateCache = repository.getCachedForecast(location.id)?.copy(isStale = false)
+        _state.value = _state.value.copy(
+            selectedLocation = location,
+            forecast = immediateCache ?: _state.value.forecast,
+            loading = true,
+            error = null
+        )
         repository.getForecast(location, force).fold(
             onSuccess = { forecast ->
                 val isCurrent = location.isCurrentLocation || location.id == _state.value.detectedCurrentLocation?.id
                 _state.value = _state.value.copy(
+                    selectedLocation = forecast.location,
                     forecast = forecast,
                     loading = false,
                     currentLocationForecast = if (isCurrent) forecast else _state.value.currentLocationForecast
@@ -72,7 +94,11 @@ class WeatherViewModel(private val repository: WeatherRepository) : ViewModel() 
             },
             onFailure = { error ->
                 val cached = repository.getCachedForecast(location.id)
-                _state.value = _state.value.copy(forecast = cached, loading = false, error = error.message ?: "Unable to load forecast")
+                _state.value = _state.value.copy(
+                    forecast = cached,
+                    loading = false,
+                    error = error.message ?: "Unable to load forecast"
+                )
             }
         )
     }
@@ -80,7 +106,7 @@ class WeatherViewModel(private val repository: WeatherRepository) : ViewModel() 
     fun selectLocation(location: LocationItem) {
         viewModelScope.launch {
             repository.setSelectedLocation(location)
-            loadForecast(location)
+            loadForecast(location, force = false)
         }
     }
 
@@ -91,7 +117,7 @@ class WeatherViewModel(private val repository: WeatherRepository) : ViewModel() 
             return
         }
         searchJob = viewModelScope.launch {
-            delay(300)
+            delay(280)
             _state.value = _state.value.copy(searching = true, searchError = null)
             repository.searchLocations(query).fold(
                 onSuccess = { _state.value = _state.value.copy(searchResults = it, searching = false) },

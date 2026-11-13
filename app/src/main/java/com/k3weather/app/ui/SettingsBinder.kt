@@ -27,7 +27,7 @@ class SettingsBinder(
             send(settings.copy(windSpeedUnit = next))
         }
 
-        // Apply stateful theme color to switches (clear ON vs OFF visual distinction)
+        // Stateful theme color for switches
         val accentColor = settings.colorScheme.primaryAccent
         val activeTrackColor = (accentColor and 0x00FFFFFF) or 0x73000000
         val states = arrayOf(
@@ -43,22 +43,10 @@ class SettingsBinder(
             intArrayOf(activeTrackColor, 0x3DFFFFFF)
         )
 
-        binding.weatherBackgroundsSwitch.thumbTintList = thumbTintList
-        binding.weatherBackgroundsSwitch.trackTintList = trackTintList
         binding.reduceMotionSwitch.thumbTintList = thumbTintList
         binding.reduceMotionSwitch.trackTintList = trackTintList
         binding.currentLocationSwitch.thumbTintList = thumbTintList
         binding.currentLocationSwitch.trackTintList = trackTintList
-
-        // Switches & full-row click targets
-        binding.weatherBackgroundsSwitch.setOnCheckedChangeListener(null)
-        binding.weatherBackgroundsSwitch.isChecked = settings.weatherBackgroundsEnabled
-        binding.weatherBackgroundsSwitch.setOnCheckedChangeListener { _, checked ->
-            send(settings.copy(weatherBackgroundsEnabled = checked))
-        }
-        binding.rowWeatherBackgrounds.setOnClickListener {
-            binding.weatherBackgroundsSwitch.toggle()
-        }
 
         binding.reduceMotionSwitch.setOnCheckedChangeListener(null)
         binding.reduceMotionSwitch.isChecked = settings.reduceMotion

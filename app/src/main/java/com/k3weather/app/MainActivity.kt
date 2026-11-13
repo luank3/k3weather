@@ -13,6 +13,7 @@ import android.location.LocationManager
 import android.net.Uri
 import android.os.Bundle
 import android.view.View
+import android.view.ViewGroup
 import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.result.contract.ActivityResultContracts
@@ -106,6 +107,7 @@ class MainActivity : AppCompatActivity() {
         setupBottomNavigation()
         setupBackPress()
         observeState()
+        preloadSavedForecastCaches()
         resolveInitialLocation()
     }
 
@@ -114,13 +116,18 @@ class MainActivity : AppCompatActivity() {
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
             binding.fragmentContainer.setPadding(0, systemBars.top, 0, 0)
             binding.searchContainer.setPadding(0, systemBars.top, 0, systemBars.bottom)
-            binding.bottomNavBar.setPadding(0, 0, 0, systemBars.bottom)
+
+            val dockMarginBottom = systemBars.bottom + (14 * resources.displayMetrics.density).toInt()
+            val lp = binding.bottomNavBar.layoutParams as? ViewGroup.MarginLayoutParams
+            if (lp != null) {
+                lp.bottomMargin = dockMarginBottom
+                binding.bottomNavBar.layoutParams = lp
+            }
             insets
         }
     }
 
     private fun setupChildViews() {
-        // Inflate tabs into fragmentContainer
         forecastBinding = LayoutForecastBinding.inflate(layoutInflater, binding.fragmentContainer, false)
         savedBinding = LayoutSavedLocationsBinding.inflate(layoutInflater, binding.fragmentContainer, false)
         settingsBinding = LayoutSettingsBinding.inflate(layoutInflater, binding.fragmentContainer, false)
@@ -129,11 +136,9 @@ class MainActivity : AppCompatActivity() {
         binding.fragmentContainer.addView(savedBinding.root)
         binding.fragmentContainer.addView(settingsBinding.root)
 
-        // Inflate search into searchContainer
         searchBinding = LayoutSearchBinding.inflate(layoutInflater, binding.searchContainer, false)
         binding.searchContainer.addView(searchBinding.root)
 
-        // Binders
         forecastBinder = ForecastBinder(ForecastView(forecastBinding))
 
         savedAdapter = SavedLocationsAdapter(
@@ -164,13 +169,25 @@ class MainActivity : AppCompatActivity() {
             viewModel.updateSettings(newSettings)
         }
 
-        // Attribution click
         settingsBinding.attributions.setOnClickListener {
             try {
                 val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://open-meteo.com/"))
                 startActivity(intent)
             } catch (_: Exception) {
             }
+        }
+    }
+
+    private fun preloadSavedForecastCaches() {
+        val repository = (application as WeatherApplication).repository
+        lifecycleScope.launch {
+            val saved = withContext(Dispatchers.IO) { repository.getSavedLocations() }
+            saved.forEach { loc ->
+                withContext(Dispatchers.IO) { repository.getCachedForecast(loc.id) }?.let {
+                    savedForecasts[loc.id] = it
+                }
+            }
+            savedBinder.bind(viewModel.state.value, savedForecasts)
         }
     }
 
@@ -258,11 +275,9 @@ class MainActivity : AppCompatActivity() {
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.state.collect { state ->
-                    // Apply Language & Color Scheme
                     applyColorScheme(state.settings.colorScheme)
                     applyLanguage(state.settings.language)
 
-                    // Update Forecast
                     forecastBinder.bind(
                         state = state,
                         onSearch = { openSearch(SearchSource.FORECAST) },
@@ -273,11 +288,12 @@ class MainActivity : AppCompatActivity() {
                         }
                     )
 
-                    // Update Saved
+                    // Keep active forecast in savedForecasts map as well
+                    state.forecast?.let { savedForecasts[it.location.id] = it }
+
                     savedBinder.bind(state, savedForecasts)
                     savedBinding.emptyState.visibility = if (state.savedLocations.isEmpty()) View.VISIBLE else View.GONE
 
-                    // Update Saved Current Location Card
                     val cur = state.detectedCurrentLocation
                     if (cur != null) {
                         savedBinding.cardCurrentLocation.visibility = View.VISIBLE
@@ -298,10 +314,8 @@ class MainActivity : AppCompatActivity() {
                         savedBinding.cardCurrentLocation.visibility = View.GONE
                     }
 
-                    // Update Settings
                     settingsBinder.bind(state.settings)
 
-                    // Update Search
                     searchBinder.bind(
                         state = state,
                         onBack = { closeSearch() },
@@ -319,7 +333,6 @@ class MainActivity : AppCompatActivity() {
                         }
                     )
 
-                    // Update Weather Effect Background
                     updateMainBackground(state)
                 }
             }
@@ -333,22 +346,19 @@ class MainActivity : AppCompatActivity() {
         val accentColor = colorScheme.primaryAccent
         val tintList = ColorStateList.valueOf(accentColor)
 
-        // Indicator pills
         binding.indicatorForecast.backgroundTintList = tintList
         binding.indicatorSaved.backgroundTintList = tintList
         binding.indicatorSettings.backgroundTintList = tintList
 
-        // Saved add button & current location quick card
         savedBinding.addCityButton.imageTintList = tintList
         savedBinding.ivCurrentLocIcon.imageTintList = tintList
         savedBinding.tvCurrentLocLabel.setTextColor(accentColor)
 
-        // Search pill border
         val searchPill = GradientDrawable().apply {
             shape = GradientDrawable.RECTANGLE
-            cornerRadius = 24f * resources.displayMetrics.density
-            setColor(0xCC0E282E.toInt())
-            setStroke((1.5f * resources.displayMetrics.density).toInt(), accentColor)
+            cornerRadius = 999f
+            setColor(0x660B2233)
+            setStroke((1.2f * resources.displayMetrics.density).toInt(), accentColor)
         }
         searchBinding.root.findViewById<View>(R.id.searchInput)?.parent?.let {
             if (it is View) it.background = searchPill
@@ -369,7 +379,6 @@ class MainActivity : AppCompatActivity() {
     private fun updateMainBackground(state: WeatherUiState) {
         val code = state.forecast?.current?.weatherCode ?: 0
         val isDay = state.forecast?.current?.isDay ?: true
-        val enabled = state.settings.weatherBackgroundsEnabled
         val reduceMotion = state.settings.reduceMotion
         val colorScheme = state.settings.colorScheme
 
@@ -379,7 +388,7 @@ class MainActivity : AppCompatActivity() {
             isDay = isDay,
             reduceMotion = reduceMotion,
             colorScheme = colorScheme,
-            enabled = enabled
+            enabled = true
         )
     }
 
@@ -393,11 +402,15 @@ class MainActivity : AppCompatActivity() {
                 }
                 if (cached != null) {
                     savedForecasts[loc.id] = cached
-                } else {
-                    withContext(Dispatchers.IO) {
-                        repository.getForecast(loc, forceRefresh = false).getOrNull()
-                    }?.let { savedForecasts[loc.id] = it }
                 }
+            }
+            savedBinder.bind(viewModel.state.value, savedForecasts)
+
+            // Refresh stale or missing saved forecasts in background
+            saved.forEach { loc ->
+                withContext(Dispatchers.IO) {
+                    repository.getForecast(loc, forceRefresh = false).getOrNull()
+                }?.let { savedForecasts[loc.id] = it }
             }
             savedBinder.bind(viewModel.state.value, savedForecasts)
         }

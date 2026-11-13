@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="68dp"
+    android:layout_width="60dp"
     android:layout_height="wrap_content"
     android:layout_marginEnd="4dp"
     android:gravity="center"
     android:orientation="vertical"
-    android:paddingVertical="8dp"
-    android:paddingHorizontal="4dp">
+    android:paddingVertical="6dp"
+    android:paddingHorizontal="2dp">
 
     <TextView
         android:id="@+id/hourTime"
@@ -14,23 +14,35 @@
         android:layout_height="wrap_content"
         android:maxLines="1"
         android:textColor="#D9F0FF"
-        android:textSize="13sp"
+        android:textSize="12sp"
         android:letterSpacing="0.01"
         android:fontFamily="sans-serif-medium" />
 
     <ImageView
         android:id="@+id/hourIcon"
-        android:layout_width="34dp"
-        android:layout_height="34dp"
-        android:layout_marginVertical="10dp"
+        android:layout_width="30dp"
+        android:layout_height="30dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginBottom="2dp"
         android:contentDescription="Weather icon" />
+
+    <TextView
+        android:id="@+id/hourPop"
+        android:layout_width="wrap_content"
+        android:layout_height="15dp"
+        android:gravity="center"
+        android:textColor="#38BDF8"
+        android:textSize="11sp"
+        android:textStyle="bold"
+        android:fontFamily="sans-serif-medium" />
 
     <TextView
         android:id="@+id/hourTemperature"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginTop="3dp"
         android:textColor="@android:color/white"
-        android:textSize="18sp"
+        android:textSize="17sp"
         android:textStyle="bold"
         android:letterSpacing="-0.01"
         android:fontFamily="sans-serif-medium" />

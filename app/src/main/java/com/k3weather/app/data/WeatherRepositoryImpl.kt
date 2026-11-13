@@ -10,18 +10,41 @@ import kotlinx.coroutines.withContext
 import org.json.JSONArray
 import org.json.JSONObject
 import java.text.Normalizer
-import java.time.Instant
+import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
-class WeatherRepositoryImpl(private val preferences: WeatherPreferences, private val clientFactory: (String?) -> OpenMeteoClient = { OpenMeteoClient(it) }) : WeatherRepository {
+class WeatherRepositoryImpl(
+    private val preferences: WeatherPreferences,
+    private val clientFactory: (String?) -> OpenMeteoClient = { OpenMeteoClient(it) }
+) : WeatherRepository {
+
     override suspend fun getForecast(location: LocationItem, forceRefresh: Boolean): Result<ForecastData> = withContext(Dispatchers.IO) {
+        val nowMs = System.currentTimeMillis()
+        if (!forceRefresh) {
+            val cached = getCachedForecast(location.id)
+            if (cached != null &&
+                (nowMs - cached.fetchedAtEpochMs) < CACHE_TTL_MS &&
+                cached.daily.size >= 7 &&
+                cached.hourly.size >= 12
+            ) {
+                return@withContext Result.success(cached.copy(isStale = false))
+            }
+        }
+
         runCatching {
             val settings = preferences.getSettings()
             val json = clientFactory(settings.customApiBaseUrl).fetchForecast(location.latitude, location.longitude)
-            val forecast = ForecastJsonParser.parse(location, json, System.currentTimeMillis())
-            preferences.saveCachedForecast(location.id, JSONObject().put("timestamp", forecast.fetchedAtEpochMs).put("data", json))
+            val resolvedTz = json.optString("timezone", location.timezone).ifBlank { location.timezone }
+            val updatedLocation = if (location.timezone == "auto" || location.timezone.isBlank()) {
+                location.copy(timezone = resolvedTz)
+            } else {
+                location
+            }
+            val fetchedAt = System.currentTimeMillis()
+            val forecast = ForecastJsonParser.parse(updatedLocation, json, fetchedAt)
+            preferences.saveCachedForecast(updatedLocation, fetchedAt, json)
             forecast
         }.recoverCatching { error ->
             val cached = getCachedForecast(location.id) ?: throw error
@@ -31,8 +54,13 @@ class WeatherRepositoryImpl(private val preferences: WeatherPreferences, private
 
     override suspend fun getCachedForecast(locationId: String): ForecastData? = withContext(Dispatchers.IO) {
         val wrapper = preferences.getCachedForecast(locationId) ?: return@withContext null
-        val loc = (preferences.getSavedLocations() + preferences.getSelectedLocation()).firstOrNull { it.id == locationId } ?: return@withContext null
-        runCatching { ForecastJsonParser.parse(loc, wrapper.getJSONObject("data"), wrapper.optLong("timestamp")).copy(isStale = true) }.getOrNull()
+        val loc = preferences.parseLocationFromJson(wrapper.optJSONObject("location"))
+            ?: (preferences.getSavedLocations() + listOfNotNull(preferences.getDetectedCurrentLocation(), preferences.getSelectedLocation()))
+                .firstOrNull { it.id == locationId }
+            ?: return@withContext null
+        runCatching {
+            ForecastJsonParser.parse(loc, wrapper.getJSONObject("data"), wrapper.optLong("timestamp")).copy(isStale = true)
+        }.getOrNull()
     }
 
     override suspend fun searchLocations(query: String): Result<List<LocationItem>> = withContext(Dispatchers.IO) {
@@ -53,11 +81,20 @@ class WeatherRepositoryImpl(private val preferences: WeatherPreferences, private
 
     private fun parseLocations(json: JSONObject): List<LocationItem> {
         val array = json.optJSONArray("results") ?: JSONArray()
-        return (0 until array.length()).mapNotNull { i -> runCatching {
-            val o = array.getJSONObject(i)
-            LocationItem(o.optString("id", "${o.optDouble("latitude")},${o.optDouble("longitude")}"), o.getString("name"), o.optString("admin1"), o.optString("country"),
-                o.getDouble("latitude"), o.getDouble("longitude"), o.optString("timezone", "Asia/Ho_Chi_Minh"))
-        }.getOrNull() }
+        return (0 until array.length()).mapNotNull { i ->
+            runCatching {
+                val o = array.getJSONObject(i)
+                LocationItem(
+                    id = o.optString("id", "${o.optDouble("latitude")},${o.optDouble("longitude")}"),
+                    name = o.getString("name"),
+                    region = o.optString("admin1"),
+                    country = o.optString("country"),
+                    latitude = o.getDouble("latitude"),
+                    longitude = o.getDouble("longitude"),
+                    timezone = o.optString("timezone", "Asia/Ho_Chi_Minh")
+                )
+            }.getOrNull()
+        }
     }
 
     override suspend fun getSavedLocations() = preferences.getSavedLocations()
@@ -66,8 +103,14 @@ class WeatherRepositoryImpl(private val preferences: WeatherPreferences, private
     override suspend fun getSelectedLocation() = preferences.getSelectedLocation()
     override suspend fun setSelectedLocation(location: LocationItem) = preferences.setSelectedLocation(location)
     override suspend fun hasSelectedLocation(): Boolean = preferences.hasSelectedLocation()
+    override suspend fun getDetectedCurrentLocation(): LocationItem? = preferences.getDetectedCurrentLocation()
+    override suspend fun setDetectedCurrentLocation(location: LocationItem) = preferences.setDetectedCurrentLocation(location)
     override suspend fun getSettings() = preferences.getSettings()
     override suspend fun updateSettings(settings: AppSettings) = preferences.setSettings(settings)
+
+    companion object {
+        private const val CACHE_TTL_MS = 15 * 60 * 1000L // 15 minutes
+    }
 }
 
 internal object ForecastJsonParser {
@@ -78,25 +121,92 @@ internal object ForecastJsonParser {
         val nowText = current.getString("time")
         val zone = runCatching { ZoneId.of(json.optString("timezone", location.timezone)) }.getOrDefault(ZoneId.of("UTC"))
         val now = runCatching { LocalDateTime.parse(nowText) }.getOrElse { LocalDateTime.now(zone).withMinute(0).withSecond(0).withNano(0) }
+
         val hourly = json.getJSONObject("hourly")
         val times = hourly.getJSONArray("time")
-        val start = (0 until times.length()).firstOrNull { runCatching { !LocalDateTime.parse(times.getString(it)).isBefore(now) }.getOrDefault(false) } ?: 0
-        val hours = (start until minOf(times.length(), start + 5)).map { i ->
+        val hourlyTemps = hourly.getJSONArray("temperature_2m")
+        val hourlyCodes = hourly.getJSONArray("weather_code")
+        val hourlyIsDay = hourly.optJSONArray("is_day")
+        val hourlyPop = hourly.optJSONArray("precipitation_probability")
+        val hourlyVis = hourly.optJSONArray("visibility")
+
+        val start = (0 until times.length()).firstOrNull {
+            runCatching { !LocalDateTime.parse(times.getString(it)).isBefore(now) }.getOrDefault(false)
+        } ?: 0
+
+        val hours = (start until minOf(times.length(), start + 24)).map { i ->
             val local = LocalDateTime.parse(times.getString(i))
-            HourlyForecast(local.atZone(zone).toEpochSecond(), local.format(DateTimeFormatter.ofPattern("ha")), hourly.getJSONArray("temperature_2m").getDouble(i),
-                hourly.getJSONArray("weather_code").getInt(i), hourly.getJSONArray("is_day").optInt(i, 1) == 1)
+            HourlyForecast(
+                timeEpochSeconds = local.atZone(zone).toEpochSecond(),
+                timeLabel = local.format(DateTimeFormatter.ofPattern("ha")),
+                temperatureC = hourlyTemps.getDouble(i),
+                weatherCode = hourlyCodes.getInt(i),
+                isDay = hourlyIsDay?.optInt(i, 1) != 0,
+                precipitationProbability = hourlyPop?.optInt(i, 0) ?: 0
+            )
         }
-        val days = (0 until daily.getJSONArray("time").length()).map { i ->
-            val date = daily.getJSONArray("time").getString(i)
-            DailyForecast(date, java.time.LocalDate.parse(date).format(DateTimeFormatter.ofPattern("EEE")), daily.getJSONArray("weather_code").getInt(i),
-                daily.getJSONArray("temperature_2m_min").getDouble(i), daily.getJSONArray("temperature_2m_max").getDouble(i))
+
+        val dailyTimes = daily.getJSONArray("time")
+        val dailyCodes = daily.getJSONArray("weather_code")
+        val dailyMin = daily.getJSONArray("temperature_2m_min")
+        val dailyMax = daily.getJSONArray("temperature_2m_max")
+        val dailyPopMax = daily.optJSONArray("precipitation_probability_max")
+        val dailyUvMax = daily.optJSONArray("uv_index_max")
+        val dailySunrise = daily.optJSONArray("sunrise")
+        val dailySunset = daily.optJSONArray("sunset")
+
+        val days = (0 until dailyTimes.length()).map { i ->
+            val date = dailyTimes.getString(i)
+            DailyForecast(
+                dateIso = date,
+                dayLabel = LocalDate.parse(date).format(DateTimeFormatter.ofPattern("EEE")),
+                weatherCode = dailyCodes.getInt(i),
+                minTempC = dailyMin.getDouble(i),
+                maxTempC = dailyMax.getDouble(i),
+                precipitationProbabilityMax = dailyPopMax?.optInt(i, 0) ?: 0,
+                uvIndexMax = dailyUvMax?.optDouble(i, 0.0) ?: 0.0,
+                sunriseIso = dailySunrise?.optString(i, "") ?: "",
+                sunsetIso = dailySunset?.optString(i, "") ?: ""
+            )
         }
-        val todayIndex = (0 until daily.getJSONArray("time").length()).firstOrNull { daily.getJSONArray("time").getString(it) == now.toLocalDate().toString() } ?: 0
-        return ForecastData(location, CurrentWeather(current.getDouble("temperature_2m"), currentCode, WeatherCodeMapper.map(currentCode).label,
-            current.optInt("is_day", 1) == 1, current.getDouble("wind_speed_10m"), daily.getJSONArray("temperature_2m_min").getDouble(todayIndex),
-            daily.getJSONArray("temperature_2m_max").getDouble(todayIndex), nowText), hours, days, fetchedAt)
+
+        val todayIndex = (0 until dailyTimes.length()).firstOrNull { dailyTimes.getString(it) == now.toLocalDate().toString() } ?: 0
+        val tempC = current.getDouble("temperature_2m")
+        val windSpeed = current.getDouble("wind_speed_10m")
+        val visMeters = hourlyVis?.optDouble(start, 10000.0) ?: 10000.0
+        val currentUv = current.optDouble("uv_index", Double.NaN).let {
+            if (it.isNaN()) (dailyUvMax?.optDouble(todayIndex, 0.0) ?: 0.0) else it
+        }
+
+        return ForecastData(
+            location = location,
+            current = CurrentWeather(
+                temperatureC = tempC,
+                apparentTemperatureC = current.optDouble("apparent_temperature", tempC),
+                weatherCode = currentCode,
+                condition = WeatherCodeMapper.map(currentCode).label,
+                isDay = current.optInt("is_day", 1) == 1,
+                windSpeedKmh = windSpeed,
+                windDirectionDeg = current.optInt("wind_direction_10m", 0),
+                windGustsKmh = current.optDouble("wind_gusts_10m", windSpeed),
+                humidityPercent = current.optInt("relative_humidity_2m", 65),
+                uvIndex = currentUv,
+                surfacePressureHpa = current.optDouble("surface_pressure", 1013.0),
+                visibilityKm = (visMeters / 1000.0).coerceIn(0.1, 50.0),
+                precipitationMm = current.optDouble("precipitation", 0.0),
+                minTempC = dailyMin.getDouble(todayIndex),
+                maxTempC = dailyMax.getDouble(todayIndex),
+                sunriseIso = dailySunrise?.optString(todayIndex, "") ?: "",
+                sunsetIso = dailySunset?.optString(todayIndex, "") ?: "",
+                timeIso = nowText
+            ),
+            hourly = hours,
+            daily = days,
+            fetchedAtEpochMs = fetchedAt
+        )
     }
 }
 
-internal fun normalizeSearchQuery(value: String): String = Normalizer.normalize(value.replace('Đ', 'D').replace('đ', 'd'), Normalizer.Form.NFD)
-    .replace("\\p{Mn}+".toRegex(), "").trim()
+internal fun normalizeSearchQuery(value: String): String =
+    Normalizer.normalize(value.replace('Đ', 'D').replace('đ', 'd'), Normalizer.Form.NFD)
+        .replace("\\p{Mn}+".toRegex(), "").trim()

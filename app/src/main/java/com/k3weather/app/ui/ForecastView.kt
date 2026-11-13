@@ -5,18 +5,22 @@ import android.graphics.drawable.GradientDrawable
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.FrameLayout
 import androidx.recyclerview.widget.RecyclerView
 import com.k3weather.app.R
 import com.k3weather.app.core.model.*
+import com.k3weather.app.data.mapper.WeatherCodeMapper
 import com.k3weather.app.databinding.ItemDailyForecastBinding
 import com.k3weather.app.databinding.ItemHourlyForecastBinding
 import com.k3weather.app.databinding.LayoutForecastBinding
-import com.k3weather.app.data.mapper.WeatherCodeMapper
 import java.time.Instant
 import java.time.LocalDate
+import java.time.LocalDateTime
+import java.time.ZonedDateTime
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.util.Locale
+import kotlin.math.roundToInt
 
 class ForecastView(private val binding: LayoutForecastBinding) {
 
@@ -33,18 +37,18 @@ class ForecastView(private val binding: LayoutForecastBinding) {
 
         binding.searchButton.setOnClickListener { onSearch() }
         binding.refreshButton.setOnClickListener { onRefresh() }
-        binding.retryButton.setOnClickListener { onRefresh() }
-        binding.btnCurrentLocation.setOnClickListener { onReturnToCurrentLocation() }
+        binding.staleBadge.setOnClickListener { onRefresh() }
         binding.btnReturnCurrentLocation.setOnClickListener { onReturnToCurrentLocation() }
 
         binding.forecastProgress.visibility = if (state.loading) View.VISIBLE else View.GONE
-        binding.retryButton.visibility = if (state.error != null && state.forecast == null) View.VISIBLE else View.GONE
         binding.staleBadge.visibility = if (state.forecast?.isStale == true) View.VISIBLE else View.GONE
 
-        // Accent styling for return buttons
-        binding.btnCurrentLocation.imageTintList = accentTintList
+        // Accent styling
+        binding.ivLocationPin.imageTintList = accentTintList
+        binding.tvCurrentLocationTag.setTextColor(accentColor)
         binding.ivReturnIcon.imageTintList = accentTintList
         binding.tvReturnLabel.setTextColor(accentColor)
+        binding.tvWindDirection.setTextColor(accentColor)
 
         val loc = state.forecast?.location ?: state.selectedLocation
         if (loc != null) {
@@ -52,37 +56,42 @@ class ForecastView(private val binding: LayoutForecastBinding) {
             binding.citySubtitle.text = loc.subtitle.ifBlank { loc.country }
         }
 
-        // Return to current location button visibility
         val isCurrentLocation = loc?.isCurrentLocation == true ||
                 (state.detectedCurrentLocation != null && loc?.id == state.detectedCurrentLocation.id)
-
         val showReturnAction = !isCurrentLocation && state.detectedCurrentLocation != null
-        binding.btnCurrentLocation.visibility = if (showReturnAction) View.VISIBLE else View.GONE
+
+        binding.badgeCurrentLocation.visibility = if (isCurrentLocation) View.VISIBLE else View.GONE
         binding.btnReturnCurrentLocation.visibility = if (showReturnAction) View.VISIBLE else View.GONE
 
         val forecast = state.forecast ?: return
+        val current = forecast.current
         val tempUnit = state.settings.tempUnit
         val windUnit = state.settings.windSpeedUnit
-
-        binding.cityName.text = forecast.location.name
-        binding.citySubtitle.text = forecast.location.subtitle.ifBlank { forecast.location.country }
-        binding.temperature.text = tempUnit.format(forecast.current.temperatureC)
-        binding.condition.text = WeatherCodeMapper.getLocalizedLabel(context, forecast.current.weatherCode)
-        binding.highLow.text = "H ${tempUnit.format(forecast.current.maxTempC)} • L ${tempUnit.format(forecast.current.minTempC)}"
-        binding.tvWindSpeed.text = windUnit.format(forecast.current.windSpeedKmh)
-
-        // Text styling
-        binding.cityName.setTextColor(0xFFFFFFFF.toInt())
-        binding.citySubtitle.setTextColor(0xCCFFFFFF.toInt())
-        binding.temperature.setTextColor(0xFFFFFFFF.toInt())
-        binding.condition.setTextColor(0xFFFFFFFF.toInt())
-        binding.highLow.setTextColor(0xCCFFFFFF.toInt())
-        binding.tvWindSpeed.setTextColor(0xCCFFFFFF.toInt())
-        binding.ivLocationPin.imageTintList = ColorStateList.valueOf(0xFFFFFFFF.toInt())
-        binding.searchButton.imageTintList = ColorStateList.valueOf(0xFFFFFFFF.toInt())
-
-        // Hourly forecast
         val locationZone = runCatching { ZoneId.of(forecast.location.timezone) }.getOrDefault(ZoneId.systemDefault())
+
+        // City header & live local time in location's timezone
+        binding.cityName.text = forecast.location.name
+        val baseSubtitle = forecast.location.subtitle.ifBlank { forecast.location.country }
+        val localTimeStr = runCatching {
+            ZonedDateTime.now(locationZone).format(DateTimeFormatter.ofPattern("HH:mm", Locale.getDefault()))
+        }.getOrNull()
+        binding.citySubtitle.text = if (!localTimeStr.isNullOrBlank() && baseSubtitle.isNotBlank()) {
+            "$baseSubtitle  •  $localTimeStr"
+        } else {
+            baseSubtitle
+        }
+
+        // Hero section
+        binding.temperature.text = tempUnit.format(current.temperatureC)
+        binding.condition.text = WeatherCodeMapper.getLocalizedLabel(context, current.weatherCode)
+        binding.highLow.text = context.getString(
+            R.string.high_low_feels_format,
+            tempUnit.format(current.maxTempC),
+            tempUnit.format(current.minTempC),
+            tempUnit.format(current.apparentTemperatureC)
+        )
+
+        // 24-Hour Forecast
         binding.hourlyList.adapter = HourlyAdapter(
             items = forecast.hourly,
             unit = tempUnit,
@@ -91,15 +100,15 @@ class ForecastView(private val binding: LayoutForecastBinding) {
             zoneId = locationZone
         )
 
-        // Next 3 days forecast
-        val minGlobal = forecast.daily.minOfOrNull { it.minTempC } ?: 0.0
-        val maxGlobal = forecast.daily.maxOfOrNull { it.maxTempC } ?: (minGlobal + 1.0)
+        // 7-Day Weekly Forecast
+        val daysToRender = forecast.daily.take(7)
+        val minGlobal = daysToRender.minOfOrNull { it.minTempC } ?: 0.0
+        val maxGlobal = daysToRender.maxOfOrNull { it.maxTempC } ?: (minGlobal + 1.0)
         val tempRange = (maxGlobal - minGlobal).coerceAtLeast(1.0)
 
         binding.dailyRows.removeAllViews()
         val currentLocale = context.resources.configuration.locales[0] ?: Locale.getDefault()
 
-        val daysToRender = forecast.daily.take(3)
         daysToRender.forEachIndexed { index, day ->
             val row = ItemDailyForecastBinding.inflate(LayoutInflater.from(context), binding.dailyRows, false)
 
@@ -114,10 +123,18 @@ class ForecastView(private val binding: LayoutForecastBinding) {
             row.dayLabel.text = dayName
             row.dayLabel.setTextColor(if (index == 0) accentColor else 0xFFFFFFFF.toInt())
             row.dayIcon.setImageResource(WeatherCodeMapper.getIcon(day.weatherCode, isDay = true))
+
+            if (day.precipitationProbabilityMax >= 20) {
+                row.dayPop.visibility = View.VISIBLE
+                row.dayPop.text = "${day.precipitationProbabilityMax}%"
+                row.dayPop.setTextColor(accentColor)
+            } else {
+                row.dayPop.visibility = View.GONE
+            }
+
             row.minTemperature.text = tempUnit.format(day.minTempC)
             row.maxTemperature.text = tempUnit.format(day.maxTempC)
 
-            // Dynamic gradient bar with current color scheme
             val barGradient = GradientDrawable(
                 GradientDrawable.Orientation.LEFT_RIGHT,
                 intArrayOf(colorScheme.gradientStart, colorScheme.gradientEnd)
@@ -126,20 +143,32 @@ class ForecastView(private val binding: LayoutForecastBinding) {
             }
             row.temperatureRange.background = barGradient
 
-            // Dynamic gradient temperature bar width & left margin
             row.temperatureRangeContainer.post {
                 val totalWidth = row.temperatureRangeContainer.width.toFloat()
                 if (totalWidth > 0) {
                     val minRatio = ((day.minTempC - minGlobal) / tempRange).coerceIn(0.0, 1.0).toFloat()
                     val maxRatio = ((day.maxTempC - minGlobal) / tempRange).coerceIn(0.0, 1.0).toFloat()
                     val leftMargin = (totalWidth * minRatio).toInt()
-                    val barWidth = (totalWidth * (maxRatio - minRatio)).toInt().coerceAtLeast(24)
+                    val barWidth = (totalWidth * (maxRatio - minRatio)).toInt().coerceAtLeast(20)
 
-                    val lp = row.temperatureRange.layoutParams as android.widget.FrameLayout.LayoutParams
+                    val lp = row.temperatureRange.layoutParams as FrameLayout.LayoutParams
                     lp.leftMargin = leftMargin
                     lp.marginStart = leftMargin
                     lp.width = barWidth
                     row.temperatureRange.layoutParams = lp
+
+                    if (index == 0) {
+                        row.currentTempDot.visibility = View.VISIBLE
+                        val curRatio = ((current.temperatureC - minGlobal) / tempRange).coerceIn(0.0, 1.0).toFloat()
+                        val dotSize = row.currentTempDot.width.takeIf { it > 0 } ?: (8 * context.resources.displayMetrics.density).toInt()
+                        val dotLeft = ((totalWidth - dotSize) * curRatio).toInt().coerceAtLeast(0)
+                        val dotLp = row.currentTempDot.layoutParams as FrameLayout.LayoutParams
+                        dotLp.leftMargin = dotLeft
+                        dotLp.marginStart = dotLeft
+                        row.currentTempDot.layoutParams = dotLp
+                    } else {
+                        row.currentTempDot.visibility = View.GONE
+                    }
                 }
             }
 
@@ -155,6 +184,99 @@ class ForecastView(private val binding: LayoutForecastBinding) {
                 }
                 binding.dailyRows.addView(divider)
             }
+        }
+
+        // Bento Card 1: UV Index
+        val uvInt = current.uvIndexInt
+        binding.tvUvValue.text = uvInt.toString()
+        val (uvCatRes, uvAdvRes) = when {
+            uvInt <= 2 -> R.string.uv_low to R.string.uv_advice_low
+            uvInt <= 5 -> R.string.uv_moderate to R.string.uv_advice_moderate
+            uvInt <= 7 -> R.string.uv_high to R.string.uv_advice_high
+            uvInt <= 10 -> R.string.uv_very_high to R.string.uv_advice_very_high
+            else -> R.string.uv_extreme to R.string.uv_advice_very_high
+        }
+        binding.tvUvCategory.text = context.getString(uvCatRes)
+        binding.tvUvAdvice.text = context.getString(uvAdvRes)
+
+        val uvGradient = GradientDrawable(
+            GradientDrawable.Orientation.LEFT_RIGHT,
+            intArrayOf(colorScheme.gradientStart, colorScheme.gradientEnd)
+        ).apply {
+            cornerRadius = 999f
+        }
+        binding.uvProgressFill.background = uvGradient
+        binding.uvBarContainer.post {
+            val w = binding.uvBarContainer.width
+            if (w > 0) {
+                val ratio = (current.uvIndex / 11.0).coerceIn(0.08, 1.0).toFloat()
+                val lp = binding.uvProgressFill.layoutParams
+                lp.width = (w * ratio).toInt().coerceAtLeast(14)
+                binding.uvProgressFill.layoutParams = lp
+            }
+        }
+
+        // Bento Card 2: Feels Like
+        binding.tvFeelsLikeValue.text = tempUnit.format(current.apparentTemperatureC)
+        val diff = current.apparentTemperatureC - current.temperatureC
+        binding.tvFeelsLikeNote.text = when {
+            diff >= 1.8 -> context.getString(R.string.feels_warmer)
+            diff <= -1.8 -> context.getString(R.string.feels_cooler)
+            else -> context.getString(R.string.feels_similar)
+        }
+
+        // Bento Card 3: Wind
+        binding.tvWindValue.text = windUnit.format(current.windSpeedKmh)
+        val compass = degreesToCompass(current.windDirectionDeg)
+        binding.tvWindDirection.text = context.getString(R.string.wind_dir_format, compass, current.windDirectionDeg)
+        binding.tvWindGusts.text = context.getString(R.string.wind_gusts_format, windUnit.format(current.windGustsKmh))
+
+        // Bento Card 4: Humidity & Dew Point
+        binding.tvHumidityValue.text = "${current.humidityPercent}%"
+        binding.tvDewPointNote.text = if (current.precipitationMm > 0.0) {
+            context.getString(R.string.precip_today_format, current.precipitationMm)
+        } else {
+            context.getString(R.string.dew_point_format, tempUnit.format(current.dewPointC))
+        }
+
+        // Bento Card 5: Sunrise & Sunset
+        val sunriseTime = formatIsoTime(current.sunriseIso, "05:55")
+        val sunsetTime = formatIsoTime(current.sunsetIso, "17:30")
+        if (current.isDay) {
+            binding.tvSunPrimaryValue.text = sunsetTime
+            binding.tvSunSecondaryNote.text = context.getString(R.string.sunrise_at_format, sunriseTime)
+        } else {
+            binding.tvSunPrimaryValue.text = sunriseTime
+            binding.tvSunSecondaryNote.text = context.getString(R.string.sunset_at_format, sunsetTime)
+        }
+
+        // Bento Card 6: Visibility & Surface Pressure
+        binding.tvVisibilityValue.text = if (windUnit == WindSpeedUnit.MPH) {
+            "${(current.visibilityKm * 0.621371).roundToInt().coerceAtLeast(1)} mi"
+        } else {
+            "${current.visibilityKm.roundToInt().coerceAtLeast(1)} km"
+        }
+        val pressureStr = context.getString(R.string.pressure_format, current.surfacePressureHpa.roundToInt())
+        val visQuality = if (current.visibilityKm >= 9.0) {
+            context.getString(R.string.visibility_good)
+        } else {
+            context.getString(R.string.visibility_moderate)
+        }
+        binding.tvPressureNote.text = "$pressureStr  •  $visQuality"
+    }
+
+    private fun degreesToCompass(deg: Int): String {
+        val dirs = arrayOf("N", "NE", "E", "SE", "S", "SW", "W", "NW")
+        val idx = (((deg % 360) + 360) % 360 + 22) / 45 % 8
+        return dirs[idx]
+    }
+
+    private fun formatIsoTime(iso: String, fallback: String): String {
+        if (iso.isBlank()) return fallback
+        return runCatching {
+            LocalDateTime.parse(iso).format(DateTimeFormatter.ofPattern("HH:mm"))
+        }.getOrElse {
+            iso.substringAfter('T', fallback).take(5).ifBlank { fallback }
         }
     }
 }
@@ -181,7 +303,7 @@ private class HourlyAdapter(
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): Holder =
         Holder(ItemHourlyForecastBinding.inflate(LayoutInflater.from(parent.context), parent, false))
 
-    override fun getItemCount(): Int = minOf(5, items.size)
+    override fun getItemCount(): Int = minOf(24, items.size)
 
     override fun onBindViewHolder(holder: Holder, position: Int) {
         val item = items[position]
@@ -196,6 +318,12 @@ private class HourlyAdapter(
         }
         holder.binding.hourTime.setTextColor(if (isNow) accentColor else 0xFFD9F0FF.toInt())
         holder.binding.hourIcon.setImageResource(WeatherCodeMapper.getIcon(item.weatherCode, item.isDay))
+        if (item.precipitationProbability >= 15) {
+            holder.binding.hourPop.text = "${item.precipitationProbability}%"
+            holder.binding.hourPop.setTextColor(accentColor)
+        } else {
+            holder.binding.hourPop.text = ""
+        }
         holder.binding.hourTemperature.text = unit.format(item.temperatureC)
     }
 }

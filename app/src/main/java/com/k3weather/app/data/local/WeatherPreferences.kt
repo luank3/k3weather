@@ -16,7 +16,7 @@ class WeatherPreferences(context: Context) {
                 windSpeedUnit = runCatching { WindSpeedUnit.valueOf(it.optString("windSpeedUnit", "KMH")) }.getOrDefault(WindSpeedUnit.KMH),
                 weatherBackgroundsEnabled = it.optBoolean("weatherBackgroundsEnabled", true),
                 reduceMotion = it.optBoolean("reduceMotion", false),
-                useCurrentLocation = it.optBoolean("useCurrentLocation", false),
+                useCurrentLocation = it.optBoolean("useCurrentLocation", true),
                 colorScheme = AppColorScheme.fromId(it.optString("colorScheme", "cyan")),
                 language = it.optString("language", "system"),
                 customApiBaseUrl = it.optString("customApiBaseUrl").takeIf(String::isNotBlank)
@@ -44,6 +44,15 @@ class WeatherPreferences(context: Context) {
         return prefs.contains(KEY_SELECTED)
     }
 
+    fun getDetectedCurrentLocation(): LocationItem? {
+        val raw = prefs.getString(KEY_CURRENT_LOCATION, null) ?: return null
+        return runCatching { JSONObject(raw).toLocation() }.getOrNull()
+    }
+
+    fun setDetectedCurrentLocation(location: LocationItem) {
+        prefs.edit().putString(KEY_CURRENT_LOCATION, location.toJson()).apply()
+    }
+
     fun getSavedLocations(): List<LocationItem> {
         val saved = runCatching { JSONArray(prefs.getString(KEY_LOCATIONS, null) ?: "[]").toLocations() }.getOrDefault(emptyList())
         return if (saved.isEmpty()) DEFAULT_LOCATIONS.also { saveLocations(it) } else saved
@@ -54,7 +63,7 @@ class WeatherPreferences(context: Context) {
     }
 
     fun getSelectedLocation(): LocationItem {
-        val raw = prefs.getString(KEY_SELECTED, null) ?: return DEFAULT_LOCATIONS.first()
+        val raw = prefs.getString(KEY_SELECTED, null) ?: return getDetectedCurrentLocation() ?: DEFAULT_LOCATIONS.first()
         return runCatching { JSONObject(raw).toLocation() }.getOrNull() ?: DEFAULT_LOCATIONS.first()
     }
 
@@ -66,9 +75,15 @@ class WeatherPreferences(context: Context) {
         JSONObject(prefs.getString(KEY_CACHE_PREFIX + locationId, null) ?: return null)
     }.getOrNull()
 
-    fun saveCachedForecast(locationId: String, json: JSONObject) {
-        prefs.edit().putString(KEY_CACHE_PREFIX + locationId, json.toString()).apply()
+    fun saveCachedForecast(location: LocationItem, timestamp: Long, data: JSONObject) {
+        val wrapper = JSONObject()
+            .put("timestamp", timestamp)
+            .put("location", location.toJsonObject())
+            .put("data", data)
+        prefs.edit().putString(KEY_CACHE_PREFIX + location.id, wrapper.toString()).apply()
     }
+
+    fun parseLocationFromJson(obj: JSONObject?): LocationItem? = obj?.toLocation()
 
     fun addLocation(location: LocationItem): Boolean {
         val locations = getSavedLocations()
@@ -114,6 +129,7 @@ class WeatherPreferences(context: Context) {
         private const val KEY_SETTINGS = "settings"
         private const val KEY_LOCATIONS = "saved_locations"
         private const val KEY_SELECTED = "selected_location"
+        private const val KEY_CURRENT_LOCATION = "detected_current_location"
         private const val KEY_CACHE_PREFIX = "forecast_"
         val DEFAULT_LOCATIONS = listOf(
             LocationItem("1584071", "Đà Lạt", "Lâm Đồng", "Vietnam", 11.94646, 108.44193),

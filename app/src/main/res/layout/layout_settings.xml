@@ -4,6 +4,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@android:color/transparent"
+    android:clipToPadding="false"
     android:overScrollMode="never"
     android:fillViewport="true">
 
@@ -11,9 +12,9 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:paddingHorizontal="20dp"
-        android:paddingTop="14dp"
-        android:paddingBottom="28dp">
+        android:paddingHorizontal="18dp"
+        android:paddingTop="12dp"
+        android:paddingBottom="108dp">
 
         <!-- Title -->
         <TextView
@@ -21,9 +22,9 @@
             android:layout_height="wrap_content"
             android:text="@string/settings_title"
             android:textColor="@android:color/white"
-            android:textSize="26sp"
+            android:textSize="28sp"
             android:textStyle="bold"
-            android:letterSpacing="-0.01"
+            android:letterSpacing="-0.02"
             android:shadowColor="#33000000"
             android:shadowDx="0"
             android:shadowDy="2"
@@ -36,12 +37,12 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="@string/settings_section_units"
-            android:textColor="#D9FFFFFF"
-            android:textSize="14sp"
+            android:textColor="#B3FFFFFF"
+            android:textSize="11sp"
             android:textStyle="bold"
-            android:letterSpacing="0.04"
+            android:letterSpacing="0.08"
             android:fontFamily="sans-serif-medium"
-            android:layout_marginBottom="10dp" />
+            android:layout_marginBottom="8dp" />
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -77,14 +78,14 @@
                     android:text="@string/settings_temperature"
                     android:textColor="@android:color/white"
                     android:textSize="16sp"
-                    android:fontFamily="sans-serif" />
+                    android:fontFamily="sans-serif-medium" />
 
                 <TextView
                     android:id="@+id/tvTemperatureUnitValue"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="°C  ›"
-                    android:textColor="#D9FFFFFF"
+                    android:textColor="#E6FFFFFF"
                     android:textSize="15sp"
                     android:fontFamily="sans-serif-medium" />
             </LinearLayout>
@@ -93,7 +94,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="1dp"
                 android:layout_marginStart="52dp"
-                android:background="#1AFFFFFF" />
+                android:background="#1FFFFFFF" />
 
             <!-- Wind Speed Row -->
             <LinearLayout
@@ -122,30 +123,30 @@
                     android:text="@string/settings_wind_speed"
                     android:textColor="@android:color/white"
                     android:textSize="16sp"
-                    android:fontFamily="sans-serif" />
+                    android:fontFamily="sans-serif-medium" />
 
                 <TextView
                     android:id="@+id/tvWindSpeedUnitValue"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="km/h  ›"
-                    android:textColor="#D9FFFFFF"
+                    android:textColor="#E6FFFFFF"
                     android:textSize="15sp"
                     android:fontFamily="sans-serif-medium" />
             </LinearLayout>
         </LinearLayout>
 
-        <!-- Section 2: Display -->
+        <!-- Section 2: Appearance -->
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="24dp"
-            android:layout_marginBottom="10dp"
+            android:layout_marginTop="22dp"
+            android:layout_marginBottom="8dp"
             android:text="@string/settings_section_display"
-            android:textColor="#D9FFFFFF"
-            android:textSize="14sp"
+            android:textColor="#B3FFFFFF"
+            android:textSize="11sp"
             android:textStyle="bold"
-            android:letterSpacing="0.04"
+            android:letterSpacing="0.08"
             android:fontFamily="sans-serif-medium" />
 
         <LinearLayout
@@ -154,92 +155,6 @@
             android:background="@drawable/bg_card_translucent"
             android:orientation="vertical"
             android:clipToOutline="true">
-
-            <!-- Weather backgrounds Row -->
-            <LinearLayout
-                android:id="@+id/rowWeatherBackgrounds"
-                android:layout_width="match_parent"
-                android:layout_height="58dp"
-                android:background="?attr/selectableItemBackground"
-                android:clickable="true"
-                android:focusable="true"
-                android:gravity="center_vertical"
-                android:orientation="horizontal"
-                android:paddingHorizontal="18dp">
-
-                <ImageView
-                    android:layout_width="20dp"
-                    android:layout_height="20dp"
-                    android:contentDescription="@null"
-                    android:src="@drawable/ic_image"
-                    app:tint="#E6FFFFFF" />
-
-                <TextView
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:layout_marginStart="14dp"
-                    android:text="@string/settings_weather_backgrounds"
-                    android:textColor="@android:color/white"
-                    android:textSize="16sp"
-                    android:fontFamily="sans-serif" />
-
-                <androidx.appcompat.widget.SwitchCompat
-                    android:id="@+id/weatherBackgroundsSwitch"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    app:thumbTint="@color/accent_cyan"
-                    app:trackTint="#8000E5FF" />
-            </LinearLayout>
-
-            <View
-                android:layout_width="match_parent"
-                android:layout_height="1dp"
-                android:layout_marginStart="52dp"
-                android:background="#1AFFFFFF" />
-
-            <!-- Reduce motion Row -->
-            <LinearLayout
-                android:id="@+id/rowReduceMotion"
-                android:layout_width="match_parent"
-                android:layout_height="58dp"
-                android:background="?attr/selectableItemBackground"
-                android:clickable="true"
-                android:focusable="true"
-                android:gravity="center_vertical"
-                android:orientation="horizontal"
-                android:paddingHorizontal="18dp">
-
-                <ImageView
-                    android:layout_width="20dp"
-                    android:layout_height="20dp"
-                    android:contentDescription="@null"
-                    android:src="@drawable/ic_reduce_motion"
-                    app:tint="#E6FFFFFF" />
-
-                <TextView
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:layout_marginStart="14dp"
-                    android:text="@string/settings_reduce_motion"
-                    android:textColor="@android:color/white"
-                    android:textSize="16sp"
-                    android:fontFamily="sans-serif" />
-
-                <androidx.appcompat.widget.SwitchCompat
-                    android:id="@+id/reduceMotionSwitch"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    app:thumbTint="@color/accent_cyan"
-                    app:trackTint="#8000E5FF" />
-            </LinearLayout>
-
-            <View
-                android:layout_width="match_parent"
-                android:layout_height="1dp"
-                android:layout_marginStart="52dp"
-                android:background="#1AFFFFFF" />
 
             <!-- Color scheme Row -->
             <LinearLayout
@@ -268,13 +183,13 @@
                     android:text="@string/settings_color_scheme"
                     android:textColor="@android:color/white"
                     android:textSize="16sp"
-                    android:fontFamily="sans-serif" />
+                    android:fontFamily="sans-serif-medium" />
 
                 <TextView
                     android:id="@+id/tvColorSchemeValue"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Cyan Glow  ›"
+                    android:text="Liquid Cyan  ›"
                     android:textColor="#D9FFFFFF"
                     android:textSize="15sp"
                     android:fontFamily="sans-serif-medium" />
@@ -284,7 +199,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="1dp"
                 android:layout_marginStart="52dp"
-                android:background="#1AFFFFFF" />
+                android:background="#1FFFFFFF" />
 
             <!-- Language Row -->
             <LinearLayout
@@ -313,16 +228,59 @@
                     android:text="@string/settings_language"
                     android:textColor="@android:color/white"
                     android:textSize="16sp"
-                    android:fontFamily="sans-serif" />
+                    android:fontFamily="sans-serif-medium" />
 
                 <TextView
                     android:id="@+id/tvLanguageValue"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="English  ›"
-                    android:textColor="#D9FFFFFF"
+                    android:textColor="#E6FFFFFF"
                     android:textSize="15sp"
                     android:fontFamily="sans-serif-medium" />
+            </LinearLayout>
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:layout_marginStart="52dp"
+                android:background="#1FFFFFFF" />
+
+            <!-- Reduce motion Row -->
+            <LinearLayout
+                android:id="@+id/rowReduceMotion"
+                android:layout_width="match_parent"
+                android:layout_height="58dp"
+                android:background="?attr/selectableItemBackground"
+                android:clickable="true"
+                android:focusable="true"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:paddingHorizontal="18dp">
+
+                <ImageView
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
+                    android:contentDescription="@null"
+                    android:src="@drawable/ic_reduce_motion"
+                    app:tint="#E6FFFFFF" />
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginStart="14dp"
+                    android:text="@string/settings_reduce_motion"
+                    android:textColor="@android:color/white"
+                    android:textSize="16sp"
+                    android:fontFamily="sans-serif-medium" />
+
+                <androidx.appcompat.widget.SwitchCompat
+                    android:id="@+id/reduceMotionSwitch"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    app:thumbTint="@color/accent_cyan"
+                    app:trackTint="#8000E5FF" />
             </LinearLayout>
         </LinearLayout>
 
@@ -330,13 +288,13 @@
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="24dp"
-            android:layout_marginBottom="10dp"
+            android:layout_marginTop="22dp"
+            android:layout_marginBottom="8dp"
             android:text="@string/settings_section_location"
-            android:textColor="#D9FFFFFF"
-            android:textSize="14sp"
+            android:textColor="#B3FFFFFF"
+            android:textSize="11sp"
             android:textStyle="bold"
-            android:letterSpacing="0.04"
+            android:letterSpacing="0.08"
             android:fontFamily="sans-serif-medium" />
 
         <LinearLayout
@@ -373,7 +331,7 @@
                     android:text="@string/settings_use_current_location"
                     android:textColor="@android:color/white"
                     android:textSize="16sp"
-                    android:fontFamily="sans-serif" />
+                    android:fontFamily="sans-serif-medium" />
 
                 <androidx.appcompat.widget.SwitchCompat
                     android:id="@+id/currentLocationSwitch"
@@ -389,11 +347,11 @@
             android:id="@+id/attributions"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="32dp"
-            android:layout_marginBottom="24dp"
+            android:layout_marginTop="28dp"
+            android:layout_marginBottom="16dp"
             android:gravity="center"
             android:text="@string/settings_attribution"
-            android:textColor="#8CFFFFFF"
+            android:textColor="#99FFFFFF"
             android:textSize="12sp"
             android:letterSpacing="0.01"
             android:fontFamily="sans-serif" />

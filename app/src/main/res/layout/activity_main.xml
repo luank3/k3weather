@@ -16,38 +16,40 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 
-    <!-- Main Tab Content Area (Forecast, Saved, Settings) -->
+    <!-- Main Tab Content Area (scrolls seamlessly behind floating Liquid Glass dock) -->
     <FrameLayout
         android:id="@+id/fragmentContainer"
         android:layout_width="0dp"
         android:layout_height="0dp"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintBottom_toTopOf="@id/bottomNavBar"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 
-    <!-- Search Overlay Area (full screen when active, hides bottom bar) -->
+    <!-- Search Overlay Area (translucent liquid glass scrim over weather sky) -->
     <FrameLayout
         android:id="@+id/searchContainer"
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:visibility="gone"
-        android:elevation="12dp"
-        android:background="#F208171D"
+        android:elevation="16dp"
+        android:background="#D905121C"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 
-    <!-- Persistent Bottom Navigation Bar (Glassmorphic & Translucent) -->
+    <!-- Floating Liquid Glass Capsule Navigation Dock -->
     <LinearLayout
         android:id="@+id/bottomNavBar"
         android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:minHeight="68dp"
+        android:layout_height="64dp"
+        android:layout_marginHorizontal="24dp"
+        android:layout_marginBottom="16dp"
         android:orientation="horizontal"
         android:background="@drawable/bg_nav_glass"
-        android:elevation="10dp"
+        android:elevation="12dp"
+        android:paddingHorizontal="8dp"
         android:baselineAligned="false"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -57,7 +59,7 @@
         <LinearLayout
             android:id="@+id/tabForecast"
             android:layout_width="0dp"
-            android:layout_height="68dp"
+            android:layout_height="match_parent"
             android:layout_weight="1"
             android:gravity="center"
             android:orientation="vertical"
@@ -67,8 +69,8 @@
 
             <ImageView
                 android:id="@+id/ivTabForecast"
-                android:layout_width="24dp"
-                android:layout_height="24dp"
+                android:layout_width="22dp"
+                android:layout_height="22dp"
                 android:src="@drawable/ic_nav_forecast"
                 app:tint="@android:color/white"
                 android:contentDescription="@string/tab_forecast" />
@@ -77,18 +79,18 @@
                 android:id="@+id/tvTabForecast"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="3dp"
+                android:layout_marginTop="2dp"
                 android:text="@string/tab_forecast"
                 android:textColor="@android:color/white"
-                android:textSize="12sp"
+                android:textSize="11sp"
                 android:letterSpacing="0.02"
                 android:fontFamily="sans-serif-medium" />
 
             <View
                 android:id="@+id/indicatorForecast"
-                android:layout_width="28dp"
+                android:layout_width="22dp"
                 android:layout_height="3dp"
-                android:layout_marginTop="4dp"
+                android:layout_marginTop="3dp"
                 android:background="@drawable/bg_nav_indicator"
                 android:visibility="visible" />
         </LinearLayout>
@@ -97,7 +99,7 @@
         <LinearLayout
             android:id="@+id/tabSaved"
             android:layout_width="0dp"
-            android:layout_height="68dp"
+            android:layout_height="match_parent"
             android:layout_weight="1"
             android:gravity="center"
             android:orientation="vertical"
@@ -107,8 +109,8 @@
 
             <ImageView
                 android:id="@+id/ivTabSaved"
-                android:layout_width="24dp"
-                android:layout_height="24dp"
+                android:layout_width="22dp"
+                android:layout_height="22dp"
                 android:src="@drawable/ic_nav_saved"
                 app:tint="@color/text_muted"
                 android:contentDescription="@string/tab_saved" />
@@ -117,18 +119,18 @@
                 android:id="@+id/tvTabSaved"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="3dp"
+                android:layout_marginTop="2dp"
                 android:text="@string/tab_saved"
                 android:textColor="@color/text_muted"
-                android:textSize="12sp"
+                android:textSize="11sp"
                 android:letterSpacing="0.02"
                 android:fontFamily="sans-serif-medium" />
 
             <View
                 android:id="@+id/indicatorSaved"
-                android:layout_width="28dp"
+                android:layout_width="22dp"
                 android:layout_height="3dp"
-                android:layout_marginTop="4dp"
+                android:layout_marginTop="3dp"
                 android:background="@drawable/bg_nav_indicator"
                 android:visibility="gone" />
         </LinearLayout>
@@ -137,7 +139,7 @@
         <LinearLayout
             android:id="@+id/tabSettings"
             android:layout_width="0dp"
-            android:layout_height="68dp"
+            android:layout_height="match_parent"
             android:layout_weight="1"
             android:gravity="center"
             android:orientation="vertical"
@@ -147,8 +149,8 @@
 
             <ImageView
                 android:id="@+id/ivTabSettings"
-                android:layout_width="24dp"
-                android:layout_height="24dp"
+                android:layout_width="22dp"
+                android:layout_height="22dp"
                 android:src="@drawable/ic_nav_settings"
                 app:tint="@color/text_muted"
                 android:contentDescription="@string/tab_settings" />
@@ -157,18 +159,18 @@
                 android:id="@+id/tvTabSettings"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="3dp"
+                android:layout_marginTop="2dp"
                 android:text="@string/tab_settings"
                 android:textColor="@color/text_muted"
-                android:textSize="12sp"
+                android:textSize="11sp"
                 android:letterSpacing="0.02"
                 android:fontFamily="sans-serif-medium" />
 
             <View
                 android:id="@+id/indicatorSettings"
-                android:layout_width="28dp"
+                android:layout_width="22dp"
                 android:layout_height="3dp"
-                android:layout_marginTop="4dp"
+                android:layout_marginTop="3dp"
                 android:background="@drawable/bg_nav_indicator"
                 android:visibility="gone" />
         </LinearLayout>

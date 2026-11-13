@@ -12,9 +12,10 @@ import java.util.zip.GZIPInputStream
 class OpenMeteoClient(private val customBaseUrl: String? = null) {
     fun fetchForecast(latitude: Double, longitude: Double): JSONObject {
         val base = customBaseUrl?.trimEnd('/') ?: "https://api.open-meteo.com/v1/forecast"
-        val query = "latitude=$latitude&longitude=$longitude&current=temperature_2m,weather_code,is_day,wind_speed_10m" +
-            "&hourly=temperature_2m,weather_code,is_day&daily=weather_code,temperature_2m_min,temperature_2m_max" +
-            "&timezone=auto&forecast_days=3"
+        val currentParams = "temperature_2m,apparent_temperature,relative_humidity_2m,weather_code,is_day,wind_speed_10m,wind_direction_10m,wind_gusts_10m,surface_pressure,precipitation,uv_index"
+        val hourlyParams = "temperature_2m,weather_code,is_day,precipitation_probability,visibility"
+        val dailyParams = "weather_code,temperature_2m_min,temperature_2m_max,precipitation_probability_max,uv_index_max,sunrise,sunset"
+        val query = "latitude=$latitude&longitude=$longitude&current=$currentParams&hourly=$hourlyParams&daily=$dailyParams&timezone=auto&forecast_days=7"
         return request("$base?$query")
     }
 
@@ -31,8 +32,9 @@ class OpenMeteoClient(private val customBaseUrl: String? = null) {
             connection.requestMethod = "GET"
             connection.connectTimeout = TIMEOUT_MS
             connection.readTimeout = TIMEOUT_MS
-            connection.setRequestProperty("User-Agent", "K3Weather/1.0 (Android)")
+            connection.setRequestProperty("User-Agent", "K3Weather/2.0 (Android)")
             connection.setRequestProperty("Accept", "application/json")
+            connection.setRequestProperty("Accept-Encoding", "gzip")
             val status = connection.responseCode
             val stream = if (status in 200..299) connection.inputStream else connection.errorStream
                 ?: throw IllegalStateException("HTTP request failed with status $status")

@@ -3,72 +3,96 @@
 
     <!-- Navigation Tabs -->
     <string name="tab_forecast">Dự báo</string>
-    <string name="tab_saved">Đã lưu</string>
+    <string name="tab_saved">Địa điểm</string>
     <string name="tab_settings">Cài đặt</string>
 
     <!-- Forecast Screen -->
-    <string name="hourly_forecast">Dự báo hàng giờ</string>
-    <string name="next_3_days">3 ngày tới</string>
+    <string name="hourly_forecast">DỰ BÁO 24 GIỜ</string>
+    <string name="weekly_forecast">DỰ BÁO 7 NGÀY</string>
     <string name="time_now">Hiện tại</string>
     <string name="day_today">Hôm nay</string>
-    <string name="showing_saved_forecast">Hiển thị dữ liệu đã lưu</string>
+    <string name="showing_saved_forecast">Dữ liệu đã lưu • Chạm để làm mới</string>
     <string name="current_location">Vị trí hiện tại</string>
-    <string name="my_location">Vị trí của tôi</string>
+    <string name="my_location">VỊ TRÍ CỦA TÔI</string>
     <string name="return_to_current_location">Về vị trí hiện tại</string>
     <string name="switched_to_current_location">Đã chuyển về vị trí hiện tại</string>
+    <string name="high_low_feels_format">C: %1$s  •  T: %2$s  •  Cảm giác %3$s</string>
+    <string name="high_low_short_format">C: %1$s  T: %2$s</string>
+
+    <!-- Weather Detail Bento Cards -->
+    <string name="metric_uv_index">CHỈ SỐ UV</string>
+    <string name="metric_feels_like">CẢM GIÁC NHƯ</string>
+    <string name="metric_wind">GIÓ</string>
+    <string name="metric_humidity">ĐỘ ẨM</string>
+    <string name="metric_sun">MẶT TRỜI</string>
+    <string name="metric_visibility">TẦM NHÌN &amp; ÁP SUẤT</string>
+
+    <string name="uv_low">Thấp</string>
+    <string name="uv_moderate">Trung bình</string>
+    <string name="uv_high">Cao</string>
+    <string name="uv_very_high">Rất cao</string>
+    <string name="uv_extreme">Cực đoan</string>
+    <string name="uv_advice_low">An toàn khi hoạt động ngoài trời</string>
+    <string name="uv_advice_moderate">Nên đeo kính râm khi nắng gắt</string>
+    <string name="uv_advice_high">Nên che chắn vào buổi trưa</string>
+    <string name="uv_advice_very_high">Hạn chế ra ngoài trời nắng gắt</string>
+
+    <string name="feels_warmer">Độ ẩm cao gây cảm giác nóng hơn</string>
+    <string name="feels_cooler">Gió thổi làm dịu mát hơn</string>
+    <string name="feels_similar">Tương đương nhiệt độ thực tế</string>
+
+    <string name="wind_gusts_format">Gió giật tới %1$s</string>
+    <string name="wind_dir_format">Hướng: %1$s (%2$d°)</string>
+    <string name="dew_point_format">Điểm sương hiện tại %1$s</string>
+    <string name="precip_today_format">Lượng mưa: %1$.1f mm</string>
+    <string name="sunset_at_format">Lặn lúc %1$s</string>
+    <string name="sunrise_at_format">Mọc lúc %1$s</string>
+    <string name="pressure_format">%1$d hPa</string>
+    <string name="visibility_good">Tầm nhìn quang đãng</string>
+    <string name="visibility_moderate">Có sương nhẹ hoặc mù</string>
 
     <!-- Search Screen -->
-    <string name="search_locations">Tìm kiếm địa điểm</string>
+    <string name="search_locations">Tìm kiếm thành phố</string>
     <string name="search_hint">Tìm thành phố, khu vực, quốc gia</string>
-    <string name="search_results_header">Kết quả</string>
-    <string name="no_results">Không tìm thấy kết quả</string>
+    <string name="search_results_header">ĐỊA ĐIỂM</string>
+    <string name="no_results">Không tìm thấy địa điểm phù hợp</string>
 
     <!-- Saved Locations Screen -->
-    <string name="saved_locations">Địa điểm đã lưu</string>
+    <string name="saved_locations">Địa điểm</string>
     <string name="empty_saved_locations">Chưa có địa điểm nào được lưu</string>
     <string name="add_city">Thêm địa điểm</string>
     <string name="keep_one_city">Cần giữ lại ít nhất một thành phố</string>
 
     <!-- Settings Screen -->
     <string name="settings_title">Cài đặt</string>
-    <string name="settings_section_units">Đơn vị</string>
+    <string name="settings_section_units">ĐƠN VỊ</string>
     <string name="settings_temperature">Nhiệt độ</string>
     <string name="settings_wind_speed">Tốc độ gió</string>
-    <string name="settings_section_display">Hiển thị</string>
-    <string name="settings_weather_backgrounds">Hiệu ứng thời tiết</string>
+    <string name="settings_section_display">GIAO DIỆN</string>
     <string name="settings_reduce_motion">Giảm chuyển động</string>
-    <string name="settings_color_scheme">Bảng màu</string>
+    <string name="settings_color_scheme">Chủ đề màu sắc</string>
     <string name="settings_language">Ngôn ngữ</string>
-    <string name="settings_section_location">Vị trí</string>
-    <string name="settings_use_current_location">Sử dụng vị trí hiện tại</string>
+    <string name="settings_section_location">VỊ TRÍ</string>
+    <string name="settings_use_current_location">Định vị GPS chính xác</string>
     <string name="settings_attribution">Dữ liệu thời tiết bởi Open-Meteo · Bản đồ © OpenStreetMap</string>
 
     <!-- Color Scheme Names -->
-    <string name="color_scheme_cyan">Xanh Lam Cyan</string>
-    <string name="color_scheme_emerald">Xanh Ngọc Lục</string>
-    <string name="color_scheme_sunset">Hoàng Hôn Cam</string>
-    <string name="color_scheme_purple">Tím Neon</string>
-    <string name="color_scheme_sky">Xanh Da Trời</string>
+    <string name="color_scheme_cyan">Xanh Lam Thủy Tinh</string>
+    <string name="color_scheme_emerald">Ngọc Lục Bảo</string>
+    <string name="color_scheme_sunset">Cam Hoàng Hôn</string>
+    <string name="color_scheme_purple">Tím Cực Quang</string>
+    <string name="color_scheme_sky">Xanh Băng Giá</string>
 
     <!-- Language Names -->
     <string name="lang_system">Theo hệ thống</string>
     <string name="lang_en">English</string>
     <string name="lang_vi">Tiếng Việt</string>
 
-    <!-- Days of Week -->
-    <string name="day_mon">T2</string>
-    <string name="day_tue">T3</string>
-    <string name="day_wed">T4</string>
-    <string name="day_thu">T5</string>
-    <string name="day_fri">T6</string>
-    <string name="day_sat">T7</string>
-    <string name="day_sun">CN</string>
-
     <!-- Weather Conditions -->
     <string name="condition_clear_sky">Trời quang đãng</string>
     <string name="condition_mainly_clear">Trời ít mây</string>
     <string name="condition_partly_cloudy">Có mây từng đợt</string>
-    <string name="condition_overcast">Trời u ám</string>
+    <string name="condition_overcast">Trời nhiều mây</string>
     <string name="condition_fog">Sương mù</string>
     <string name="condition_drizzle">Mưa phùn</string>
     <string name="condition_freezing_drizzle">Mưa phùn băng giá</string>
@@ -80,7 +104,7 @@
     <string name="condition_rain_showers">Mưa rào</string>
     <string name="condition_snow_showers">Mưa tuyết rào</string>
     <string name="condition_thunderstorm">Dông bão</string>
-    <string name="condition_thunderstorm_hail">Dông bão kèm mưa đá</string>
+    <string name="condition_thunderstorm_hail">Dông kèm mưa đá</string>
     <string name="condition_unknown">Không xác định</string>
 
     <!-- Location Messages -->

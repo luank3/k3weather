@@ -14,6 +14,8 @@ interface WeatherRepository {
     suspend fun getSelectedLocation(): LocationItem
     suspend fun setSelectedLocation(location: LocationItem)
     suspend fun hasSelectedLocation(): Boolean
+    suspend fun getDetectedCurrentLocation(): LocationItem?
+    suspend fun setDetectedCurrentLocation(location: LocationItem)
     suspend fun getSettings(): AppSettings
     suspend fun updateSettings(settings: AppSettings)
 }

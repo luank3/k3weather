@@ -11,7 +11,6 @@ import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import java.time.Instant
-import java.time.ZoneId
 
 class ComprehensiveWeatherTest {
     @Test
@@ -84,12 +83,12 @@ class ComprehensiveWeatherTest {
     }
 
     @Test
-    fun parsesFullForecastAndSelectsCurrentFiveHoursAndThreeDays() {
+    fun parsesFullForecastAndSelectsUpcomingHoursAndDays() {
         val json = forecastJson(
             timezone = "Asia/Ho_Chi_Minh",
             now = "2024-01-01T02:30",
             hourlyTimes = (0..8).map { "2024-01-01T${it.toString().padStart(2, '0')}:00" },
-            dailyTimes = listOf("2024-01-01", "2024-01-02", "2024-01-03")
+            dailyTimes = listOf("2024-01-01", "2024-01-02", "2024-01-03", "2024-01-04", "2024-01-05", "2024-01-06", "2024-01-07")
         )
         val parsed = ForecastJsonParser.parse(location("Asia/Ho_Chi_Minh"), json, 1234L)
 
@@ -101,10 +100,10 @@ class ComprehensiveWeatherTest {
         assertEquals(18.0, parsed.current.minTempC, 0.0)
         assertEquals(28.0, parsed.current.maxTempC, 0.0)
         assertEquals("2024-01-01T02:30", parsed.current.timeIso)
-        assertEquals(5, parsed.hourly.size)
+        assertEquals(6, parsed.hourly.size)
         assertEquals("3AM", parsed.hourly.first().timeLabel)
         assertEquals(23.0, parsed.hourly.first().temperatureC, 0.0)
-        assertEquals(3, parsed.daily.size)
+        assertEquals(7, parsed.daily.size)
         assertEquals("2024-01-01", parsed.daily.first().dateIso)
         assertEquals(18.0, parsed.daily.first().minTempC, 0.0)
         assertEquals(28.0, parsed.daily.first().maxTempC, 0.0)
@@ -175,8 +174,7 @@ class ComprehensiveWeatherTest {
         return JSONObject().put("timezone", timezone)
             .put("current", JSONObject().put("time", now).put("temperature_2m", 24.5).put("weather_code", 2).put("is_day", 1).put("wind_speed_10m", 12.0))
             .put("hourly", JSONObject().put("time", org.json.JSONArray(hourlyTimes)).put("temperature_2m", org.json.JSONArray(hourlyTemps)).put("weather_code", org.json.JSONArray(hourlyCodes)).put("is_day", org.json.JSONArray(hourlyIsDay)))
-            .put("daily", JSONObject().put("time", org.json.JSONArray(dailyTimes)).put("weather_code", org.json.JSONArray(listOf(2, 3, 61).take(dailyTimes.size)))
+            .put("daily", JSONObject().put("time", org.json.JSONArray(dailyTimes)).put("weather_code", org.json.JSONArray(dailyTimes.indices.map { 2 }))
                 .put("temperature_2m_min", org.json.JSONArray(dailyTimes.indices.map { 18.0 + it })).put("temperature_2m_max", org.json.JSONArray(dailyTimes.indices.map { 28.0 + it })))
     }
-
 }

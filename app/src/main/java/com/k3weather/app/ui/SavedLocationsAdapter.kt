@@ -3,6 +3,7 @@ package com.k3weather.app.ui
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
+import com.k3weather.app.R
 import com.k3weather.app.core.model.*
 import com.k3weather.app.data.mapper.WeatherCodeMapper
 import com.k3weather.app.databinding.ItemSavedLocationBinding
@@ -64,10 +65,13 @@ class SavedLocationsAdapter(
         }
         holder.binding.condition.text = conditionText
         holder.binding.temperature.text = forecast?.let { unit.format(it.current.temperatureC) } ?: "--°"
-
-        // Current location badge
-        holder.binding.ivCurrentLocationBadge.visibility =
-            if (location.isCurrentLocation) android.view.View.VISIBLE else android.view.View.GONE
+        holder.binding.tvCardHighLow.text = forecast?.let {
+            context.getString(
+                R.string.high_low_short_format,
+                unit.format(it.current.maxTempC),
+                unit.format(it.current.minTempC)
+            )
+        } ?: ""
 
         // Weather icon
         holder.binding.ivWeatherIcon.setImageResource(WeatherCodeMapper.getIcon(weatherCode, isDay))
