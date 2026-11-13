@@ -217,18 +217,21 @@ class HeroWeatherArtworkView @JvmOverloads constructor(
             canvas.drawCircle(s[0], s[1], s[2], starPaint)
         }
 
-        // Glowing Crescent Moon
+        // Glowing Crescent Moon using Path.op DIFFERENCE
         canvas.save()
-        val moonRadius = cx * 0.38f
+        val moonRadius = cx * 0.36f
+        val moonCenterY = cy - 10f
+        val outerMoonPath = Path().apply {
+            addCircle(cx, moonCenterY, moonRadius, Path.Direction.CW)
+        }
+        val innerCutterPath = Path().apply {
+            addCircle(cx + moonRadius * 0.48f, moonCenterY - moonRadius * 0.28f, moonRadius * 0.88f, Path.Direction.CW)
+        }
         moonPath.reset()
-        // Outer circle arc
-        moonPath.arcTo(cx - moonRadius * 0.6f, cy - moonRadius - 10f, cx + moonRadius * 1.4f, cy + moonRadius - 10f, 135f, 230f, false)
-        // Inner cutout arc
-        moonPath.arcTo(cx - moonRadius * 0.1f, cy - moonRadius * 0.8f - 10f, cx + moonRadius * 1.3f, cy + moonRadius * 0.8f - 10f, 360f, -220f, false)
-        moonPath.close()
+        moonPath.op(outerMoonPath, innerCutterPath, Path.Op.DIFFERENCE)
 
         moonPaint.shader = LinearGradient(
-            cx, cy - moonRadius - 10f, cx + moonRadius, cy + moonRadius,
+            cx - moonRadius, moonCenterY - moonRadius, cx + moonRadius, moonCenterY + moonRadius,
             intArrayOf(0xFFFEF9C3.toInt(), 0xFFFDE047.toInt(), 0xFFF59E0B.toInt()),
             null,
             Shader.TileMode.CLAMP

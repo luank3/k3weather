@@ -1,44 +1,44 @@
 <?xml version="1.0" encoding="utf-8"?>
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
-    <!-- Deep translucent liquid glass capsule base -->
+    <!-- Deep refractive glass base tint with slight cyan-slate undertone -->
     <item>
         <shape android:shape="rectangle">
             <gradient
                 android:angle="135"
-                android:startColor="#BF091B29"
-                android:centerColor="#B306131E"
-                android:endColor="#BF0A1F2E"
+                android:startColor="#E6081B28"
+                android:centerColor="#D905121C"
+                android:endColor="#E6091F2E"
                 android:type="linear" />
             <corners android:radius="999dp" />
         </shape>
     </item>
-    <!-- Frost specular sheen & outer rim -->
+    <!-- Liquid specular rim and subtle diagonal sheen -->
     <item>
         <shape android:shape="rectangle">
             <gradient
                 android:angle="135"
-                android:startColor="#29FFFFFF"
-                android:centerColor="#0AFFFFFF"
-                android:endColor="#17FFFFFF"
+                android:startColor="#38FFFFFF"
+                android:centerColor="#0DFFFFFF"
+                android:endColor="#1FFFFFFF"
                 android:type="linear" />
             <corners android:radius="999dp" />
             <stroke
-                android:width="1dp"
-                android:color="#42FFFFFF" />
+                android:width="1.2dp"
+                android:color="#4AFFFFFF" />
         </shape>
     </item>
-    <!-- Top specular highlight along capsule curve -->
+    <!-- Top razor-thin specular highlight curve -->
     <item
         android:top="1dp"
-        android:left="28dp"
-        android:right="28dp"
+        android:left="24dp"
+        android:right="24dp"
         android:gravity="top">
         <shape android:shape="rectangle">
             <size android:height="1dp" />
             <gradient
                 android:angle="0"
                 android:startColor="#00FFFFFF"
-                android:centerColor="#73FFFFFF"
+                android:centerColor="#8AFFFFFF"
                 android:endColor="#00FFFFFF"
                 android:type="linear" />
         </shape>

@@ -46,34 +46,16 @@
                         android:orientation="horizontal" />
                 </HorizontalScrollView>
 
-                <!-- Right Header Controls: Current Location & Search -->
-                <LinearLayout
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:gravity="center_vertical"
-                    android:orientation="horizontal">
-
-                    <ImageButton
-                        android:id="@+id/btnCurrentLocation"
-                        android:layout_width="38dp"
-                        android:layout_height="38dp"
-                        android:layout_marginEnd="6dp"
-                        android:background="@drawable/bg_circle_translucent"
-                        android:padding="9dp"
-                        android:contentDescription="@string/return_to_current_location"
-                        android:src="@drawable/ic_arrow_current_location"
-                        app:tint="@android:color/white" />
-
-                    <ImageButton
-                        android:id="@+id/searchButton"
-                        android:layout_width="38dp"
-                        android:layout_height="38dp"
-                        android:background="@drawable/bg_circle_translucent"
-                        android:padding="9dp"
-                        android:contentDescription="@string/search_locations"
-                        android:src="@drawable/ic_search"
-                        app:tint="@android:color/white" />
-                </LinearLayout>
+                <!-- Right Header Controls: Search Button -->
+                <ImageButton
+                    android:id="@+id/searchButton"
+                    android:layout_width="38dp"
+                    android:layout_height="38dp"
+                    android:background="@drawable/bg_circle_translucent"
+                    android:padding="9dp"
+                    android:contentDescription="@string/search_locations"
+                    android:src="@drawable/ic_search"
+                    app:tint="@android:color/white" />
             </LinearLayout>
 
             <!-- HERO CURRENT WEATHER SECTION -->

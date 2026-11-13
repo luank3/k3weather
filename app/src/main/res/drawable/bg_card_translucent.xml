@@ -1,44 +1,44 @@
 <?xml version="1.0" encoding="utf-8"?>
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
-    <!-- Base refractive glass tint -->
+    <!-- Refractive liquid glass tint -->
     <item>
         <shape android:shape="rectangle">
             <gradient
                 android:angle="135"
-                android:startColor="#540A1E2E"
-                android:centerColor="#42071521"
-                android:endColor="#4D0C2233"
+                android:startColor="#590A1E2E"
+                android:centerColor="#47071522"
+                android:endColor="#520D2335"
                 android:type="linear" />
             <corners android:radius="24dp" />
         </shape>
     </item>
-    <!-- Diagonal liquid glass frost sheen + outer specular rim -->
+    <!-- Diagonal liquid glass frost sheen + specular rim -->
     <item>
         <shape android:shape="rectangle">
             <gradient
                 android:angle="135"
-                android:startColor="#26FFFFFF"
-                android:centerColor="#08FFFFFF"
-                android:endColor="#14FFFFFF"
+                android:startColor="#33FFFFFF"
+                android:centerColor="#0AFFFFFF"
+                android:endColor="#1CFFFFFF"
                 android:type="linear" />
             <corners android:radius="24dp" />
             <stroke
                 android:width="1dp"
-                android:color="#3BFFFFFF" />
+                android:color="#42FFFFFF" />
         </shape>
     </item>
-    <!-- Inner top-edge specular light reflection -->
+    <!-- Inner top-edge specular reflection -->
     <item
         android:top="1dp"
-        android:left="18dp"
-        android:right="18dp"
+        android:left="16dp"
+        android:right="16dp"
         android:gravity="top">
         <shape android:shape="rectangle">
             <size android:height="1dp" />
             <gradient
                 android:angle="0"
                 android:startColor="#00FFFFFF"
-                android:centerColor="#66FFFFFF"
+                android:centerColor="#7AFFFFFF"
                 android:endColor="#00FFFFFF"
                 android:type="linear" />
         </shape>

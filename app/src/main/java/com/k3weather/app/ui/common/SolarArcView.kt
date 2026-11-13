@@ -19,18 +19,27 @@ class SolarArcView @JvmOverloads constructor(
     private var dayProgress: Float = 0.5f // 0.0 to 1.0
     private var isDay: Boolean = true
 
+    private val density = resources.displayMetrics.density
+
     private val horizonPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         style = Paint.Style.STROKE
-        strokeWidth = 2f
-        color = 0x40FFFFFF.toInt()
-        pathEffect = DashPathEffect(floatArrayOf(8f, 8f), 0f)
+        strokeWidth = 1.2f * density
+        color = 0x33FFFFFF.toInt()
+        pathEffect = DashPathEffect(floatArrayOf(4f * density, 4f * density), 0f)
     }
 
     private val arcPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         style = Paint.Style.STROKE
-        strokeWidth = 3f
-        color = 0x38FFFFFF.toInt()
+        strokeWidth = 2.2f * density
+        color = 0x47FFFFFF.toInt()
         strokeCap = Paint.Cap.ROUND
+    }
+
+    private val dropLinePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        style = Paint.Style.STROKE
+        strokeWidth = 1f * density
+        color = 0x26FDE047.toInt()
+        pathEffect = DashPathEffect(floatArrayOf(2f * density, 2f * density), 0f)
     }
 
     private val sunGlowPaint = Paint(Paint.ANTI_ALIAS_FLAG)
@@ -53,18 +62,18 @@ class SolarArcView @JvmOverloads constructor(
         val h = height.toFloat()
         if (w <= 0 || h <= 0) return
 
-        val paddingHorizontal = 20f
-        val horizonY = h - 16f
+        val paddingHorizontal = 16f * density
+        val horizonY = h - (12f * density)
         val startX = paddingHorizontal
         val endX = w - paddingHorizontal
-        val peakY = 8f
+        val peakY = 8f * density
 
         // 1. Dashed Horizon line
-        canvas.drawLine(startX - 8f, horizonY, endX + 8f, horizonY, horizonPaint)
+        canvas.drawLine(startX - (4f * density), horizonY, endX + (4f * density), horizonY, horizonPaint)
 
         // 2. Solar curve (Quadratic Bezier)
         val controlX = w / 2f
-        val controlY = peakY - 18f
+        val controlY = peakY - (12f * density)
         arcPath.reset()
         arcPath.moveTo(startX, horizonY)
         arcPath.quadTo(controlX, controlY, endX, horizonY)
@@ -76,8 +85,13 @@ class SolarArcView @JvmOverloads constructor(
         val sunX = (1 - t) * (1 - t) * startX + 2 * (1 - t) * t * controlX + t * t * endX
         val sunY = (1 - t) * (1 - t) * horizonY + 2 * (1 - t) * t * controlY + t * t * horizonY
 
+        // 4. Subtle vertical drop line to horizon
+        if (isDay && sunY < horizonY) {
+            canvas.drawLine(sunX, sunY + (5f * density), sunX, horizonY, dropLinePaint)
+        }
+
         // Glowing outer coronal halo
-        val glowRadius = 18f
+        val glowRadius = 14f * density
         sunGlowPaint.shader = RadialGradient(
             sunX, sunY, glowRadius,
             intArrayOf(
@@ -91,6 +105,6 @@ class SolarArcView @JvmOverloads constructor(
 
         // Core sun disc
         sunCorePaint.color = if (isDay) 0xFFFDE047.toInt() else 0xFFC7D2FE.toInt()
-        canvas.drawCircle(sunX, sunY, 7f, sunCorePaint)
+        canvas.drawCircle(sunX, sunY, 4.5f * density, sunCorePaint)
     }
 }

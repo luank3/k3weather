@@ -47,14 +47,6 @@ class ForecastView(private val binding: LayoutForecastBinding) {
         binding.swipeRefresh.setOnRefreshListener { onRefresh() }
         binding.swipeRefresh.isRefreshing = state.loading
 
-        // Top Header Location Button (matches Search Button size 38dp x 38dp)
-        val isCurrent = state.selectedLocation?.isCurrentLocation == true ||
-                (state.detectedCurrentLocation != null && state.selectedLocation?.id == state.detectedCurrentLocation.id)
-        binding.btnCurrentLocation.imageTintList = ColorStateList.valueOf(if (isCurrent) 0xFF38BDF8.toInt() else 0xFFFFFFFF.toInt())
-        binding.btnCurrentLocation.setOnClickListener {
-            state.detectedCurrentLocation?.let { loc -> onSelectCity(loc) } ?: onRefresh()
-        }
-
         // Setup City Quick-Pills Header
         setupCityPills(state, onSelectCity)
 

@@ -142,6 +142,7 @@ class MainActivity : AppCompatActivity() {
         setupInsets()
         setupChildViews(initialTab)
         setupBottomNavigation(initialTab)
+        setupScrollAwareBottomNav()
         setupBackPress()
         observeState()
         preloadSavedForecastCaches()
@@ -260,6 +261,46 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    private var isBottomNavHidden = false
+
+    private fun setupScrollAwareBottomNav() {
+        val density = resources.displayMetrics.density
+        val hideDistance = 120f * density
+
+        val showNav = {
+            if (isBottomNavHidden) {
+                isBottomNavHidden = false
+                binding.bottomNavBar.animate()
+                    .translationY(0f)
+                    .alpha(1f)
+                    .setDuration(220)
+                    .setInterpolator(DecelerateInterpolator())
+                    .start()
+            }
+        }
+
+        val hideNav = {
+            if (!isBottomNavHidden) {
+                isBottomNavHidden = true
+                binding.bottomNavBar.animate()
+                    .translationY(hideDistance)
+                    .alpha(0f)
+                    .setDuration(220)
+                    .setInterpolator(AccelerateInterpolator())
+                    .start()
+            }
+        }
+
+        forecastBinding.forecastScrollView.setOnScrollChangeListener { _, _, scrollY, _, oldScrollY ->
+            val dy = scrollY - oldScrollY
+            if (dy > 14 && scrollY > (100 * density).toInt()) {
+                hideNav()
+            } else if (dy < -14 || scrollY < (50 * density).toInt()) {
+                showNav()
+            }
+        }
+    }
+
     private fun setupBottomNavigation(initialTab: Tab) {
         binding.tabForecast.setOnClickListener { selectTab(Tab.FORECAST) }
         binding.tabSaved.setOnClickListener { selectTab(Tab.SAVED) }
@@ -274,6 +315,16 @@ class MainActivity : AppCompatActivity() {
 
         val reduceMotion = viewModel.state.value.settings.reduceMotion
         val density = resources.displayMetrics.density
+
+        if (isBottomNavHidden) {
+            isBottomNavHidden = false
+            binding.bottomNavBar.animate()
+                .translationY(0f)
+                .alpha(1f)
+                .setDuration(200)
+                .setInterpolator(DecelerateInterpolator())
+                .start()
+        }
 
         // 3-Tab Liquid Glass Capsule Pill Styling
         fun styleTabItem(container: LinearLayout, icon: ImageView, text: TextView, isSelected: Boolean) {
@@ -563,6 +614,7 @@ class MainActivity : AppCompatActivity() {
         val oldSearch = searchBinding.root
 
         setupChildViews(currentTab)
+        setupScrollAwareBottomNav()
 
         binding.fragmentContainer.removeView(oldForecast)
         binding.fragmentContainer.removeView(oldSaved)
