@@ -96,7 +96,7 @@
     <string name="settings_language">Language</string>
     <string name="settings_section_location">LOCATION</string>
     <string name="settings_use_current_location">Use current location</string>
-    <string name="settings_attribution">Weather data by Open-Meteo · Place names © OpenStreetMap contributors</string>
+    <string name="settings_attribution">Open-Meteo · © OpenStreetMap</string>
 
     <!-- Color Scheme Names -->
     <string name="color_scheme_cyan">Liquid Cyan</string>

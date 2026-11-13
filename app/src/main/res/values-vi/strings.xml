@@ -96,7 +96,7 @@
     <string name="settings_language">Ngôn ngữ</string>
     <string name="settings_section_location">VỊ TRÍ</string>
     <string name="settings_use_current_location">Sử dụng vị trí hiện tại</string>
-    <string name="settings_attribution">Dữ liệu thời tiết: Open-Meteo · Tên địa điểm © OpenStreetMap contributors</string>
+    <string name="settings_attribution">Open-Meteo · © OpenStreetMap</string>
 
     <!-- Color Scheme Names -->
     <string name="color_scheme_cyan">Xanh Lam Thủy Tinh</string>
