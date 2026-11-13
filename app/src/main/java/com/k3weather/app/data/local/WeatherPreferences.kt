@@ -14,6 +14,8 @@ class WeatherPreferences(context: Context) {
             AppSettings(
                 tempUnit = runCatching { TemperatureUnit.valueOf(it.optString("tempUnit", "CELSIUS")) }.getOrDefault(TemperatureUnit.CELSIUS),
                 windSpeedUnit = runCatching { WindSpeedUnit.valueOf(it.optString("windSpeedUnit", "KMH")) }.getOrDefault(WindSpeedUnit.KMH),
+                precipitationUnit = runCatching { PrecipitationUnit.valueOf(it.optString("precipitationUnit", "MILLIMETERS")) }.getOrDefault(PrecipitationUnit.MILLIMETERS),
+                pressureUnit = runCatching { PressureUnit.valueOf(it.optString("pressureUnit", "HPA")) }.getOrDefault(PressureUnit.HPA),
                 weatherBackgroundsEnabled = it.optBoolean("weatherBackgroundsEnabled", true),
                 reduceMotion = it.optBoolean("reduceMotion", false),
                 useCurrentLocation = it.optBoolean("useCurrentLocation", true),
@@ -30,6 +32,8 @@ class WeatherPreferences(context: Context) {
             JSONObject()
                 .put("tempUnit", settings.tempUnit.name)
                 .put("windSpeedUnit", settings.windSpeedUnit.name)
+                .put("precipitationUnit", settings.precipitationUnit.name)
+                .put("pressureUnit", settings.pressureUnit.name)
                 .put("weatherBackgroundsEnabled", settings.weatherBackgroundsEnabled)
                 .put("reduceMotion", settings.reduceMotion)
                 .put("useCurrentLocation", settings.useCurrentLocation)
@@ -38,6 +42,14 @@ class WeatherPreferences(context: Context) {
                 .put("customApiBaseUrl", settings.customApiBaseUrl ?: "")
                 .toString()
         ).apply()
+    }
+
+    fun clearCache() {
+        val editor = prefs.edit()
+        prefs.all.keys.filter { it.startsWith(KEY_CACHE_PREFIX) }.forEach {
+            editor.remove(it)
+        }
+        editor.apply()
     }
 
     fun hasSelectedLocation(): Boolean {

@@ -68,7 +68,7 @@
     <string name="sunrise_at_format">Sunrise at %1$s</string>
     <string name="sunrise_label">SUNRISE</string>
     <string name="sunset_label">SUNSET</string>
-    <string name="pressure_format">Pressure: %1$d hPa</string>
+    <string name="pressure_format">Pressure: %1$s</string>
     <string name="visibility_good">Clear horizon visibility</string>
     <string name="visibility_moderate">Moderate mist or haze</string>
 
@@ -143,4 +143,11 @@
     <string name="widget_medium_desc">Current conditions plus a 5-hour forecast ribbon.</string>
     <string name="widget_large_title">Detailed Forecast (4×4)</string>
     <string name="widget_large_desc">Current weather, wind/humidity/UV details, 5-hour forecast, and 3-day outlook.</string>
+    <string name="settings_precipitation">Precipitation</string>
+    <string name="settings_pressure">Pressure</string>
+    <string name="settings_section_about">ABOUT &amp; DATA</string>
+    <string name="settings_clear_cache">Refresh data</string>
+    <string name="settings_clear_cache_action">Clear cache</string>
+    <string name="settings_version">Version</string>
+    <string name="settings_cache_cleared">Cache cleared, data refreshed</string>
 </resources>

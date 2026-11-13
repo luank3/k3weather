@@ -68,7 +68,7 @@
     <string name="sunrise_at_format">Mọc lúc %1$s</string>
     <string name="sunrise_label">BÌNH MINH</string>
     <string name="sunset_label">HOÀNG HÔN</string>
-    <string name="pressure_format">Áp suất: %1$d hPa</string>
+    <string name="pressure_format">Áp suất: %1$s</string>
     <string name="visibility_good">Tầm nhìn quang đãng</string>
     <string name="visibility_moderate">Có sương nhẹ hoặc mù</string>
 
@@ -143,4 +143,11 @@
     <string name="widget_medium_desc">Thời tiết hiện tại kèm dự báo 5 giờ tới.</string>
     <string name="widget_large_title">Dự báo chi tiết (4×4)</string>
     <string name="widget_large_desc">Thời tiết hiện tại, gió/độ ẩm/UV, dự báo 5 giờ và 3 ngày tới.</string>
+    <string name="settings_precipitation">Lượng mưa</string>
+    <string name="settings_pressure">Áp suất</string>
+    <string name="settings_section_about">THÔNG TIN &amp; DỮ LIỆU</string>
+    <string name="settings_clear_cache">Làm mới dữ liệu</string>
+    <string name="settings_clear_cache_action">Xóa bộ nhớ đệm</string>
+    <string name="settings_version">Phiên bản</string>
+    <string name="settings_cache_cleared">Đã xóa bộ nhớ đệm và làm mới</string>
 </resources>

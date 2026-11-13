@@ -18,4 +18,5 @@ interface WeatherRepository {
     suspend fun setDetectedCurrentLocation(location: LocationItem)
     suspend fun getSettings(): AppSettings
     suspend fun updateSettings(settings: AppSettings)
+    suspend fun clearCache()
 }

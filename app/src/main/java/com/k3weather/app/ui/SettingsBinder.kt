@@ -6,6 +6,7 @@ import com.k3weather.app.databinding.LayoutSettingsBinding
 
 class SettingsBinder(
     private val binding: LayoutSettingsBinding,
+    private val onClearCache: () -> Unit = {},
     private val onSettingsChanged: (AppSettings) -> Unit
 ) {
     fun bind(settings: AppSettings) {
@@ -33,6 +34,25 @@ class SettingsBinder(
             send(settings.copy(windSpeedUnit = next))
         }
 
+        binding.tvPrecipitationUnitValue.text = settings.precipitationUnit.symbol
+        binding.rowPrecipitation.setOnClickListener {
+            val next = if (settings.precipitationUnit == PrecipitationUnit.MILLIMETERS) PrecipitationUnit.INCHES else PrecipitationUnit.MILLIMETERS
+            send(settings.copy(precipitationUnit = next))
+        }
+        binding.tvPressureUnitValue.text = settings.pressureUnit.symbol
+        binding.rowPressure.setOnClickListener {
+            val next = when (settings.pressureUnit) {
+                PressureUnit.HPA -> PressureUnit.INHG
+                PressureUnit.INHG -> PressureUnit.MMHG
+                PressureUnit.MMHG -> PressureUnit.HPA
+            }
+            send(settings.copy(pressureUnit = next))
+        }
+        binding.tvVersionValue.text = runCatching {
+            context.packageManager.getPackageInfo(context.packageName, 0).versionName
+        }.getOrNull() ?: "1.0"
+        binding.rowClearCache.setOnClickListener { onClearCache() }
+
         // Stateful theme color for switches
         val accentColor = settings.colorScheme.primaryAccent
         val activeTrackColor = (accentColor and 0x00FFFFFF) or 0x73000000
@@ -51,8 +71,6 @@ class SettingsBinder(
 
         binding.reduceMotionSwitch.thumbTintList = thumbTintList
         binding.reduceMotionSwitch.trackTintList = trackTintList
-        binding.currentLocationSwitch.thumbTintList = thumbTintList
-        binding.currentLocationSwitch.trackTintList = trackTintList
 
         binding.reduceMotionSwitch.setOnCheckedChangeListener(null)
         binding.reduceMotionSwitch.isChecked = settings.reduceMotion
@@ -69,16 +87,6 @@ class SettingsBinder(
         binding.rowLanguage.setOnClickListener {
             val next = if (settings.language == "vi") "en" else "vi"
             send(settings.copy(language = next))
-        }
-
-        // Location
-        binding.currentLocationSwitch.setOnCheckedChangeListener(null)
-        binding.currentLocationSwitch.isChecked = settings.useCurrentLocation
-        binding.currentLocationSwitch.setOnCheckedChangeListener { _, checked ->
-            send(settings.copy(useCurrentLocation = checked))
-        }
-        binding.rowCurrentLocation.setOnClickListener {
-            binding.currentLocationSwitch.toggle()
         }
     }
 

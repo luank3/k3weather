@@ -109,6 +109,7 @@ class WeatherRepositoryImpl(
     override suspend fun setDetectedCurrentLocation(location: LocationItem) = preferences.setDetectedCurrentLocation(location)
     override suspend fun getSettings() = preferences.getSettings()
     override suspend fun updateSettings(settings: AppSettings) = preferences.setSettings(settings)
+    override suspend fun clearCache() = withContext(Dispatchers.IO) { preferences.clearCache() }
 
     companion object {
         private const val CACHE_TTL_MS = 15 * 60 * 1000L // 15 minutes

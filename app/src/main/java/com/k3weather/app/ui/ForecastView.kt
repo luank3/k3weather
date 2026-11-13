@@ -126,7 +126,8 @@ class ForecastView(private val binding: LayoutForecastBinding) {
             context = context,
             current = current,
             maxPop24h = maxHourlyPop,
-            windUnit = windUnit
+            windUnit = windUnit,
+            precipUnit = state.settings.precipitationUnit
         )
 
         // 7-Day Forecast With Range Bars
@@ -208,7 +209,7 @@ class ForecastView(private val binding: LayoutForecastBinding) {
             "${current.visibilityKm.roundToInt().coerceAtLeast(1)} km"
         }
         binding.tvVisibilityValue.text = visStr
-        binding.tvPressureNote.text = context.getString(R.string.pressure_format, current.surfacePressureHpa.roundToInt())
+        binding.tvPressureNote.text = context.getString(R.string.pressure_format, state.settings.pressureUnit.format(current.surfacePressureHpa))
         binding.tvVisibilityDesc.text = context.getString(
             if (current.visibilityKm >= 10.0) R.string.visibility_good else R.string.visibility_moderate
         )
@@ -387,15 +388,17 @@ class ForecastView(private val binding: LayoutForecastBinding) {
         context: Context,
         current: CurrentWeather,
         maxPop24h: Int,
-        windUnit: WindSpeedUnit
+        windUnit: WindSpeedUnit,
+        precipUnit: PrecipitationUnit = PrecipitationUnit.MILLIMETERS
     ): String {
         val isVi = context.resources.configuration.locales[0]?.language == "vi"
         val windStr = windUnit.format(current.windSpeedKmh)
         val compass = degreesToCompass(context, current.windDirectionDeg)
+        val precipStr = precipUnit.format(current.precipitationMm)
         return if (isVi) {
             val windPart = "Gió $compass $windStr, độ ẩm ${current.humidityPercent}%"
             when {
-                current.precipitationMm > 0.5 -> "Đang có mưa (${String.format(Locale.US, "%.1f", current.precipitationMm)} mm) • $windPart."
+                current.precipitationMm > 0.5 -> "Đang có mưa ($precipStr) • $windPart."
                 maxPop24h >= 40 -> "Khả năng mưa lên tới $maxPop24h% trong 24 giờ tới • $windPart."
                 current.uvIndex >= 6.0 && current.isDay -> "Chỉ số UV hiện tại ${current.uvIndexInt} • $windPart."
                 else -> "$windPart • Tầm nhìn ${current.visibilityKm.roundToInt().coerceAtLeast(1)} km."
@@ -403,7 +406,7 @@ class ForecastView(private val binding: LayoutForecastBinding) {
         } else {
             val windPart = "$compass wind at $windStr, ${current.humidityPercent}% humidity"
             when {
-                current.precipitationMm > 0.5 -> "Active precipitation (${String.format(Locale.US, "%.1f", current.precipitationMm)} mm) • $windPart."
+                current.precipitationMm > 0.5 -> "Active precipitation ($precipStr) • $windPart."
                 maxPop24h >= 40 -> "Rain chance up to $maxPop24h% over the next 24h • $windPart."
                 current.uvIndex >= 6.0 && current.isDay -> "UV index at ${current.uvIndexInt} • $windPart."
                 else -> "$windPart • Visibility ${current.visibilityKm.roundToInt().coerceAtLeast(1)} km."

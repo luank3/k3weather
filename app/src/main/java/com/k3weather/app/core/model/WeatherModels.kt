@@ -42,6 +42,47 @@ enum class WindSpeedUnit(val symbol: String) {
     }
 }
 
+enum class PrecipitationUnit(val symbol: String) {
+    MILLIMETERS("mm"),
+    INCHES("in");
+
+    fun fromMm(mm: Double): Double = when (this) {
+        MILLIMETERS -> mm
+        INCHES -> mm * 0.0393701
+    }
+
+    fun format(mm: Double): String = when (this) {
+        MILLIMETERS -> {
+            if (mm < 0.05) "0 mm"
+            else if (mm < 10.0) String.format(java.util.Locale.US, "%.1f mm", mm)
+            else "${mm.roundToInt()} mm"
+        }
+        INCHES -> {
+            val inches = fromMm(mm)
+            if (inches < 0.01) "0 in"
+            else String.format(java.util.Locale.US, "%.2f in", inches)
+        }
+    }
+}
+
+enum class PressureUnit(val symbol: String) {
+    HPA("hPa"),
+    INHG("inHg"),
+    MMHG("mmHg");
+
+    fun fromHpa(hpa: Double): Double = when (this) {
+        HPA -> hpa
+        INHG -> hpa * 0.02953
+        MMHG -> hpa * 0.750062
+    }
+
+    fun format(hpa: Double): String = when (this) {
+        HPA -> "${hpa.roundToInt()} hPa"
+        INHG -> String.format(java.util.Locale.US, "%.2f inHg", fromHpa(hpa))
+        MMHG -> "${fromHpa(hpa).roundToInt()} mmHg"
+    }
+}
+
 enum class AppColorScheme(
     val id: String,
     val nameResId: Int,
@@ -164,6 +205,8 @@ data class ForecastData(
 data class AppSettings(
     val tempUnit: TemperatureUnit = TemperatureUnit.CELSIUS,
     val windSpeedUnit: WindSpeedUnit = WindSpeedUnit.KMH,
+    val precipitationUnit: PrecipitationUnit = PrecipitationUnit.MILLIMETERS,
+    val pressureUnit: PressureUnit = PressureUnit.HPA,
     val weatherBackgroundsEnabled: Boolean = true,
     val reduceMotion: Boolean = false,
     val useCurrentLocation: Boolean = true,

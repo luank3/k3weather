@@ -149,4 +149,12 @@ class WeatherViewModel(
             _state.value = _state.value.copy(settings = settings)
         }
     }
+
+    fun clearCache(onComplete: () -> Unit = {}) {
+        viewModelScope.launch {
+            repository.clearCache()
+            _state.value.selectedLocation?.let { loadForecast(it, force = true) }
+            onComplete()
+        }
+    }
 }
