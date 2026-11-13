@@ -17,7 +17,9 @@ import android.view.View
 import android.view.ViewGroup
 import android.view.animation.AccelerateInterpolator
 import android.view.animation.DecelerateInterpolator
-import android.view.animation.OvershootInterpolator
+import android.widget.ImageView
+import android.widget.LinearLayout
+import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.result.contract.ActivityResultContracts
@@ -34,16 +36,19 @@ import androidx.lifecycle.repeatOnLifecycle
 import com.k3weather.app.core.model.AppColorScheme
 import com.k3weather.app.core.model.ForecastData
 import com.k3weather.app.core.model.LocationItem
+import com.k3weather.app.core.model.TemperatureUnit
 import com.k3weather.app.data.local.WeatherPreferences
 import com.k3weather.app.data.mapper.WeatherCodeMapper
 import com.k3weather.app.data.remote.LocationResolver
 import com.k3weather.app.databinding.ActivityMainBinding
 import com.k3weather.app.databinding.LayoutForecastBinding
+import com.k3weather.app.databinding.LayoutRadarBinding
 import com.k3weather.app.databinding.LayoutSavedLocationsBinding
 import com.k3weather.app.databinding.LayoutSearchBinding
 import com.k3weather.app.databinding.LayoutSettingsBinding
 import com.k3weather.app.ui.ForecastBinder
 import com.k3weather.app.ui.ForecastView
+import com.k3weather.app.ui.RadarView
 import com.k3weather.app.ui.SavedLocationsAdapter
 import com.k3weather.app.ui.SavedLocationsBinder
 import com.k3weather.app.ui.SearchBinder
@@ -51,6 +56,7 @@ import com.k3weather.app.ui.SearchView
 import com.k3weather.app.ui.SettingsBinder
 import com.k3weather.app.ui.WeatherUiState
 import com.k3weather.app.ui.WeatherViewModel
+import com.k3weather.app.ui.common.HeroWeatherArtworkView
 import com.k3weather.app.ui.common.WeatherBackgroundHelper
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -63,11 +69,13 @@ class MainActivity : AppCompatActivity() {
     private lateinit var viewModel: WeatherViewModel
 
     private lateinit var forecastBinding: LayoutForecastBinding
+    private lateinit var radarBinding: LayoutRadarBinding
     private lateinit var savedBinding: LayoutSavedLocationsBinding
     private lateinit var settingsBinding: LayoutSettingsBinding
     private lateinit var searchBinding: LayoutSearchBinding
 
     private lateinit var forecastBinder: ForecastBinder
+    private lateinit var radarView: RadarView
     private lateinit var savedAdapter: SavedLocationsAdapter
     private lateinit var savedBinder: SavedLocationsBinder
     private lateinit var searchBinder: SearchBinder
@@ -75,7 +83,7 @@ class MainActivity : AppCompatActivity() {
 
     private val savedForecasts = mutableMapOf<String, ForecastData>()
 
-    private enum class Tab { FORECAST, SAVED, SETTINGS }
+    private enum class Tab { FORECAST, RADAR, SAVED, SETTINGS }
     private var currentTab = Tab.FORECAST
     private var previousTab: Tab? = null
 
@@ -167,21 +175,51 @@ class MainActivity : AppCompatActivity() {
 
     private fun setupChildViews(initialTab: Tab) {
         forecastBinding = LayoutForecastBinding.inflate(layoutInflater, binding.fragmentContainer, false)
+        radarBinding = LayoutRadarBinding.inflate(layoutInflater, binding.fragmentContainer, false)
         savedBinding = LayoutSavedLocationsBinding.inflate(layoutInflater, binding.fragmentContainer, false)
         settingsBinding = LayoutSettingsBinding.inflate(layoutInflater, binding.fragmentContainer, false)
 
         forecastBinding.root.visibility = if (initialTab == Tab.FORECAST) View.VISIBLE else View.GONE
+        radarBinding.root.visibility = if (initialTab == Tab.RADAR) View.VISIBLE else View.GONE
         savedBinding.root.visibility = if (initialTab == Tab.SAVED) View.VISIBLE else View.GONE
         settingsBinding.root.visibility = if (initialTab == Tab.SETTINGS) View.VISIBLE else View.GONE
 
         binding.fragmentContainer.addView(forecastBinding.root)
+        binding.fragmentContainer.addView(radarBinding.root)
         binding.fragmentContainer.addView(savedBinding.root)
         binding.fragmentContainer.addView(settingsBinding.root)
 
         searchBinding = LayoutSearchBinding.inflate(layoutInflater, binding.searchContainer, false)
         binding.searchContainer.addView(searchBinding.root)
 
-        forecastBinder = ForecastBinder(ForecastView(forecastBinding))
+        val fv = ForecastView(forecastBinding)
+        fv.onThemeOverrideChanged = { theme ->
+            if (theme != null) {
+                when (theme) {
+                    HeroWeatherArtworkView.Theme.SUNNY -> {
+                        binding.glowBlobTop.backgroundTintList = ColorStateList.valueOf(0x4DFBBF24.toInt())
+                        binding.glowBlobMid.backgroundTintList = ColorStateList.valueOf(0x3338BDF8.toInt())
+                    }
+                    HeroWeatherArtworkView.Theme.RAINY -> {
+                        binding.glowBlobTop.backgroundTintList = ColorStateList.valueOf(0x3322D3EE.toInt())
+                        binding.glowBlobMid.backgroundTintList = ColorStateList.valueOf(0x333B82F6.toInt())
+                    }
+                    HeroWeatherArtworkView.Theme.CLOUDY -> {
+                        binding.glowBlobTop.backgroundTintList = ColorStateList.valueOf(0x33818CF8.toInt())
+                        binding.glowBlobMid.backgroundTintList = ColorStateList.valueOf(0x2694A3B8.toInt())
+                    }
+                    HeroWeatherArtworkView.Theme.NIGHT -> {
+                        binding.glowBlobTop.backgroundTintList = ColorStateList.valueOf(0x40A855F7.toInt())
+                        binding.glowBlobMid.backgroundTintList = ColorStateList.valueOf(0x334F46E5.toInt())
+                    }
+                }
+            } else {
+                updateMainBackground(viewModel.state.value)
+            }
+        }
+        forecastBinder = ForecastBinder(fv)
+
+        radarView = RadarView(radarBinding, lifecycleScope)
 
         savedBinding.cardCurrentLocation.outlineProvider = object : android.view.ViewOutlineProvider() {
             override fun getOutline(view: View, outline: android.graphics.Outline) {
@@ -203,7 +241,7 @@ class MainActivity : AppCompatActivity() {
                 }
             }
         )
-        savedBinding.savedLocationsList.adapter = savedAdapter
+        savedBinding.savedList.adapter = savedAdapter
         savedBinding.addCityButton.setOnClickListener {
             openSearch(SearchSource.SAVED)
         }
@@ -257,6 +295,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun setupBottomNavigation(initialTab: Tab) {
         binding.tabForecast.setOnClickListener { selectTab(Tab.FORECAST) }
+        binding.tabRadar.setOnClickListener { selectTab(Tab.RADAR) }
         binding.tabSaved.setOnClickListener { selectTab(Tab.SAVED) }
         binding.tabSettings.setOnClickListener { selectTab(Tab.SETTINGS) }
         selectTab(initialTab)
@@ -270,52 +309,30 @@ class MainActivity : AppCompatActivity() {
         val reduceMotion = viewModel.state.value.settings.reduceMotion
         val density = resources.displayMetrics.density
 
-        val active = ContextCompat.getColor(this, R.color.text_primary)
-        val muted = ContextCompat.getColor(this, R.color.text_muted)
-
-        // Tint icons and labels
-        binding.ivTabForecast.imageTintList = ColorStateList.valueOf(if (tab == Tab.FORECAST) active else muted)
-        binding.tvTabForecast.setTextColor(if (tab == Tab.FORECAST) active else muted)
-
-        binding.ivTabSaved.imageTintList = ColorStateList.valueOf(if (tab == Tab.SAVED) active else muted)
-        binding.tvTabSaved.setTextColor(if (tab == Tab.SAVED) active else muted)
-
-        binding.ivTabSettings.imageTintList = ColorStateList.valueOf(if (tab == Tab.SETTINGS) active else muted)
-        binding.tvTabSettings.setTextColor(if (tab == Tab.SETTINGS) active else muted)
-
-        fun updateIndicator(indicator: View, isSelected: Boolean) {
-            if (reduceMotion || oldTab == null) {
-                indicator.visibility = if (isSelected) View.VISIBLE else View.GONE
-                indicator.alpha = if (isSelected) 1f else 0f
-                indicator.scaleX = if (isSelected) 1f else 0.5f
+        // 4-Tab Liquid Glass Capsule Pill Styling
+        fun styleTabItem(container: LinearLayout, icon: ImageView, text: TextView, isSelected: Boolean) {
+            if (isSelected) {
+                container.setBackgroundResource(R.drawable.bg_nav_active_pill)
+                container.setPadding((14 * density).toInt(), 0, (14 * density).toInt(), 0)
+                icon.imageTintList = ColorStateList.valueOf(0xFF0F172A.toInt())
+                text.visibility = View.VISIBLE
+                text.setTextColor(0xFF0F172A.toInt())
             } else {
-                if (isSelected) {
-                    indicator.visibility = View.VISIBLE
-                    indicator.alpha = 0f
-                    indicator.scaleX = 0.3f
-                    indicator.animate()
-                        .alpha(1f)
-                        .scaleX(1f)
-                        .setDuration(220)
-                        .setInterpolator(OvershootInterpolator(1.4f))
-                        .start()
-                } else if (indicator.visibility == View.VISIBLE) {
-                    indicator.animate()
-                        .alpha(0f)
-                        .scaleX(0.4f)
-                        .setDuration(160)
-                        .withEndAction { indicator.visibility = View.GONE }
-                        .start()
-                }
+                container.background = null
+                container.setPadding((10 * density).toInt(), 0, (10 * density).toInt(), 0)
+                icon.imageTintList = ColorStateList.valueOf(0xB3FFFFFF.toInt())
+                text.visibility = View.GONE
             }
         }
 
-        updateIndicator(binding.indicatorForecast, tab == Tab.FORECAST)
-        updateIndicator(binding.indicatorSaved, tab == Tab.SAVED)
-        updateIndicator(binding.indicatorSettings, tab == Tab.SETTINGS)
+        styleTabItem(binding.tabForecast, binding.ivTabForecast, binding.tvTabForecast, tab == Tab.FORECAST)
+        styleTabItem(binding.tabRadar, binding.ivTabRadar, binding.tvTabRadar, tab == Tab.RADAR)
+        styleTabItem(binding.tabSaved, binding.ivTabSaved, binding.tvTabSaved, tab == Tab.SAVED)
+        styleTabItem(binding.tabSettings, binding.ivTabSettings, binding.tvTabSettings, tab == Tab.SETTINGS)
 
         fun getViewForTab(t: Tab): View = when (t) {
             Tab.FORECAST -> forecastBinding.root
+            Tab.RADAR -> radarBinding.root
             Tab.SAVED -> savedBinding.root
             Tab.SETTINGS -> settingsBinding.root
         }
@@ -325,6 +342,7 @@ class MainActivity : AppCompatActivity() {
 
         if (oldTab == null || reduceMotion || outgoingView == null) {
             forecastBinding.root.visibility = if (tab == Tab.FORECAST) View.VISIBLE else View.GONE
+            radarBinding.root.visibility = if (tab == Tab.RADAR) View.VISIBLE else View.GONE
             savedBinding.root.visibility = if (tab == Tab.SAVED) View.VISIBLE else View.GONE
             settingsBinding.root.visibility = if (tab == Tab.SETTINGS) View.VISIBLE else View.GONE
             targetView.alpha = 1f
@@ -462,28 +480,30 @@ class MainActivity : AppCompatActivity() {
                         state = state,
                         onSearch = { openSearch(SearchSource.FORECAST) },
                         onRefresh = { viewModel.refresh(force = true) },
-                        onReturnToCurrentLocation = {
-                            viewModel.returnToCurrentLocation()
-                            Toast.makeText(this@MainActivity, getString(R.string.switched_to_current_location), Toast.LENGTH_SHORT).show()
+                        onSelectCity = { location -> viewModel.selectLocation(location) },
+                        onToggleUnit = {
+                            val current = viewModel.state.value.settings.tempUnit
+                            val next = if (current == TemperatureUnit.CELSIUS) TemperatureUnit.FAHRENHEIT else TemperatureUnit.CELSIUS
+                            viewModel.updateSettings(viewModel.state.value.settings.copy(tempUnit = next))
                         }
                     )
 
-                    // Keep active forecast in savedForecasts map as well
+                    radarView.bind(state)
+
+                    // Keep active forecast in savedForecasts map
                     state.forecast?.let { savedForecasts[it.location.id] = it }
 
                     savedBinder.bind(state, savedForecasts)
-                    savedBinding.emptyState.visibility = if (state.savedLocations.isEmpty()) View.VISIBLE else View.GONE
+                    savedBinding.emptyLocations.visibility = if (state.savedLocations.isEmpty()) View.VISIBLE else View.GONE
 
                     val cur = state.detectedCurrentLocation
                     if (cur != null) {
                         savedBinding.cardCurrentLocation.visibility = View.VISIBLE
-                        savedBinding.tvCurrentLocName.text = if (cur.subtitle.isNotBlank()) "${cur.name}, ${cur.subtitle}" else cur.name
+                        savedBinding.tvCurrentLocCity.text = if (cur.subtitle.isNotBlank()) "${cur.name}, ${cur.subtitle}" else cur.name
                         val curForecast = state.currentLocationForecast
                         if (curForecast != null) {
                             savedBinding.tvCurrentLocTemp.text = state.settings.tempUnit.format(curForecast.current.temperatureC)
-                            savedBinding.ivCurrentLocWeatherIcon.setImageResource(
-                                WeatherCodeMapper.getIcon(curForecast.current.weatherCode, curForecast.current.isDay)
-                            )
+                            savedBinding.tvCurrentLocCondition.text = WeatherCodeMapper.getLocalizedLabel(this@MainActivity, curForecast.current.weatherCode)
                         }
                         savedBinding.cardCurrentLocation.setOnClickListener {
                             viewModel.returnToCurrentLocation()
@@ -526,11 +546,7 @@ class MainActivity : AppCompatActivity() {
         val accentColor = colorScheme.primaryAccent
         val tintList = ColorStateList.valueOf(accentColor)
 
-        binding.indicatorForecast.backgroundTintList = tintList
-        binding.indicatorSaved.backgroundTintList = tintList
-        binding.indicatorSettings.backgroundTintList = tintList
-
-        savedBinding.addCityButton.imageTintList = tintList
+        savedBinding.addCityButton.backgroundTintList = tintList
         savedBinding.ivCurrentLocIcon.imageTintList = tintList
         savedBinding.tvCurrentLocLabel.setTextColor(accentColor)
 
@@ -586,6 +602,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun reloadChildViews() {
         val oldForecast = forecastBinding.root
+        val oldRadar = radarBinding.root
         val oldSaved = savedBinding.root
         val oldSettings = settingsBinding.root
         val oldSearch = searchBinding.root
@@ -593,12 +610,14 @@ class MainActivity : AppCompatActivity() {
         setupChildViews(currentTab)
 
         binding.fragmentContainer.removeView(oldForecast)
+        binding.fragmentContainer.removeView(oldRadar)
         binding.fragmentContainer.removeView(oldSaved)
         binding.fragmentContainer.removeView(oldSettings)
         binding.searchContainer.removeView(oldSearch)
 
         // Update bottom navigation bar labels in new locale
         binding.tvTabForecast.text = getString(R.string.tab_forecast)
+        binding.tvTabRadar.text = getString(R.string.tab_radar)
         binding.tvTabSaved.text = getString(R.string.tab_saved)
         binding.tvTabSettings.text = getString(R.string.tab_settings)
 
@@ -609,11 +628,14 @@ class MainActivity : AppCompatActivity() {
             state = state,
             onSearch = { openSearch(SearchSource.FORECAST) },
             onRefresh = { viewModel.refresh(force = true) },
-            onReturnToCurrentLocation = {
-                viewModel.returnToCurrentLocation()
-                Toast.makeText(this@MainActivity, getString(R.string.switched_to_current_location), Toast.LENGTH_SHORT).show()
+            onSelectCity = { location -> viewModel.selectLocation(location) },
+            onToggleUnit = {
+                val current = viewModel.state.value.settings.tempUnit
+                val next = if (current == TemperatureUnit.CELSIUS) TemperatureUnit.FAHRENHEIT else TemperatureUnit.CELSIUS
+                viewModel.updateSettings(viewModel.state.value.settings.copy(tempUnit = next))
             }
         )
+        radarView.bind(state)
         savedBinder.bind(state, savedForecasts)
         searchBinder.bind(
             state = state,
@@ -647,6 +669,26 @@ class MainActivity : AppCompatActivity() {
             colorScheme = colorScheme,
             enabled = true
         )
+
+        // Dynamic Ambient Mesh Glow Blobs based on atmosphere
+        when {
+            !isDay -> {
+                binding.glowBlobTop.backgroundTintList = ColorStateList.valueOf(0x40A855F7.toInt())
+                binding.glowBlobMid.backgroundTintList = ColorStateList.valueOf(0x334F46E5.toInt())
+            }
+            code in listOf(51, 53, 55, 61, 63, 65, 80, 81, 82, 95, 96, 99) -> {
+                binding.glowBlobTop.backgroundTintList = ColorStateList.valueOf(0x3322D3EE.toInt())
+                binding.glowBlobMid.backgroundTintList = ColorStateList.valueOf(0x333B82F6.toInt())
+            }
+            code in listOf(2, 3, 45, 48) -> {
+                binding.glowBlobTop.backgroundTintList = ColorStateList.valueOf(0x33818CF8.toInt())
+                binding.glowBlobMid.backgroundTintList = ColorStateList.valueOf(0x2694A3B8.toInt())
+            }
+            else -> {
+                binding.glowBlobTop.backgroundTintList = ColorStateList.valueOf(0x4DFBBF24.toInt())
+                binding.glowBlobMid.backgroundTintList = ColorStateList.valueOf(0x3338BDF8.toInt())
+            }
+        }
     }
 
     private fun refreshSavedForecasts() {

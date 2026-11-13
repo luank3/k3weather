@@ -8,37 +8,71 @@
     android:paddingHorizontal="18dp"
     android:paddingTop="12dp">
 
-    <!-- Header: Title + Add Button -->
+    <!-- Header: Title + Subtitle + Add City Capsule Button -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:gravity="center_vertical"
         android:orientation="horizontal">
 
-        <TextView
+        <LinearLayout
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="@string/saved_locations"
-            android:textColor="@android:color/white"
-            android:textSize="28sp"
-            android:textStyle="bold"
-            android:letterSpacing="-0.02"
-            android:shadowColor="#33000000"
-            android:shadowDx="0"
-            android:shadowDy="2"
-            android:shadowRadius="6"
-            android:fontFamily="sans-serif-medium" />
+            android:orientation="vertical">
 
-        <ImageButton
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/saved_locations"
+                android:textColor="@android:color/white"
+                android:textSize="26sp"
+                android:textStyle="bold"
+                android:letterSpacing="-0.02"
+                android:shadowColor="#33000000"
+                android:shadowDx="0"
+                android:shadowDy="2"
+                android:shadowRadius="6"
+                android:fontFamily="sans-serif-medium" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:text="@string/saved_locations_subtitle"
+                android:textColor="#CCFFFFFF"
+                android:textSize="12sp"
+                android:fontFamily="sans-serif" />
+        </LinearLayout>
+
+        <LinearLayout
             android:id="@+id/addCityButton"
-            android:layout_width="42dp"
-            android:layout_height="42dp"
-            android:background="@drawable/bg_circle_translucent"
-            android:padding="10dp"
-            android:contentDescription="@string/add_city"
-            android:src="@drawable/ic_add"
-            app:tint="@android:color/white" />
+            android:layout_width="wrap_content"
+            android:layout_height="36dp"
+            android:background="@drawable/bg_pill_accent_translucent"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingHorizontal="14dp"
+            android:clickable="true"
+            android:focusable="true">
+
+            <ImageView
+                android:layout_width="14dp"
+                android:layout_height="14dp"
+                android:layout_marginEnd="6dp"
+                android:contentDescription="@null"
+                android:src="@drawable/ic_add"
+                app:tint="@android:color/white" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/add_city"
+                android:textColor="@android:color/white"
+                android:textSize="12sp"
+                android:textStyle="bold"
+                android:fontFamily="sans-serif-medium" />
+        </LinearLayout>
     </LinearLayout>
 
     <!-- Pinned Current Location Quick Card -->
@@ -98,26 +132,28 @@
                     android:fontFamily="sans-serif-medium" />
 
                 <TextView
-                    android:id="@+id/tvCurrentLocName"
+                    android:id="@+id/tvCurrentLocCity"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="2dp"
                     android:ellipsize="end"
                     android:maxLines="1"
-                    android:text="Huế, Vietnam"
+                    android:text="My Location"
                     android:textColor="@android:color/white"
-                    android:textSize="17sp"
+                    android:textSize="18sp"
                     android:textStyle="bold"
                     android:fontFamily="sans-serif-medium" />
-            </LinearLayout>
 
-            <ImageView
-                android:id="@+id/ivCurrentLocWeatherIcon"
-                android:layout_width="32dp"
-                android:layout_height="32dp"
-                android:layout_marginEnd="10dp"
-                android:contentDescription="@null"
-                android:src="@drawable/ic_weather_clear_day" />
+                <TextView
+                    android:id="@+id/tvCurrentLocCondition"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:ellipsize="end"
+                    android:maxLines="1"
+                    android:text="Clear sky"
+                    android:textColor="#CCFFFFFF"
+                    android:textSize="12sp"
+                    android:fontFamily="sans-serif" />
+            </LinearLayout>
 
             <TextView
                 android:id="@+id/tvCurrentLocTemp"
@@ -125,35 +161,32 @@
                 android:layout_height="wrap_content"
                 android:text="--°"
                 android:textColor="@android:color/white"
-                android:textSize="30sp"
-                android:textStyle="bold"
-                android:letterSpacing="-0.03"
-                android:includeFontPadding="false"
-                android:fontFamily="sans-serif-medium" />
+                android:textSize="32sp"
+                android:fontFamily="sans-serif-light" />
         </LinearLayout>
     </FrameLayout>
 
+    <!-- Empty state -->
     <TextView
-        android:id="@+id/emptyState"
+        android:id="@+id/emptyLocations"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="36dp"
+        android:layout_marginTop="60dp"
         android:gravity="center"
         android:text="@string/empty_saved_locations"
-        android:textColor="#CCFFFFFF"
-        android:textSize="15sp"
-        android:letterSpacing="0.01"
-        android:fontFamily="sans-serif"
+        android:textColor="#99FFFFFF"
+        android:textSize="14sp"
         android:visibility="gone" />
 
+    <!-- Saved locations list -->
     <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/savedLocationsList"
+        android:id="@+id/savedList"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
         android:clipToPadding="false"
         android:overScrollMode="never"
-        android:paddingTop="4dp"
         android:paddingBottom="160dp"
         app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager" />
+
 </LinearLayout>

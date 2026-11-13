@@ -2,9 +2,40 @@
     <string name="app_name">Weather</string>
 
     <!-- Navigation Tabs -->
-    <string name="tab_forecast">Forecast</string>
-    <string name="tab_saved">Saved</string>
+    <string name="tab_forecast">Weather</string>
+    <string name="tab_radar">Radar</string>
+    <string name="tab_saved">Cities</string>
     <string name="tab_settings">Settings</string>
+
+    <!-- Radar Screen -->
+    <string name="radar_title">Live Doppler Radar</string>
+    <string name="radar_subtitle">%1$s • High-Resolution Atmospheric Layer</string>
+    <string name="layer_rain">Rain</string>
+    <string name="layer_wind">Wind</string>
+    <string name="layer_temp">Temp</string>
+    <string name="radar_advisory_title">Advisory Status • %1$s</string>
+    <string name="radar_advisory_text">No severe weather alerts in effect for the next 24 hours. Coastal swell and wind gusts remain within normal seasonal averages.</string>
+    <string name="atmosphere_label">Atmosphere:</string>
+    <string name="atmosphere_sunny">Sunny</string>
+    <string name="atmosphere_rainy">Rainy</string>
+    <string name="atmosphere_cloudy">Cloudy</string>
+    <string name="atmosphere_night">Night</string>
+    <string name="precip_chance_format">Precip chance %1$d%%</string>
+    <string name="min_max_range">Min / Max Range</string>
+    <string name="metric_aqi">AIR QUALITY</string>
+    <string name="aqi_good">Good</string>
+    <string name="aqi_moderate">Moderate</string>
+    <string name="aqi_unhealthy">Unhealthy</string>
+    <string name="aqi_advice_good">Air quality is ideal for outdoor exercise.</string>
+    <string name="aqi_advice_moderate">Air quality is acceptable for most people.</string>
+    <string name="settings_pref_title">Preferences</string>
+    <string name="settings_pref_subtitle">Customize measurement units &amp; live alerts</string>
+    <string name="settings_severe_alerts">Severe Weather Alerts</string>
+    <string name="settings_severe_alerts_desc">Immediate push warnings for storms &amp; high UV</string>
+    <string name="settings_morning_briefing">Daily Morning Briefing</string>
+    <string name="settings_morning_briefing_desc">Summary forecast delivered at 07:30 local time</string>
+    <string name="saved_locations_subtitle">Tap any city card to switch active view</string>
+    <string name="search_cities_title">Search Global Cities</string>
 
     <!-- Forecast Screen -->
     <string name="hourly_forecast">24-HOUR FORECAST</string>

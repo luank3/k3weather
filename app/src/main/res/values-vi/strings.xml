@@ -2,9 +2,40 @@
     <string name="app_name">Thời tiết</string>
 
     <!-- Navigation Tabs -->
-    <string name="tab_forecast">Dự báo</string>
+    <string name="tab_forecast">Thời tiết</string>
+    <string name="tab_radar">Ra-đa</string>
     <string name="tab_saved">Địa điểm</string>
     <string name="tab_settings">Cài đặt</string>
+
+    <!-- Radar Screen -->
+    <string name="radar_title">Ra-đa Doppler Trực tiếp</string>
+    <string name="radar_subtitle">%1$s • Lớp khí quyển độ phân giải cao</string>
+    <string name="layer_rain">Mưa</string>
+    <string name="layer_wind">Gió</string>
+    <string name="layer_temp">Nhiệt</string>
+    <string name="radar_advisory_title">Trạng thái Cảnh báo • %1$s</string>
+    <string name="radar_advisory_text">Không có cảnh báo thời tiết nguy hiểm trong 24 giờ tới. Sóng biển và gió giật duy trì ở mức bình thường theo mùa.</string>
+    <string name="atmosphere_label">Bầu không khí:</string>
+    <string name="atmosphere_sunny">Nắng</string>
+    <string name="atmosphere_rainy">Mưa</string>
+    <string name="atmosphere_cloudy">Mây</string>
+    <string name="atmosphere_night">Đêm</string>
+    <string name="precip_chance_format">Xác suất mưa %1$d%%</string>
+    <string name="min_max_range">Biên độ nhiệt</string>
+    <string name="metric_aqi">CHẤT LƯỢNG KHÔNG KHÍ</string>
+    <string name="aqi_good">Tốt</string>
+    <string name="aqi_moderate">Trung bình</string>
+    <string name="aqi_unhealthy">Kém</string>
+    <string name="aqi_advice_good">Chất lượng không khí lý tưởng cho hoạt động ngoài trời.</string>
+    <string name="aqi_advice_moderate">Chất lượng không khí ở mức chấp nhận được.</string>
+    <string name="settings_pref_title">Tùy chọn</string>
+    <string name="settings_pref_subtitle">Tùy chỉnh đơn vị đo lường và cảnh báo trực tiếp</string>
+    <string name="settings_severe_alerts">Cảnh báo Thời tiết Nguy hiểm</string>
+    <string name="settings_severe_alerts_desc">Thông báo tức thời khi có dông bão &amp; chỉ số UV cao</string>
+    <string name="settings_morning_briefing">Tóm tắt Buổi sáng Hàng ngày</string>
+    <string name="settings_morning_briefing_desc">Bản tin dự báo gửi lúc 07:30 sáng theo giờ địa phương</string>
+    <string name="saved_locations_subtitle">Chạm vào thẻ bất kỳ để đổi sang thành phố đó</string>
+    <string name="search_cities_title">Tìm kiếm Thành phố Toàn cầu</string>
 
     <!-- Forecast Screen -->
     <string name="hourly_forecast">DỰ BÁO 24 GIỜ</string>
