@@ -495,21 +495,11 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:layout_marginTop="2dp"
-                                android:text="Dir: ENE"
-                                android:textColor="#B3FFFFFF"
-                                android:textSize="11sp"
-                                android:textStyle="bold"
+                                android:text="East"
+                                android:textColor="#CCFFFFFF"
+                                android:textSize="13sp"
+                                android:textStyle="normal"
                                 android:fontFamily="sans-serif-medium" />
-
-                            <TextView
-                                android:id="@+id/tvWindGusts"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_marginTop="1dp"
-                                android:text="Gusts 24 km/h"
-                                android:textColor="#B3FFFFFF"
-                                android:textSize="10sp"
-                                android:fontFamily="sans-serif" />
                         </LinearLayout>
 
                         <!-- Compass Dial View with Rotating Needle -->
@@ -518,6 +508,21 @@
                             android:layout_width="54dp"
                             android:layout_height="54dp" />
                     </LinearLayout>
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="0dp"
+                        android:layout_weight="1" />
+
+                    <TextView
+                        android:id="@+id/tvWindGusts"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:maxLines="2"
+                        android:ellipsize="end"
+                        android:text="Gusts 24 km/h"
+                        android:textColor="#CCFFFFFF"
+                        android:textSize="11sp"
+                        android:fontFamily="sans-serif" />
                 </LinearLayout>
             </LinearLayout>
 

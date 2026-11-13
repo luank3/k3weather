@@ -143,7 +143,7 @@ class ForecastView(private val binding: LayoutForecastBinding) {
         // Bento Grid Card 2: Wind & Compass Dial
         binding.tvWindValue.text = windUnit.format(current.windSpeedKmh)
         val compass = degreesToCompass(context, current.windDirectionDeg)
-        binding.tvWindDirection.text = context.getString(R.string.wind_dir_format, compass, current.windDirectionDeg)
+        binding.tvWindDirection.text = compass
         binding.tvWindGusts.text = context.getString(R.string.wind_gusts_format, windUnit.format(current.windGustsKmh))
         binding.compassDialView.setWindDirection(current.windDirectionDeg)
 
@@ -409,9 +409,9 @@ class ForecastView(private val binding: LayoutForecastBinding) {
     private fun degreesToCompass(context: Context, deg: Int): String {
         val isVi = context.resources.configuration.locales[0]?.language == "vi"
         val dirs = if (isVi) {
-            arrayOf("B", "ĐB", "Đ", "ĐN", "N", "TN", "T", "TB")
+            arrayOf("Bắc", "Đông Bắc", "Đông", "Đông Nam", "Nam", "Tây Nam", "Tây", "Tây Bắc")
         } else {
-            arrayOf("N", "NE", "E", "SE", "S", "SW", "W", "NW")
+            arrayOf("North", "Northeast", "East", "Southeast", "South", "Southwest", "West", "Northwest")
         }
         val idx = (((deg % 360) + 360) % 360 + 22) / 45 % 8
         return dirs[idx]
