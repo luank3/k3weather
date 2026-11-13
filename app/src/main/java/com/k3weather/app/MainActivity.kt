@@ -699,29 +699,17 @@ class MainActivity : AppCompatActivity() {
                         onSelectCity = { location -> viewModel.selectLocation(location) }
                     )
 
-                    // Keep active forecast in savedForecasts map
+                    // Keep active and current-location forecasts in savedForecasts map
                     state.forecast?.let { savedForecasts[it.location.id] = it }
+                    val cur = state.detectedCurrentLocation
+                    if (cur != null && state.currentLocationForecast != null) {
+                        savedForecasts[cur.id] = state.currentLocationForecast
+                    }
 
                     savedBinder.bind(state, savedForecasts)
-                    savedBinding.emptyLocations.visibility = if (state.savedLocations.isEmpty()) View.VISIBLE else View.GONE
-
-                    val cur = state.detectedCurrentLocation
-                    if (cur != null) {
-                        savedBinding.cardCurrentLocation.visibility = View.VISIBLE
-                        savedBinding.tvCurrentLocCity.text = cur.name
-                        val curForecast = state.currentLocationForecast
-                        if (curForecast != null) {
-                            savedBinding.tvCurrentLocTemp.text = state.settings.tempUnit.format(curForecast.current.temperatureC)
-                            savedBinding.tvCurrentLocCondition.text = WeatherCodeMapper.getLocalizedLabel(this@MainActivity, curForecast.current.weatherCode)
-                        }
-                        savedBinding.cardCurrentLocation.setOnClickListener {
-                            viewModel.returnToCurrentLocation()
-                            selectTab(Tab.FORECAST)
-                            Toast.makeText(this@MainActivity, getString(R.string.switched_to_current_location), Toast.LENGTH_SHORT).show()
-                        }
-                    } else {
-                        savedBinding.cardCurrentLocation.visibility = View.GONE
-                    }
+                    savedBinding.emptyLocations.visibility =
+                        if (state.savedLocations.isEmpty() && cur == null) View.VISIBLE else View.GONE
+                    savedBinding.cardCurrentLocation.visibility = View.GONE
 
                     settingsBinder.bind(state.settings)
 

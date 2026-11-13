@@ -165,7 +165,8 @@ object LocationResolver {
 
                 val primaryName = (localArea ?: city.takeIf { it.isNotBlank() }) ?: return null
                 val cleanPrimary = primaryName
-                    .replace(Regex("^(Phường|Xã|Thị trấn)\\s+", RegexOption.IGNORE_CASE), "")
+                    .replace(Regex("^(Phường|Xã|Thị trấn|Thị xã|Quận|Huyện)\\s+", RegexOption.IGNORE_CASE), "")
+                    .replace(Regex("\\s+(Ward|Commune|District|Township|Town)$", RegexOption.IGNORE_CASE), "")
                     .ifBlank { primaryName }
                 val regionName = if (localArea != null && city.isNotBlank() && !localArea.equals(city, ignoreCase = true)) {
                     city

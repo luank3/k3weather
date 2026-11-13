@@ -1,5 +1,6 @@
 package com.k3weather.app.ui
 
+import android.content.res.ColorStateList
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -88,9 +89,7 @@ class SavedLocationsAdapter(
         // Weather icon
         holder.binding.ivWeatherIcon.setImageResource(WeatherCodeMapper.getIcon(weatherCode, isDay))
 
-        // Active city indicator border
-        holder.binding.activeBorderOverlay.visibility =
-            if (location.id == selectedLocationId) View.VISIBLE else View.GONE
+        holder.binding.activeBorderOverlay.visibility = View.GONE
 
         // Card weather effect background
         WeatherBackgroundHelper.applyWeatherEffect(
@@ -103,14 +102,32 @@ class SavedLocationsAdapter(
         )
 
         holder.binding.root.setOnClickListener { onSelect(location) }
-        holder.binding.deleteButton.setOnClickListener { onDelete(location) }
+        if (location.isCurrentLocation) {
+            holder.binding.deleteButton.setImageResource(R.drawable.ic_my_location)
+            holder.binding.deleteButton.imageTintList = ColorStateList.valueOf(colorScheme.primaryAccent)
+            holder.binding.deleteButton.contentDescription = context.getString(R.string.current_location)
+            holder.binding.deleteButton.setOnClickListener { onSelect(location) }
+        } else {
+            holder.binding.deleteButton.setImageResource(R.drawable.ic_delete)
+            holder.binding.deleteButton.imageTintList = ColorStateList.valueOf(0xD9FFFFFF.toInt())
+            holder.binding.deleteButton.contentDescription = context.getString(R.string.remove_location)
+            holder.binding.deleteButton.setOnClickListener { onDelete(location) }
+        }
     }
 }
 
 class SavedLocationsBinder(private val adapter: SavedLocationsAdapter) {
     fun bind(state: WeatherUiState, forecasts: Map<String, ForecastData>) {
+        val combinedLocations = buildList {
+            state.detectedCurrentLocation?.let { cur ->
+                add(cur.copy(isCurrentLocation = true))
+            }
+            state.savedLocations.forEach { loc ->
+                if (none { it.id == loc.id }) add(loc)
+            }
+        }
         adapter.submit(
-            locations = state.savedLocations,
+            locations = combinedLocations,
             forecasts = forecasts,
             unit = state.settings.tempUnit,
             backgroundsEnabled = state.settings.weatherBackgroundsEnabled,
