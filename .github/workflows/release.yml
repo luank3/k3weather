@@ -38,7 +38,7 @@ jobs:
           mkdir -p dist
           cp app/build/outputs/apk/release/app-release.apk "dist/k3weather-${GITHUB_REF_NAME}-$(git rev-parse --short=7 HEAD).apk"
           (cd dist && sha256sum *.apk > SHA256SUMS.txt)
-      - uses: softprops/action-gh-release@v2
+      - uses: softprops/action-gh-release@v3
         with:
           generate_release_notes: true
           files: dist/*
