@@ -33,7 +33,7 @@
     <string name="my_location">MY LOCATION</string>
     <string name="return_to_current_location">Switch to current location</string>
     <string name="switched_to_current_location">Switched to current location</string>
-    <string name="high_low_feels_format">H: %1$s  •  L: %2$s  •  Feels like %3$s</string>
+    <string name="high_low_feels_format">H %1$s   L %2$s</string>
     <string name="high_low_short_format">H: %1$s  L: %2$s</string>
 
     <!-- Weather Detail Bento Cards -->

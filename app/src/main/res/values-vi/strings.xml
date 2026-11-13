@@ -33,7 +33,7 @@
     <string name="my_location">VỊ TRÍ CỦA TÔI</string>
     <string name="return_to_current_location">Về vị trí hiện tại</string>
     <string name="switched_to_current_location">Đã chuyển về vị trí hiện tại</string>
-    <string name="high_low_feels_format">C: %1$s  •  T: %2$s  •  Cảm giác %3$s</string>
+    <string name="high_low_feels_format">Cao %1$s   Thấp %2$s</string>
     <string name="high_low_short_format">C: %1$s  T: %2$s</string>
 
     <!-- Weather Detail Bento Cards -->

@@ -160,7 +160,11 @@ class MainActivity : AppCompatActivity() {
             binding.fragmentContainer.setPadding(0, systemBars.top, 0, 0)
             binding.searchContainer.setPadding(0, systemBars.top, 0, systemBars.bottom)
 
-            binding.bottomNavBar.setPadding(0, 0, 0, systemBars.bottom)
+            val lp = binding.bottomNavBar.layoutParams as? ViewGroup.MarginLayoutParams
+            if (lp != null) {
+                lp.bottomMargin = systemBars.bottom + (12 * resources.displayMetrics.density).toInt()
+                binding.bottomNavBar.layoutParams = lp
+            }
             insets
         }
     }

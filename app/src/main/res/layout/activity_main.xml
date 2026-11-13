@@ -39,42 +39,42 @@
     <!-- Docked bottom navigation (scrubbable) -->
     <HorizontalScrollView
         android:id="@+id/bottomNavBar"
-        android:layout_width="0dp"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginBottom="12dp"
         android:overScrollMode="never"
         android:scrollbars="none"
-        android:fillViewport="true"
         android:background="@drawable/bg_nav_glass"
-        android:elevation="8dp"
+        android:elevation="10dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent">
 
         <FrameLayout
             android:id="@+id/bottomNavTrack"
-            android:layout_width="match_parent"
-            android:layout_height="64dp">
+            android:layout_width="wrap_content"
+            android:layout_height="60dp">
 
             <View
                 android:id="@+id/navActiveIndicator"
                 android:layout_width="0dp"
-                android:layout_height="52dp"
+                android:layout_height="48dp"
                 android:layout_gravity="center_vertical|start"
                 android:background="@drawable/bg_nav_active_pill" />
 
             <LinearLayout
                 android:id="@+id/bottomNavContent"
-                android:layout_width="match_parent"
+                android:layout_width="wrap_content"
                 android:layout_height="match_parent"
                 android:gravity="center_vertical"
                 android:orientation="horizontal"
-                android:paddingHorizontal="12dp">
+                android:paddingHorizontal="6dp">
 
                 <LinearLayout
                     android:id="@+id/tabForecast"
-                    android:layout_width="0dp"
-                    android:layout_height="52dp"
-                    android:layout_weight="1"
+                    android:layout_width="84dp"
+                    android:layout_height="48dp"
+                    android:layout_marginHorizontal="2dp"
                     android:gravity="center"
                     android:orientation="vertical"
                     android:clickable="true"
@@ -102,9 +102,9 @@
 
                 <LinearLayout
                     android:id="@+id/tabSaved"
-                    android:layout_width="0dp"
-                    android:layout_height="52dp"
-                    android:layout_weight="1"
+                    android:layout_width="84dp"
+                    android:layout_height="48dp"
+                    android:layout_marginHorizontal="2dp"
                     android:gravity="center"
                     android:orientation="vertical"
                     android:clickable="true"
@@ -132,9 +132,9 @@
 
                 <LinearLayout
                     android:id="@+id/tabSettings"
-                    android:layout_width="0dp"
-                    android:layout_height="52dp"
-                    android:layout_weight="1"
+                    android:layout_width="84dp"
+                    android:layout_height="48dp"
+                    android:layout_marginHorizontal="2dp"
                     android:gravity="center"
                     android:orientation="vertical"
                     android:clickable="true"

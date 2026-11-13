@@ -185,8 +185,8 @@
                     android:layout_marginTop="8dp"
                     android:text="H: 31°  •  L: 24°  •  Feels 32°"
                     android:textColor="#E6FFFFFF"
-                    android:textSize="13sp"
-                    android:textStyle="bold"
+                    android:textSize="16sp"
+                    android:textStyle="normal"
                     android:letterSpacing="0.02"
                     android:fontFamily="sans-serif-medium" />
 
@@ -197,12 +197,12 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="6dp"
                     android:gravity="center"
-                    android:maxLines="3"
+                    android:maxLines="2"
                     android:lineSpacingExtra="2dp"
                     android:paddingHorizontal="16dp"
                     android:text="Clear skies with a gentle coastal breeze from the East Sea. UV index is high around midday."
-                    android:textColor="#CCFFFFFF"
-                    android:textSize="12sp"
+                    android:textColor="#B3FFFFFF"
+                    android:textSize="14sp"
                     android:fontFamily="sans-serif" />
             </LinearLayout>
 
@@ -337,7 +337,7 @@
                 <LinearLayout
                     android:layout_width="0dp"
                     android:layout_height="match_parent"
-                    android:minHeight="152dp"
+                    android:minHeight="144dp"
                     android:layout_weight="1"
                     android:layout_marginEnd="7dp"
                     android:background="@drawable/bg_card_translucent"
@@ -393,7 +393,7 @@
                             android:layout_height="wrap_content"
                             android:layout_marginStart="8dp"
                             android:text="Very High"
-                            android:textColor="#FDE047"
+                            android:textColor="#CCFFFFFF"
                             android:textSize="13sp"
                             android:textStyle="bold"
                             android:fontFamily="sans-serif-medium" />
@@ -434,7 +434,7 @@
                 <LinearLayout
                     android:layout_width="0dp"
                     android:layout_height="match_parent"
-                    android:minHeight="152dp"
+                    android:minHeight="144dp"
                     android:layout_weight="1"
                     android:layout_marginStart="7dp"
                     android:background="@drawable/bg_card_translucent"
@@ -496,7 +496,7 @@
                                 android:layout_height="wrap_content"
                                 android:layout_marginTop="2dp"
                                 android:text="Dir: ENE"
-                                android:textColor="#7DD3FC"
+                                android:textColor="#B3FFFFFF"
                                 android:textSize="11sp"
                                 android:textStyle="bold"
                                 android:fontFamily="sans-serif-medium" />
@@ -533,7 +533,7 @@
                 <LinearLayout
                     android:layout_width="0dp"
                     android:layout_height="match_parent"
-                    android:minHeight="152dp"
+                    android:minHeight="144dp"
                     android:layout_weight="1"
                     android:layout_marginEnd="7dp"
                     android:background="@drawable/bg_card_translucent"
@@ -612,7 +612,7 @@
                 <LinearLayout
                     android:layout_width="0dp"
                     android:layout_height="match_parent"
-                    android:minHeight="152dp"
+                    android:minHeight="144dp"
                     android:layout_weight="1"
                     android:layout_marginStart="7dp"
                     android:background="@drawable/bg_card_translucent"
@@ -721,7 +721,7 @@
                 <LinearLayout
                     android:layout_width="0dp"
                     android:layout_height="match_parent"
-                    android:minHeight="152dp"
+                    android:minHeight="144dp"
                     android:layout_weight="1"
                     android:layout_marginEnd="7dp"
                     android:background="@drawable/bg_card_translucent"
@@ -796,7 +796,7 @@
                 <LinearLayout
                     android:layout_width="0dp"
                     android:layout_height="match_parent"
-                    android:minHeight="152dp"
+                    android:minHeight="144dp"
                     android:layout_weight="1"
                     android:layout_marginStart="7dp"
                     android:background="@drawable/bg_card_translucent"
