@@ -96,7 +96,7 @@
     <string name="settings_language">Ngôn ngữ</string>
     <string name="settings_section_location">VỊ TRÍ</string>
     <string name="settings_use_current_location">Sử dụng vị trí hiện tại</string>
-    <string name="settings_attribution">Dữ liệu thời tiết bởi Open-Meteo · Bản đồ © OpenStreetMap</string>
+    <string name="settings_attribution">Dữ liệu thời tiết: Open-Meteo · Tên địa điểm © OpenStreetMap contributors</string>
 
     <!-- Color Scheme Names -->
     <string name="color_scheme_cyan">Xanh Lam Thủy Tinh</string>
@@ -145,7 +145,7 @@
     <string name="widget_large_desc">Thời tiết hiện tại, gió/độ ẩm/UV, dự báo 5 giờ và 3 ngày tới.</string>
     <string name="settings_precipitation">Lượng mưa</string>
     <string name="settings_pressure">Áp suất</string>
-    <string name="settings_section_about">THÔNG TIN &amp; DỮ LIỆU</string>
+    <string name="settings_section_about">GIỚI THIỆU</string>
     <string name="settings_clear_cache">Làm mới dữ liệu</string>
     <string name="settings_clear_cache_action">Xóa bộ nhớ đệm</string>
     <string name="settings_version">Phiên bản</string>

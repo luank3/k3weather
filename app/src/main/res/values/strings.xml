@@ -96,7 +96,7 @@
     <string name="settings_language">Language</string>
     <string name="settings_section_location">LOCATION</string>
     <string name="settings_use_current_location">Use current location</string>
-    <string name="settings_attribution">Weather data by Open-Meteo · Map data © OpenStreetMap</string>
+    <string name="settings_attribution">Weather data by Open-Meteo · Place names © OpenStreetMap contributors</string>
 
     <!-- Color Scheme Names -->
     <string name="color_scheme_cyan">Liquid Cyan</string>
@@ -145,7 +145,7 @@
     <string name="widget_large_desc">Current weather, wind/humidity/UV details, 5-hour forecast, and 3-day outlook.</string>
     <string name="settings_precipitation">Precipitation</string>
     <string name="settings_pressure">Pressure</string>
-    <string name="settings_section_about">ABOUT &amp; DATA</string>
+    <string name="settings_section_about">ABOUT</string>
     <string name="settings_clear_cache">Refresh data</string>
     <string name="settings_clear_cache_action">Clear cache</string>
     <string name="settings_version">Version</string>
