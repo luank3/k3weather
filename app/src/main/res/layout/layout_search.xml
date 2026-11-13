@@ -9,92 +9,78 @@
     android:paddingTop="12dp"
     android:paddingBottom="20dp">
 
-    <!-- Header: Back Arrow + Title -->
+    <!-- Back button + Liquid Glass Search Input Capsule -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:gravity="center_vertical"
-        android:orientation="horizontal"
-        android:paddingBottom="14dp">
+        android:orientation="horizontal">
 
         <ImageButton
             android:id="@+id/backButton"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
+            android:layout_width="44dp"
+            android:layout_height="44dp"
+            android:layout_marginEnd="10dp"
             android:background="@drawable/bg_circle_translucent"
-            android:padding="9dp"
+            android:padding="10dp"
             android:contentDescription="@string/close"
             android:src="@drawable/ic_back"
             app:tint="@android:color/white" />
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="12dp"
-            android:text="@string/search_cities_title"
-            android:textColor="@android:color/white"
-            android:textSize="24sp"
-            android:textStyle="bold"
-            android:letterSpacing="-0.02"
-            android:shadowColor="#33000000"
-            android:shadowDx="0"
-            android:shadowDy="2"
-            android:shadowRadius="6"
-            android:fontFamily="sans-serif-medium" />
-    </LinearLayout>
-
-    <!-- Liquid Glass Search Input Capsule -->
-    <LinearLayout
-        android:id="@+id/searchBarContainer"
-        android:layout_width="match_parent"
-        android:layout_height="48dp"
-        android:background="@drawable/bg_search_input"
-        android:gravity="center_vertical"
-        android:orientation="horizontal"
-        android:paddingHorizontal="16dp">
-
-        <ImageView
-            android:layout_width="18dp"
-            android:layout_height="18dp"
-            android:layout_marginEnd="11dp"
-            android:contentDescription="@null"
-            android:src="@drawable/ic_search"
-            app:tint="#CCFFFFFF" />
-
-        <EditText
-            android:id="@+id/searchInput"
+        <!-- Liquid Glass Search Input Capsule -->
+        <LinearLayout
+            android:id="@+id/searchBarContainer"
             android:layout_width="0dp"
-            android:layout_height="match_parent"
             android:layout_weight="1"
-            android:background="@null"
-            android:hint="@string/search_hint"
-            android:imeOptions="actionSearch"
-            android:inputType="textCapWords"
-            android:singleLine="true"
-            android:textColor="@android:color/white"
-            android:textColorHint="#8CFFFFFF"
-            android:textSize="15.5sp"
-            android:fontFamily="sans-serif" />
+            android:layout_height="48dp"
+            android:background="@drawable/bg_search_input"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingHorizontal="16dp">
 
-        <!-- Inline Search Progress Indicator -->
-        <ProgressBar
-            android:id="@+id/searchProgress"
-            android:layout_width="18dp"
-            android:layout_height="18dp"
-            android:layout_marginEnd="6dp"
-            android:indeterminateTint="@android:color/white"
-            android:visibility="gone" />
+            <ImageView
+                android:layout_width="18dp"
+                android:layout_height="18dp"
+                android:layout_marginEnd="11dp"
+                android:contentDescription="@null"
+                android:src="@drawable/ic_search"
+                app:tint="#CCFFFFFF" />
 
-        <ImageButton
-            android:id="@+id/clearButton"
-            android:layout_width="28dp"
-            android:layout_height="28dp"
-            android:background="@drawable/bg_circle_translucent"
-            android:padding="6dp"
-            android:contentDescription="Clear search"
-            android:src="@drawable/ic_close"
-            android:visibility="gone"
-            app:tint="@android:color/white" />
+            <EditText
+                android:id="@+id/searchInput"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:background="@null"
+                android:hint="@string/search_hint"
+                android:imeOptions="actionSearch"
+                android:inputType="textCapWords"
+                android:singleLine="true"
+                android:textColor="@android:color/white"
+                android:textColorHint="#8CFFFFFF"
+                android:textSize="15.5sp"
+                android:fontFamily="sans-serif" />
+
+            <!-- Inline Search Progress Indicator -->
+            <ProgressBar
+                android:id="@+id/searchProgress"
+                android:layout_width="18dp"
+                android:layout_height="18dp"
+                android:layout_marginEnd="6dp"
+                android:indeterminateTint="@android:color/white"
+                android:visibility="gone" />
+
+            <ImageButton
+                android:id="@+id/clearButton"
+                android:layout_width="28dp"
+                android:layout_height="28dp"
+                android:background="@drawable/bg_circle_translucent"
+                android:padding="6dp"
+                android:contentDescription="Clear search"
+                android:src="@drawable/ic_close"
+                android:visibility="gone"
+                app:tint="@android:color/white" />
+        </LinearLayout>
     </LinearLayout>
 
     <!-- Results / Popular Locations Section Label -->
