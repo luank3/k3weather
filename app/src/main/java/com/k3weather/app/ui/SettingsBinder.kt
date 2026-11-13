@@ -1,17 +1,7 @@
 package com.k3weather.app.ui
 
-import android.app.Dialog
 import android.content.res.ColorStateList
-import android.graphics.Color
-import android.graphics.drawable.ColorDrawable
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
-import android.view.Window
-import androidx.core.content.ContextCompat
-import com.k3weather.app.R
 import com.k3weather.app.core.model.*
-import com.k3weather.app.databinding.DialogLanguageGlassBinding
 import com.k3weather.app.databinding.LayoutSettingsBinding
 
 class SettingsBinder(
@@ -65,15 +55,12 @@ class SettingsBinder(
             binding.reduceMotionSwitch.toggle()
         }
 
-        // Language
-        val langLabel = when (settings.language) {
-            "en" -> context.getString(R.string.lang_en)
-            "vi" -> context.getString(R.string.lang_vi)
-            else -> context.getString(R.string.lang_system)
-        }
+        // Language: simple click to toggle directly like wind speed and temperature
+        val langLabel = if (settings.language == "vi") "Tiếng Việt" else "English"
         binding.tvLanguageValue.text = "$langLabel  ›"
         binding.rowLanguage.setOnClickListener {
-            showLanguageDialog(settings)
+            val next = if (settings.language == "vi") "en" else "vi"
+            send(settings.copy(language = next))
         }
 
         // Location
@@ -85,74 +72,6 @@ class SettingsBinder(
         binding.rowCurrentLocation.setOnClickListener {
             binding.currentLocationSwitch.toggle()
         }
-    }
-
-    private fun showLanguageDialog(settings: AppSettings) {
-        val context = binding.root.context
-        val dialog = Dialog(context)
-        dialog.requestWindowFeature(Window.FEATURE_NO_TITLE)
-        val dialogBinding = DialogLanguageGlassBinding.inflate(LayoutInflater.from(context))
-        dialog.setContentView(dialogBinding.root)
-
-        dialog.window?.apply {
-            setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
-            setLayout(
-                (context.resources.displayMetrics.widthPixels * 0.90).toInt(),
-                ViewGroup.LayoutParams.WRAP_CONTENT
-            )
-            setDimAmount(0.65f)
-        }
-
-        val currentLang = settings.language // "system", "en", "vi"
-
-        fun updateSelection(selected: String) {
-            val cyan = ContextCompat.getColor(context, R.color.accent_cyan)
-            val white = Color.WHITE
-
-            val isSystem = selected == "system"
-            dialogBinding.optSystem.setBackgroundResource(
-                if (isSystem) R.drawable.bg_dialog_item_selected else R.drawable.bg_dialog_item_unselected
-            )
-            dialogBinding.ivCheckSystem.visibility = if (isSystem) View.VISIBLE else View.GONE
-            dialogBinding.tvOptSystemTitle.setTextColor(if (isSystem) cyan else white)
-
-            val isEn = selected == "en"
-            dialogBinding.optEn.setBackgroundResource(
-                if (isEn) R.drawable.bg_dialog_item_selected else R.drawable.bg_dialog_item_unselected
-            )
-            dialogBinding.ivCheckEn.visibility = if (isEn) View.VISIBLE else View.GONE
-            dialogBinding.tvOptEnTitle.setTextColor(if (isEn) cyan else white)
-
-            val isVi = selected == "vi"
-            dialogBinding.optVi.setBackgroundResource(
-                if (isVi) R.drawable.bg_dialog_item_selected else R.drawable.bg_dialog_item_unselected
-            )
-            dialogBinding.ivCheckVi.visibility = if (isVi) View.VISIBLE else View.GONE
-            dialogBinding.tvOptViTitle.setTextColor(if (isVi) cyan else white)
-        }
-
-        updateSelection(currentLang)
-
-        dialogBinding.optSystem.setOnClickListener {
-            dialog.dismiss()
-            send(settings.copy(language = "system"))
-        }
-
-        dialogBinding.optEn.setOnClickListener {
-            dialog.dismiss()
-            send(settings.copy(language = "en"))
-        }
-
-        dialogBinding.optVi.setOnClickListener {
-            dialog.dismiss()
-            send(settings.copy(language = "vi"))
-        }
-
-        dialogBinding.btnDialogClose.setOnClickListener {
-            dialog.dismiss()
-        }
-
-        dialog.show()
     }
 
     private fun send(settings: AppSettings) = onSettingsChanged(settings)

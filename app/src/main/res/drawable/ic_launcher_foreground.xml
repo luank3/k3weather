@@ -6,114 +6,32 @@
     android:viewportWidth="108"
     android:viewportHeight="108">
 
-    <!-- Sun Outer Corona Glow -->
+    <!-- Golden Sun Disc -->
     <path
-        android:pathData="M66,35m-18,0a18,18 0,1 1,36 0a18,18 0,1 1,-36 0">
+        android:pathData="M65,41m-14,0a14,14 0 1,1 28,0a14,14 0 1,1 -28,0">
         <aapt:attr name="android:fillColor">
             <gradient
-                android:centerX="66"
-                android:centerY="35"
-                android:gradientRadius="18"
-                android:startColor="#59FFD54F"
-                android:centerColor="#26FFB300"
-                android:endColor="#00FF8F00"
-                android:type="radial" />
-        </aapt:attr>
-    </path>
-
-    <!-- Sun Core Disc -->
-    <path
-        android:pathData="M66,35m-12,0a12,12 0,1 1,24 0a12,12 0,1 1,-24 0">
-        <aapt:attr name="android:fillColor">
-            <gradient
-                android:angle="135"
-                android:startColor="#FFF9C4"
-                android:centerColor="#FFCA28"
-                android:endColor="#FF8F00"
+                android:angle="90"
+                android:startColor="#FF9800"
+                android:endColor="#FFC107"
                 android:type="linear" />
         </aapt:attr>
     </path>
 
-    <!-- Cloud Ambient Depth Shadow -->
+    <!-- Cloud Elevation Shadow -->
     <path
-        android:pathData="M37,69 C30,69 25,64.2 25,57.5 C25,51.8 28.8,47.1 34.3,46.2 C36.2,38.8 43,33.5 51,33.5 C59.2,33.5 66.1,39.1 67.8,46.8 C72.8,47.8 76.5,52 76.5,57 C76.5,63.2 71.8,69 65.5,69 Z"
-        android:fillColor="#4D020B12" />
+        android:pathData="M37,73h30a13,13 0 0,0 5.8,-19.2a15,15 0 0,0 -28.3,-14.3a11,11 0 0,0 -18.5,19.5a11,11 0 0,0 11,14z"
+        android:fillColor="#33000000" />
 
-    <!-- Sculpted Liquid Glass Cloud Body -->
+    <!-- Pure Minimalist Cloud Silhouette -->
     <path
-        android:pathData="M35,67 C28.5,67 23.5,62.2 23.5,55.8 C23.5,50.3 27.2,45.7 32.5,44.8 C34.3,37.6 40.8,32.2 48.8,32.2 C56.6,32.2 63.2,37.6 65.2,45 C70,46 73.5,50.2 73.5,55.2 C73.5,61.4 69,67 63,67 Z">
+        android:pathData="M37,71h30a13,13 0 0,0 5.8,-19.2a15,15 0 0,0 -28.3,-14.3a11,11 0 0,0 -18.5,19.5a11,11 0 0,0 11,14z">
         <aapt:attr name="android:fillColor">
             <gradient
-                android:angle="135"
-                android:startColor="#F0FFFFFF"
-                android:centerColor="#BEE8F8"
-                android:endColor="#62BBE5"
+                android:angle="90"
+                android:startColor="#EDF2F7"
+                android:endColor="#FFFFFF"
                 android:type="linear" />
         </aapt:attr>
     </path>
-
-    <!-- Cloud Front Glass Sheen -->
-    <path
-        android:pathData="M35,67 C28.5,67 23.5,62.2 23.5,55.8 C23.5,50.3 27.2,45.7 32.5,44.8 C34.3,37.6 40.8,32.2 48.8,32.2 C56.6,32.2 63.2,37.6 65.2,45 C70,46 73.5,50.2 73.5,55.2 C73.5,61.4 69,67 63,67 Z">
-        <aapt:attr name="android:fillColor">
-            <gradient
-                android:angle="315"
-                android:startColor="#40FFFFFF"
-                android:centerColor="#14FFFFFF"
-                android:endColor="#00FFFFFF"
-                android:type="linear" />
-        </aapt:attr>
-    </path>
-
-    <!-- Cloud Top Specular Light Highlight Rim -->
-    <path
-        android:pathData="M27,53 C27.5,48.2 31,44.5 35.8,44 C37.8,37.2 44,32.5 51.5,32.5 C58.2,32.5 64.2,36.5 66.8,42.8"
-        android:strokeWidth="1.6"
-        android:strokeColor="#FFFFFF"
-        android:strokeLineCap="round" />
-
-    <!-- Luminous Cyan Weather Droplets -->
-    <!-- Droplet 1 (Left) -->
-    <path
-        android:pathData="M36,73 C36,73 32,78 32,80.5 C32,82.7 33.8,84.5 36,84.5 C38.2,84.5 40,82.7 40,80.5 C40,78 36,73 36,73 Z">
-        <aapt:attr name="android:fillColor">
-            <gradient
-                android:angle="135"
-                android:startColor="#E0F7FA"
-                android:centerColor="#38BDF8"
-                android:endColor="#0288D1"
-                android:type="linear" />
-        </aapt:attr>
-    </path>
-
-    <!-- Droplet 2 (Center Hero) -->
-    <path
-        android:pathData="M50,75 C50,75 45.5,81 45.5,83.8 C45.5,86.3 47.5,88.3 50,88.3 C52.5,88.3 54.5,86.3 54.5,83.8 C54.5,81 50,75 50,75 Z">
-        <aapt:attr name="android:fillColor">
-            <gradient
-                android:angle="135"
-                android:startColor="#FFFFFF"
-                android:centerColor="#00E5FF"
-                android:endColor="#0288D1"
-                android:type="linear" />
-        </aapt:attr>
-    </path>
-
-    <!-- Droplet 3 (Right) -->
-    <path
-        android:pathData="M63,73 C63,73 59.5,77.8 59.5,80.2 C59.5,82.3 61.1,84 63,84 C64.9,84 66.5,82.3 66.5,80.2 C66.5,77.8 63,73 63,73 Z">
-        <aapt:attr name="android:fillColor">
-            <gradient
-                android:angle="135"
-                android:startColor="#E0F7FA"
-                android:centerColor="#38BDF8"
-                android:endColor="#0288D1"
-                android:type="linear" />
-        </aapt:attr>
-    </path>
-
-    <!-- Subtle Star / Light Sparkle -->
-    <path
-        android:pathData="M78,24 L79.2,27.5 L82.7,28.7 L79.2,29.9 L78,33.4 L76.8,29.9 L73.3,28.7 L76.8,27.5 Z"
-        android:fillColor="#E6FFFFFF" />
 </vector>
