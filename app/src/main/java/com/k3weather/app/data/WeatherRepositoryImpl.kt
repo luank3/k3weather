@@ -59,7 +59,9 @@ class WeatherRepositoryImpl(
                 .firstOrNull { it.id == locationId }
             ?: return@withContext null
         runCatching {
-            ForecastJsonParser.parse(loc, wrapper.getJSONObject("data"), wrapper.optLong("timestamp")).copy(isStale = true)
+            val timestamp = wrapper.optLong("timestamp")
+            val isOld = (System.currentTimeMillis() - timestamp) > CACHE_TTL_MS
+            ForecastJsonParser.parse(loc, wrapper.getJSONObject("data"), timestamp).copy(isStale = isOld)
         }.getOrNull()
     }
 
