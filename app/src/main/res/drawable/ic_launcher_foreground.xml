@@ -6,76 +6,97 @@
     android:viewportWidth="108"
     android:viewportHeight="108">
 
-    <!-- Sun Ambient Glow -->
+    <!-- 1. Sun Atmospheric Ambient Glow -->
     <path
-        android:pathData="M64,40m-18,0a18,18 0,1 1,36 0a18,18 0,1 1,-36 0">
+        android:pathData="M66,41m-23,0a23,23 0,1 1,46 0a23,23 0,1 1,-46 0">
         <aapt:attr name="android:fillColor">
             <gradient
-                android:centerX="64"
-                android:centerY="40"
-                android:gradientRadius="18"
-                android:startColor="#4DFFD54F"
-                android:centerColor="#20FFB300"
+                android:centerX="66"
+                android:centerY="41"
+                android:gradientRadius="23"
+                android:startColor="#66FFE082"
+                android:centerColor="#26FFB300"
                 android:endColor="#00FF8F00"
                 android:type="radial" />
         </aapt:attr>
     </path>
 
-    <!-- Sun Glass Disc -->
+    <!-- 2. Sun Golden Glass Core Disc -->
     <path
-        android:pathData="M64,40m-13,0a13,13 0,1 1,26 0a13,13 0,1 1,-26 0">
+        android:pathData="M66,41m-14,0a14,14 0,1 1,28 0a14,14 0,1 1,-28 0">
         <aapt:attr name="android:fillColor">
             <gradient
                 android:angle="135"
-                android:startColor="#FFF9C4"
+                android:startColor="#FFFDE7"
                 android:centerColor="#FFCA28"
-                android:endColor="#FF9800"
+                android:endColor="#FF8F00"
                 android:type="linear" />
         </aapt:attr>
     </path>
 
-    <!-- Sun Top Specular Rim -->
+    <!-- 3. Sun Upper Specular Light Rim -->
     <path
-        android:pathData="M54,34 A13,13 0 0,1 74,32"
-        android:strokeWidth="1.2"
+        android:pathData="M56,34 A14,14 0 0,1 77,34"
+        android:strokeWidth="1.4"
         android:strokeColor="#FFFFFF"
         android:strokeLineCap="round" />
 
-    <!-- Glass Cloud Depth Shadow -->
+    <!-- 4. Volumetric Cloud Dimensional Drop Shadow -->
     <path
-        android:pathData="M36,70 C28.5,70 23.5,65 23.5,58 C23.5,52 27.5,47.2 33.2,46.2 C35.2,38.5 42,33 50,33 C58.2,33 65,38.5 67.2,46.2 C72,47.2 75.5,51.5 75.5,56.5 C75.5,63 70.5,70 63,70 Z"
-        android:fillColor="#3D030B12" />
+        android:pathData="M34,74 C26,74 20,68 20,60.5 C20,54 24.5,49 31,47.5 C33,39 41,33 50,33 C58.5,33 66,38.5 68.5,46.5 C74,47.5 78,52 78,57.5 C78,65 72,74 64,74 Z"
+        android:fillColor="#33072242" />
 
-    <!-- Frosted Liquid Glass Cloud Base -->
+    <!-- 5. Frosted Volumetric White Cloud Base -->
     <path
-        android:pathData="M36,68 C28.5,68 23.5,63 23.5,56.5 C23.5,50.8 27.5,46 33.2,45 C35.2,37.5 42,32 50,32 C58.2,32 65,37.5 67.2,45 C72,46 75.5,50.2 75.5,55.5 C75.5,62 70.5,68 63,68 Z">
+        android:pathData="M34,71 C26,71 20,65.5 20,58 C20,51.8 24.5,47 31,45.5 C33,37.5 41,31.5 50,31.5 C58.5,31.5 66,37 68.5,45 C74,46 78,50.2 78,55.5 C78,62.5 72,71 64,71 Z">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:angle="270"
+                android:startColor="#FFFFFFFF"
+                android:centerColor="#F0F7FC"
+                android:endColor="#CDE5F7"
+                android:type="linear" />
+        </aapt:attr>
+    </path>
+
+    <!-- 6. Cloud Liquid Frost Ambient Translucency -->
+    <path
+        android:pathData="M34,71 C26,71 20,65.5 20,58 C20,51.8 24.5,47 31,45.5 C33,37.5 41,31.5 50,31.5 C58.5,31.5 66,37 68.5,45 C74,46 78,50.2 78,55.5 C78,62.5 72,71 64,71 Z">
         <aapt:attr name="android:fillColor">
             <gradient
                 android:angle="135"
-                android:startColor="#F5FFFFFF"
-                android:centerColor="#B8E2F2"
-                android:endColor="#54AEE0"
+                android:startColor="#47FFFFFF"
+                android:centerColor="#10FFFFFF"
+                android:endColor="#1838BDF8"
                 android:type="linear" />
         </aapt:attr>
     </path>
 
-    <!-- Cloud Liquid Diagonal Frost Sheen -->
+    <!-- 7. Solar Backlight Bleed on Right Cloud Puff -->
     <path
-        android:pathData="M36,68 C28.5,68 23.5,63 23.5,56.5 C23.5,50.8 27.5,46 33.2,45 C35.2,37.5 42,32 50,32 C58.2,32 65,37.5 67.2,45 C72,46 75.5,50.2 75.5,55.5 C75.5,62 70.5,68 63,68 Z">
+        android:pathData="M54,34 C60,34 66,38 68.5,45 C73,45.8 77,49.5 77.5,54.5 C73,50 67,46 60,43 Z">
         <aapt:attr name="android:fillColor">
             <gradient
-                android:angle="315"
-                android:startColor="#40FFFFFF"
-                android:centerColor="#14FFFFFF"
-                android:endColor="#00FFFFFF"
+                android:angle="135"
+                android:startColor="#4DFFE082"
+                android:centerColor="#20FFCA28"
+                android:endColor="#00FFB300"
                 android:type="linear" />
         </aapt:attr>
     </path>
 
-    <!-- Cloud Top Specular Light Rim (Catching ambient light) -->
+    <!-- 8. Crisp Liquid Glass Specular Highlight Crest (Apple Weather Style) -->
     <path
-        android:pathData="M26,53.5 C26.8,48.5 30.5,45 35,44.2 C37,37.2 43,32.5 50.5,32.5 C57.8,32.5 64,37 66.5,43.5"
-        android:strokeWidth="1.5"
+        android:pathData="M23,54 C23.5,48.5 27.5,45 32.5,44.5 C34.5,37 42,32 50,32 C58,32 65,36.5 67.5,43.5 C73,44.5 76.5,48.5 76.8,53"
+        android:strokeWidth="1.6"
         android:strokeColor="#FFFFFF"
         android:strokeLineCap="round" />
+
+    <!-- 9. Subtle Specular Rim on Cloud Bottom -->
+    <path
+        android:pathData="M26,67 C35,70 55,70 70,67"
+        android:strokeWidth="0.9"
+        android:strokeColor="#3DFFFFFF"
+        android:strokeLineCap="round" />
+
 </vector>

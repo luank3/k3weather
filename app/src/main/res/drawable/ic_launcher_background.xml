@@ -6,44 +6,57 @@
     android:viewportWidth="108"
     android:viewportHeight="108">
 
-    <!-- Deep Refractive Liquid Glass Navy Tile -->
+    <!-- Luminous Apple Sky Blue Canvas Base -->
     <path
         android:pathData="M0,0h108v108h-108z">
         <aapt:attr name="android:fillColor">
             <gradient
-                android:angle="135"
-                android:startColor="#0D2538"
-                android:centerColor="#071724"
-                android:endColor="#040F18"
+                android:angle="270"
+                android:startColor="#2D8DF6"
+                android:centerColor="#1E75E2"
+                android:endColor="#1057BF"
                 android:type="linear" />
         </aapt:attr>
     </path>
 
-    <!-- Liquid Glass Aurora Sheen -->
+    <!-- Warm Solar Atmospheric Wash in Upper Right -->
     <path
         android:pathData="M0,0h108v108h-108z">
         <aapt:attr name="android:fillColor">
             <gradient
-                android:centerX="68"
-                android:centerY="38"
+                android:centerX="74"
+                android:centerY="34"
                 android:gradientRadius="65"
-                android:startColor="#3338BDF8"
-                android:centerColor="#1000E5FF"
+                android:startColor="#47FFF3B0"
+                android:centerColor="#18FFD54F"
                 android:endColor="#00000000"
                 android:type="radial" />
         </aapt:attr>
     </path>
 
-    <!-- Diagonal Glass Frost Sheen -->
+    <!-- Liquid Glass Refractive Diagonal Sheen -->
     <path
         android:pathData="M0,0 L108,0 L108,108 Z">
         <aapt:attr name="android:fillColor">
             <gradient
                 android:angle="135"
-                android:startColor="#1FFFFFFF"
+                android:startColor="#26FFFFFF"
                 android:centerColor="#08FFFFFF"
                 android:endColor="#00FFFFFF"
                 android:type="linear" />
         </aapt:attr>
     </path>
+
+    <!-- Bottom Horizon Ambient Depth Glow -->
+    <path
+        android:pathData="M0,72 L108,72 L108,108 L0,108 Z">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:angle="270"
+                android:startColor="#00092B60"
+                android:endColor="#33061C40"
+                android:type="linear" />
+        </aapt:attr>
+    </path>
+
 </vector>
