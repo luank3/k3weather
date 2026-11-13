@@ -731,6 +731,7 @@ class MainActivity : AppCompatActivity() {
                     )
 
                     updateMainBackground(state)
+                    com.k3weather.app.widget.WeatherWidgetUpdater.updateAllWidgets(this@MainActivity)
                 }
             }
         }

@@ -133,4 +133,12 @@
     <string name="location_permission_denied">Location permission denied</string>
     <string name="location_services_disabled">Location services disabled</string>
     <string name="location_updated">Location updated: %1$s</string>
+
+    <!-- Home Screen Widgets -->
+    <string name="widget_small_title">Current Weather (2×2)</string>
+    <string name="widget_small_desc">Current temperature, condition, and high/low for your location.</string>
+    <string name="widget_medium_title">Hourly Forecast (4×2)</string>
+    <string name="widget_medium_desc">Current conditions plus a 5-hour forecast ribbon.</string>
+    <string name="widget_large_title">Detailed Forecast (4×4)</string>
+    <string name="widget_large_desc">Current weather, wind/humidity/UV details, 5-hour forecast, and 3-day outlook.</string>
 </resources>

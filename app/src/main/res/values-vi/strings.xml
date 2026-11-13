@@ -133,4 +133,12 @@
     <string name="location_permission_denied">Quyền truy cập vị trí bị từ chối</string>
     <string name="location_services_disabled">Dịch vụ vị trí đang tắt</string>
     <string name="location_updated">Đã cập nhật vị trí: %1$s</string>
+
+    <!-- Home Screen Widgets -->
+    <string name="widget_small_title">Thời tiết hiện tại (2×2)</string>
+    <string name="widget_small_desc">Nhiệt độ, tình trạng thời tiết và cao/thấp tại vị trí của bạn.</string>
+    <string name="widget_medium_title">Dự báo hàng giờ (4×2)</string>
+    <string name="widget_medium_desc">Thời tiết hiện tại kèm dự báo 5 giờ tới.</string>
+    <string name="widget_large_title">Dự báo chi tiết (4×4)</string>
+    <string name="widget_large_desc">Thời tiết hiện tại, gió/độ ẩm/UV, dự báo 5 giờ và 3 ngày tới.</string>
 </resources>
