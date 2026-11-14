@@ -313,9 +313,13 @@ class MainActivity : AppCompatActivity() {
         locationResolveJob = lifecycleScope.launch {
             var real = LocationResolver.resolveRealLocation(this@MainActivity)
             if (real == null && retryOnEmpty && LocationResolver.isLocationEnabled(this@MainActivity)) {
-                // Location providers can take a moment to initialize right after being turned on.
-                delay(2_000L)
-                real = LocationResolver.resolveRealLocation(this@MainActivity)
+                // Location providers can take a few seconds to warm up after enabling system Location.
+                for (waitMs in longArrayOf(2_000L, 5_000L)) {
+                    delay(waitMs)
+                    if (!LocationResolver.isLocationEnabled(this@MainActivity)) break
+                    real = LocationResolver.resolveRealLocation(this@MainActivity)
+                    if (real != null) break
+                }
             }
             if (real != null) {
                 locationDisabledToastShown = false
