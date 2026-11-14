@@ -25,7 +25,7 @@ Breaking change: `feat!:` or a `BREAKING CHANGE:` footer.
 ## Code & UI rules
 - Kotlin, 4-space indent (see `.editorconfig`).
 - Every user-facing string goes in **both** `values/strings.xml` and `values-vi/strings.xml`.
-- UI follows the Liquid Glass design system (translucent cards, hairline rims, Apple-style typography). Reuse existing drawables (`bg_card_translucent`, `bg_pill_accent_translucent`, …).
+- UI follows the Liquid Glass design system (translucent cards, hairline rims, clean typography). Reuse existing drawables (`bg_card_translucent`, `bg_pill_accent_translucent`, …).
 - Attach before/after screenshots to UI PRs.
 - Never commit secrets, keystores, or `local.properties`.
 

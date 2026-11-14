@@ -7,6 +7,7 @@ import android.location.Geocoder
 import android.location.Location
 import android.location.LocationManager
 import androidx.core.content.ContextCompat
+import androidx.core.location.LocationManagerCompat
 import com.k3weather.app.core.model.LocationItem
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -34,20 +35,30 @@ object LocationResolver {
         ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED ||
             ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED
 
+    fun isLocationEnabled(context: Context): Boolean {
+        val lm = context.getSystemService(Context.LOCATION_SERVICE) as? LocationManager ?: return false
+        return LocationManagerCompat.isLocationEnabled(lm)
+    }
+
     /**
-     * Real device location (permission must already be granted): freshest last-known fix,
-     * otherwise a live fix from the enabled providers. Never touches IP geolocation.
+     * Real device location (permission must already be granted and location services enabled):
+     * freshest last-known fix, otherwise a live fix from the enabled providers. Never touches IP geolocation.
      */
     suspend fun resolveRealLocation(context: Context): LocationItem? {
         if (!hasLocationPermission(context)) return null
         val lm = context.getSystemService(Context.LOCATION_SERVICE) as? LocationManager ?: return null
-        val activeProviders = listOf(LocationManager.GPS_PROVIDER, LocationManager.NETWORK_PROVIDER)
-            .filter { runCatching { lm.isProviderEnabled(it) }.getOrDefault(false) }
-        val allCandidateProviders = (activeProviders + listOf(LocationManager.PASSIVE_PROVIDER, "fused")).distinct()
-        if (activeProviders.isEmpty() && lm.getLastKnownLocation(LocationManager.PASSIVE_PROVIDER) == null) return null
+        if (!LocationManagerCompat.isLocationEnabled(lm)) return null
+
+        val supported = runCatching { lm.allProviders }.getOrDefault(emptyList())
+        val activeProviders = listOf("fused", LocationManager.NETWORK_PROVIDER, LocationManager.GPS_PROVIDER)
+            .filter { p -> (p in supported || p != "fused") && runCatching { lm.isProviderEnabled(p) }.getOrDefault(false) }
+        val allCandidateProviders = (activeProviders + listOf("fused", LocationManager.PASSIVE_PROVIDER)).distinct()
+        if (activeProviders.isEmpty() && runCatching { lm.getLastKnownLocation(LocationManager.PASSIVE_PROVIDER) }.getOrNull() == null) {
+            return null
+        }
 
         val fix = freshestLastKnown(lm, allCandidateProviders)
-            ?: if (activeProviders.isNotEmpty()) awaitFreshFix(lm, activeProviders, allCandidateProviders)
+            ?: if (activeProviders.isNotEmpty()) awaitFreshFix(context, lm, activeProviders, allCandidateProviders)
             else allCandidateProviders.mapNotNull { runCatching { lm.getLastKnownLocation(it) }.getOrNull() }.maxByOrNull { it.time }
         return fix?.let { withContext(Dispatchers.IO) { toLocationItem(context, it) } }
     }
@@ -61,29 +72,48 @@ object LocationResolver {
     private fun freshestLastKnown(lm: LocationManager, providers: List<String>): Location? =
         providers.mapNotNull { runCatching { lm.getLastKnownLocation(it) }.getOrNull() }
             .maxByOrNull { it.time }
-            ?.takeIf { System.currentTimeMillis() - it.time < 30 * 60 * 1000L }
+            ?.takeIf { System.currentTimeMillis() - it.time < 15 * 60 * 1000L }
 
     @android.annotation.SuppressLint("MissingPermission")
     private suspend fun awaitFreshFix(
+        context: Context,
         lm: LocationManager,
         activeProviders: List<String>,
         fallbackProviders: List<String>
     ): Location? =
-        kotlinx.coroutines.withTimeoutOrNull(10_000L) {
+        kotlinx.coroutines.withTimeoutOrNull(8_000L) {
             kotlinx.coroutines.suspendCancellableCoroutine<Location?> { cont ->
-                val listeners = mutableListOf<android.location.LocationListener>()
+                val cancelSignal = android.os.CancellationSignal()
+                val mainExecutor = ContextCompat.getMainExecutor(context)
+                var remaining = activeProviders.size
+                var finished = false
                 fun finish(loc: Location?) {
-                    listeners.forEach { runCatching { lm.removeUpdates(it) } }
+                    if (finished) return
+                    finished = true
+                    cancelSignal.cancel()
                     if (cont.isActive) cont.resume(loc) {}
                 }
                 activeProviders.forEach { provider ->
-                    val l = android.location.LocationListener { loc -> finish(loc) }
-                    listeners.add(l)
                     runCatching {
-                        lm.requestSingleUpdate(provider, l, android.os.Looper.getMainLooper())
+                        LocationManagerCompat.getCurrentLocation(
+                            lm,
+                            provider,
+                            cancelSignal,
+                            mainExecutor
+                        ) { loc ->
+                            if (loc != null) {
+                                finish(loc)
+                            } else {
+                                remaining -= 1
+                                if (remaining <= 0) finish(null)
+                            }
+                        }
+                    }.onFailure {
+                        remaining -= 1
+                        if (remaining <= 0) finish(null)
                     }
                 }
-                cont.invokeOnCancellation { listeners.forEach { runCatching { lm.removeUpdates(it) } } }
+                cont.invokeOnCancellation { cancelSignal.cancel() }
             }
         } ?: fallbackProviders.mapNotNull { runCatching { lm.getLastKnownLocation(it) }.getOrNull() }.maxByOrNull { it.time }
 

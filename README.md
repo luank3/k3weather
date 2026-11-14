@@ -1,6 +1,6 @@
 # K3 Weather
 
-A lightweight (< 2 MB) Android weather app with an Apple Weather–inspired
+A lightweight (< 2 MB) Android weather app with a modern
 "Liquid Glass" UI, home-screen widgets (2×2, 4×2, 4×4), Vietnamese/English
 localization and real GPS-based location.
 

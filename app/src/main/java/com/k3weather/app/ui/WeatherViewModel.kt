@@ -113,6 +113,13 @@ class WeatherViewModel(
         }
     }
 
+    /** Displays a temporary fallback forecast without marking it as an explicit user choice. */
+    fun showFallbackLocation(location: LocationItem) {
+        viewModelScope.launch {
+            loadForecast(location, force = false)
+        }
+    }
+
     fun search(query: String) {
         searchJob?.cancel()
         if (query.isBlank()) {

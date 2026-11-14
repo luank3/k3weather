@@ -1,8 +1,10 @@
 package com.k3weather.app
 
 import android.Manifest
+import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
 import android.content.pm.PackageManager
 import android.content.res.ColorStateList
 import android.content.res.Configuration
@@ -57,6 +59,8 @@ import com.k3weather.app.ui.WeatherViewModel
 import com.k3weather.app.ui.common.HeroWeatherArtworkView
 import com.k3weather.app.ui.common.WeatherBackgroundHelper
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.util.Locale
@@ -89,6 +93,18 @@ class MainActivity : AppCompatActivity() {
     private var activeColorScheme: AppColorScheme? = null
 
     private var startupLocationPending = false
+    private var locationResolveJob: Job? = null
+    private var locationDisabledToastShown = false
+    private var wasLocationEnabled = false
+
+    private val locationProviderReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context?, intent: Intent?) {
+            val action = intent?.action ?: return
+            if (action == LocationManager.PROVIDERS_CHANGED_ACTION || action == LocationManager.MODE_CHANGED_ACTION) {
+                refreshLocationIfNeeded(fromResumeOrProviderChange = true)
+            }
+        }
+    }
 
     private val locationPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
@@ -103,8 +119,6 @@ class MainActivity : AppCompatActivity() {
             obtainCurrentLocation()
         } else {
             Toast.makeText(this, getString(R.string.location_permission_denied), Toast.LENGTH_SHORT).show()
-            val currentSettings = viewModel.state.value.settings
-            viewModel.updateSettings(currentSettings.copy(useCurrentLocation = false))
             applyIpFallbackLocation()
         }
     }
@@ -153,7 +167,23 @@ class MainActivity : AppCompatActivity() {
         setupBackPress()
         observeState()
         preloadSavedForecastCaches()
+        wasLocationEnabled = LocationResolver.hasLocationPermission(this) && LocationResolver.isLocationEnabled(this)
+        val locationFilter = IntentFilter().apply {
+            addAction(LocationManager.PROVIDERS_CHANGED_ACTION)
+            addAction(LocationManager.MODE_CHANGED_ACTION)
+        }
+        ContextCompat.registerReceiver(this, locationProviderReceiver, locationFilter, ContextCompat.RECEIVER_EXPORTED)
         resolveInitialLocation()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        refreshLocationIfNeeded(fromResumeOrProviderChange = true)
+    }
+
+    override fun onDestroy() {
+        runCatching { unregisterReceiver(locationProviderReceiver) }
+        super.onDestroy()
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
@@ -264,17 +294,43 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun resolveRealStartupLocation() {
-        lifecycleScope.launch {
-            val real = LocationResolver.resolveRealLocation(this@MainActivity)
+    private fun refreshLocationIfNeeded(fromResumeOrProviderChange: Boolean) {
+        if (!LocationResolver.hasLocationPermission(this)) return
+        val enabled = LocationResolver.isLocationEnabled(this)
+        val justEnabled = enabled && !wasLocationEnabled
+        wasLocationEnabled = enabled
+        if (!enabled) return
+        if (fromResumeOrProviderChange && !justEnabled && locationResolveJob?.isActive == true) return
+        val cur = viewModel.state.value.detectedCurrentLocation
+        val needsRealLocation = cur == null || cur.id.startsWith("ip_") || cur.id == LocationResolver.FALLBACK_DALAT.id
+        if (!fromResumeOrProviderChange || justEnabled || needsRealLocation) {
+            resolveRealStartupLocation(retryOnEmpty = justEnabled)
+        }
+    }
+
+    private fun resolveRealStartupLocation(retryOnEmpty: Boolean = false) {
+        locationResolveJob?.cancel()
+        locationResolveJob = lifecycleScope.launch {
+            var real = LocationResolver.resolveRealLocation(this@MainActivity)
+            if (real == null && retryOnEmpty && LocationResolver.isLocationEnabled(this@MainActivity)) {
+                // Location providers can take a moment to initialize right after being turned on.
+                delay(2_000L)
+                real = LocationResolver.resolveRealLocation(this@MainActivity)
+            }
             if (real != null) {
+                locationDisabledToastShown = false
                 applyDetectedLocation(real)
             } else {
                 // Permission granted but no fix (location services off / no signal): no IP guess.
-                Toast.makeText(this@MainActivity, getString(R.string.location_services_disabled), Toast.LENGTH_SHORT).show()
+                if (!locationDisabledToastShown) {
+                    locationDisabledToastShown = true
+                    Toast.makeText(this@MainActivity, getString(R.string.location_services_disabled), Toast.LENGTH_SHORT).show()
+                }
                 val repository = (application as WeatherApplication).repository
                 val hasExplicit = withContext(Dispatchers.IO) { repository.hasSelectedLocation() }
-                if (!hasExplicit) viewModel.selectLocation(LocationResolver.FALLBACK_DALAT)
+                if (!hasExplicit && viewModel.state.value.forecast == null) {
+                    viewModel.showFallbackLocation(LocationResolver.FALLBACK_DALAT)
+                }
             }
         }
     }
@@ -287,6 +343,7 @@ class MainActivity : AppCompatActivity() {
 
     private suspend fun applyDetectedLocation(detected: LocationItem) {
         val repository = (application as WeatherApplication).repository
+        val previousDetected = viewModel.state.value.detectedCurrentLocation
         viewModel.setDetectedCurrentLocation(detected)
         val hasExplicit = withContext(Dispatchers.IO) { repository.hasSelectedLocation() }
         val settings = withContext(Dispatchers.IO) { repository.getSettings() }
@@ -295,7 +352,8 @@ class MainActivity : AppCompatActivity() {
             currentSelected.isCurrentLocation ||
             currentSelected.id.startsWith("ip_") ||
             currentSelected.id.startsWith("gps_") ||
-            currentSelected.id.startsWith("current_")
+            currentSelected.id.startsWith("current_") ||
+            (currentSelected.id == LocationResolver.FALLBACK_DALAT.id && previousDetected == null)
         if (!hasExplicit || settings.useCurrentLocation || isAutoSelected) {
             viewModel.selectLocation(detected)
         }
@@ -712,7 +770,10 @@ class MainActivity : AppCompatActivity() {
                     forecastBinder.bind(
                         state = state,
                         onSearch = { openSearch(SearchSource.FORECAST) },
-                        onRefresh = { viewModel.refresh(force = true) },
+                        onRefresh = {
+                            viewModel.refresh(force = true)
+                            refreshLocationIfNeeded(fromResumeOrProviderChange = true)
+                        },
                         onSelectCity = { location -> viewModel.selectLocation(location) }
                     )
 
@@ -833,7 +894,10 @@ class MainActivity : AppCompatActivity() {
         forecastBinder.bind(
             state = state,
             onSearch = { openSearch(SearchSource.FORECAST) },
-            onRefresh = { viewModel.refresh(force = true) },
+            onRefresh = {
+                viewModel.refresh(force = true)
+                refreshLocationIfNeeded(fromResumeOrProviderChange = true)
+            },
             onSelectCity = { location -> viewModel.selectLocation(location) }
         )
         savedBinder.bind(state, savedForecasts)
