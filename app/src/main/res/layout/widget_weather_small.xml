@@ -4,16 +4,39 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@drawable/bg_widget_sky_night"
-    android:padding="14dp">
+    android:paddingHorizontal="16dp"
+    android:paddingVertical="14dp">
 
-    <!-- Top Row: City Name + Location Pin -->
+    <!-- Top-Right Weather Icon (balances Hero Temp on Top-Left) -->
+    <ImageView
+        android:id="@+id/widgetIcon"
+        android:layout_width="36dp"
+        android:layout_height="36dp"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentEnd="true"
+        android:contentDescription="@null"
+        android:src="@drawable/ic_weather_partly_cloudy" />
+
+    <!-- Top-Left Row: City Name + Location Pin -->
     <LinearLayout
         android:id="@+id/widgetHeader"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_alignParentStart="true"
         android:layout_alignParentTop="true"
+        android:layout_toStartOf="@id/widgetIcon"
+        android:layout_marginEnd="6dp"
         android:gravity="center_vertical"
         android:orientation="horizontal">
+
+        <ImageView
+            android:id="@+id/widgetLocationPin"
+            android:layout_width="11dp"
+            android:layout_height="11dp"
+            android:layout_marginEnd="4dp"
+            android:contentDescription="@null"
+            android:src="@drawable/ic_arrow_current_location"
+            android:tint="@android:color/white" />
 
         <TextView
             android:id="@+id/widgetCity"
@@ -23,72 +46,58 @@
             android:maxLines="1"
             android:text="Phong Phú"
             android:textColor="@android:color/white"
-            android:textSize="15sp"
-            android:textStyle="bold"
+            android:textSize="14.5sp"
             android:fontFamily="sans-serif-medium" />
-
-        <ImageView
-            android:id="@+id/widgetLocationPin"
-            android:layout_width="11dp"
-            android:layout_height="11dp"
-            android:layout_marginStart="4dp"
-            android:contentDescription="@null"
-            android:src="@drawable/ic_arrow_current_location"
-            android:tint="@android:color/white" />
     </LinearLayout>
 
-    <!-- Large Temperature Below City -->
+    <!-- Bold Confident Hero Temperature -->
     <TextView
         android:id="@+id/widgetTemp"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_below="@id/widgetHeader"
-        android:layout_marginTop="0dp"
+        android:layout_alignParentStart="true"
+        android:layout_marginTop="2dp"
         android:includeFontPadding="false"
-        android:letterSpacing="-0.04"
-        android:text="25°"
+        android:letterSpacing="-0.03"
+        android:text="26°"
         android:textColor="@android:color/white"
-        android:textSize="44sp"
-        android:fontFamily="sans-serif-light" />
+        android:textSize="46sp"
+        android:fontFamily="sans-serif-medium"
+        android:shadowColor="#29000000"
+        android:shadowDx="0"
+        android:shadowDy="2"
+        android:shadowRadius="6" />
 
-    <!-- Bottom Info Stack: Weather Icon + Condition + High/Low -->
+    <!-- Bottom Info Stack: Condition + Min/Max Range -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
         android:orientation="vertical">
 
-        <ImageView
-            android:id="@+id/widgetIcon"
-            android:layout_width="22dp"
-            android:layout_height="22dp"
-            android:contentDescription="@null"
-            android:src="@drawable/ic_weather_partly_cloudy" />
-
         <TextView
             android:id="@+id/widgetCondition"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="3dp"
             android:ellipsize="end"
             android:maxLines="1"
             android:text="Trời nhiều mây"
-            android:textColor="#F2FFFFFF"
-            android:textSize="12sp"
-            android:textStyle="bold"
+            android:textColor="#F5FFFFFF"
+            android:textSize="13sp"
             android:fontFamily="sans-serif-medium" />
 
         <TextView
             android:id="@+id/widgetHighLow"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="1dp"
+            android:layout_marginTop="2dp"
             android:ellipsize="end"
             android:maxLines="1"
-            android:text="C:27°  T:22°"
-            android:textColor="#D9FFFFFF"
-            android:textSize="11.5sp"
-            android:fontFamily="sans-serif-medium" />
+            android:text="22° / 27°"
+            android:textColor="#E0FFFFFF"
+            android:textSize="12.5sp"
+            android:fontFamily="sans-serif" />
     </LinearLayout>
 
 </RelativeLayout>

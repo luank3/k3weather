@@ -52,12 +52,13 @@
                 android:id="@+id/widgetTemp"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_marginTop="1dp"
                 android:includeFontPadding="false"
-                android:letterSpacing="-0.04"
-                android:text="25°"
+                android:letterSpacing="-0.03"
+                android:text="26°"
                 android:textColor="@android:color/white"
-                android:textSize="38sp"
-                android:fontFamily="sans-serif-light" />
+                android:textSize="40sp"
+                android:fontFamily="sans-serif-medium" />
         </LinearLayout>
 
         <LinearLayout
@@ -70,8 +71,8 @@
 
             <ImageView
                 android:id="@+id/widgetIcon"
-                android:layout_width="22dp"
-                android:layout_height="22dp"
+                android:layout_width="32dp"
+                android:layout_height="32dp"
                 android:contentDescription="@null"
                 android:src="@drawable/ic_weather_partly_cloudy" />
 
@@ -79,13 +80,12 @@
                 android:id="@+id/widgetCondition"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="2dp"
+                android:layout_marginTop="3dp"
                 android:ellipsize="end"
                 android:maxLines="1"
                 android:text="Trời nhiều mây"
-                android:textColor="#F2FFFFFF"
-                android:textSize="12sp"
-                android:textStyle="bold"
+                android:textColor="#F5FFFFFF"
+                android:textSize="12.5sp"
                 android:fontFamily="sans-serif-medium" />
 
             <TextView
@@ -93,10 +93,10 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="1dp"
-                android:text="C:27°  T:22°"
-                android:textColor="#D9FFFFFF"
-                android:textSize="11.5sp"
-                android:fontFamily="sans-serif-medium" />
+                android:text="22° / 27°"
+                android:textColor="#E0FFFFFF"
+                android:textSize="12sp"
+                android:fontFamily="sans-serif" />
         </LinearLayout>
     </RelativeLayout>
 

@@ -5,10 +5,10 @@
         <shape android:shape="rectangle">
             <gradient
                 android:angle="270"
-                android:startColor="#3D162B42"
-                android:endColor="#330E1E30"
+                android:startColor="#38152940"
+                android:endColor="#2E0E1D2F"
                 android:type="linear" />
-            <corners android:radius="16dp" />
+            <corners android:radius="20dp" />
         </shape>
     </item>
     <!-- Subtle diagonal frost refraction + hairline specular rim -->
@@ -16,14 +16,14 @@
         <shape android:shape="rectangle">
             <gradient
                 android:angle="135"
-                android:startColor="#1AFFFFFF"
-                android:centerColor="#08FFFFFF"
-                android:endColor="#12FFFFFF"
+                android:startColor="#14FFFFFF"
+                android:centerColor="#06FFFFFF"
+                android:endColor="#0EFFFFFF"
                 android:type="linear" />
-            <corners android:radius="16dp" />
+            <corners android:radius="20dp" />
             <stroke
-                android:width="0.8dp"
-                android:color="#29FFFFFF" />
+                android:width="0.75dp"
+                android:color="#24FFFFFF" />
         </shape>
     </item>
     <!-- Top edge specular highlight -->

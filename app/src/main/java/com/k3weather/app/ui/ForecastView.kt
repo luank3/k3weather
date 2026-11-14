@@ -30,6 +30,8 @@ import kotlin.math.roundToInt
 
 class ForecastView(private val binding: LayoutForecastBinding) {
 
+    private var showDailyChart = true
+
     fun bind(
         state: WeatherUiState,
         onSearch: () -> Unit,
@@ -97,22 +99,18 @@ class ForecastView(private val binding: LayoutForecastBinding) {
         // Hero Temperature
         binding.temperature.text = tempUnit.format(current.temperatureC)
 
-        // Weather Condition Subtitle (sentence-case)
+        // Single Concise Condition + Min/Max Range Summary
         val conditionLabel = WeatherCodeMapper.getLocalizedLabel(context, current.weatherCode)
         binding.condition.text = conditionLabel
-
-        // High / Low & Feels Like Summary
         binding.highLow.text = context.getString(
-            R.string.high_low_feels_format,
-            tempUnit.format(current.maxTempC),
+            R.string.temp_range_slash_format,
             tempUnit.format(current.minTempC),
-            tempUnit.format(current.apparentTemperatureC)
+            tempUnit.format(current.maxTempC)
         )
 
         // Hourly Forecast Ribbon (24-hour window)
         val hourlyWindow = forecast.hourly.take(24)
         val maxHourlyPop = hourlyWindow.maxOfOrNull { it.precipitationProbability } ?: 0
-        binding.tvHourlyPrecipChance.text = context.getString(R.string.precip_chance_format, maxHourlyPop)
         binding.hourlyList.adapter = HourlyAdapter(
             items = forecast.hourly,
             unit = tempUnit,
@@ -130,91 +128,59 @@ class ForecastView(private val binding: LayoutForecastBinding) {
             precipUnit = state.settings.precipitationUnit
         )
 
-        // 7-Day Forecast With Range Bars
+        // Multi-Day Forecast: Dual-Curve Chart & 7-Day Range List with Segmented Toggle
+        binding.dailyTrendChart.setForecastDays(forecast.daily, tempUnit)
         setupWeeklyForecast(forecast, tempUnit, colorScheme)
+        applyDailyViewMode()
+        binding.btnDailyChart.setOnClickListener {
+            if (!showDailyChart) {
+                showDailyChart = true
+                applyDailyViewMode()
+            }
+        }
+        binding.btnDailyList.setOnClickListener {
+            if (showDailyChart) {
+                showDailyChart = false
+                applyDailyViewMode()
+            }
+        }
 
-        // Bento Grid Card 1: UV Index
+        // Compact 3-Column Metrics Grid
         val uvInt = current.uvIndexInt
         binding.tvUvValue.text = uvInt.toString()
-        val (uvCatRes, uvAdvRes) = when {
-            uvInt <= 2 -> R.string.uv_low to R.string.uv_advice_low
-            uvInt <= 5 -> R.string.uv_moderate to R.string.uv_advice_moderate
-            uvInt <= 7 -> R.string.uv_high to R.string.uv_advice_high
-            uvInt <= 10 -> R.string.uv_very_high to R.string.uv_advice_very_high
-            else -> R.string.uv_extreme to R.string.uv_advice_very_high
+        val uvCatRes = when {
+            uvInt <= 2 -> R.string.uv_low
+            uvInt <= 5 -> R.string.uv_moderate
+            uvInt <= 7 -> R.string.uv_high
+            uvInt <= 10 -> R.string.uv_very_high
+            else -> R.string.uv_extreme
         }
         binding.tvUvCategory.text = context.getString(uvCatRes)
-        binding.tvUvAdvice.text = context.getString(uvAdvRes)
-        binding.uvBarContainer.post {
-            val w = binding.uvBarContainer.width
-            if (w > 0) {
-                val ratio = (current.uvIndex / 11.0).coerceIn(0.0, 1.0).toFloat()
-                val lp = binding.uvProgressFill.layoutParams
-                lp.width = if (current.uvIndex <= 0.1) 0 else (w * ratio).toInt().coerceAtLeast(10)
-                binding.uvProgressFill.layoutParams = lp
-            }
-        }
 
-        // Bento Grid Card 2: Wind & Compass Dial
-        binding.tvWindValue.text = windUnit.format(current.windSpeedKmh)
-        val compass = degreesToCompass(context, current.windDirectionDeg)
-        binding.tvWindDirection.text = compass
-        binding.tvWindGusts.text = context.getString(R.string.wind_gusts_format, windUnit.format(current.windGustsKmh))
-        binding.compassDialView.setWindDirection(current.windDirectionDeg)
-
-        // Bento Grid Card 3: Humidity & Dew Point
-        binding.tvHumidityValue.text = "${current.humidityPercent}%"
-        binding.tvDewPointNote.text = context.getString(R.string.dew_point_format, tempUnit.format(current.dewPointC))
-        binding.humidityBarContainer.post {
-            val w = binding.humidityBarContainer.width
-            if (w > 0) {
-                val ratio = (current.humidityPercent / 100f).coerceIn(0f, 1f)
-                val lp = binding.humidityProgressFill.layoutParams
-                lp.width = (w * ratio).toInt().coerceAtLeast(if (current.humidityPercent > 0) 10 else 0)
-                binding.humidityProgressFill.layoutParams = lp
-            }
-        }
-
-        // Bento Grid Card 4: Feels Like (Thermal Comfort)
+        // Feels Like
         binding.tvAqiValue.text = tempUnit.format(current.apparentTemperatureC)
-        val actualVal = if (tempUnit == TemperatureUnit.CELSIUS) current.temperatureC.roundToInt() else ((current.temperatureC * 9.0 / 5.0) + 32.0).roundToInt()
-        val feelsVal = if (tempUnit == TemperatureUnit.CELSIUS) current.apparentTemperatureC.roundToInt() else ((current.apparentTemperatureC * 9.0 / 5.0) + 32.0).roundToInt()
-        val tempDiff = feelsVal - actualVal
-        binding.tvAqiLabel.text = when {
-            tempDiff > 0 -> "+$tempDiff°"
-            tempDiff < 0 -> "$tempDiff°"
-            else -> "0°"
-        }
-        val (feelsColor, feelsAdviceRes) = when {
-            tempDiff >= 2 -> 0xFFFBBF24.toInt() to R.string.feels_warmer
-            tempDiff <= -2 -> 0xFF38BDF8.toInt() to R.string.feels_cooler
-            else -> 0xCCFFFFFF.toInt() to R.string.feels_similar
-        }
-        binding.tvAqiLabel.setTextColor(feelsColor)
-        binding.tvAqiAdvice.text = context.getString(feelsAdviceRes)
-        binding.aqiBarContainer.post {
-            val w = binding.aqiBarContainer.width
-            if (w > 0) {
-                val ratio = (current.apparentTemperatureC / 45.0).coerceIn(0.08, 1.0).toFloat()
-                val lp = binding.aqiProgressFill.layoutParams
-                lp.width = (w * ratio).toInt().coerceAtLeast(12)
-                binding.aqiProgressFill.layoutParams = lp
-            }
-        }
 
-        // Bento Grid Card 5: Visibility & Surface Pressure
+        // Humidity
+        binding.tvHumidityValue.text = "${current.humidityPercent}%"
+
+        // Wind
+        val isVi = context.resources.configuration.locales[0]?.language == "vi"
+        val compass = degreesToCompass(context, current.windDirectionDeg)
+        binding.tvWindDirection.text = if (isVi) "Gió $compass" else "$compass wind"
+        binding.tvWindValue.text = windUnit.format(current.windSpeedKmh)
+
+        // Pressure
+        binding.tvPressureNote.text = state.settings.pressureUnit.format(current.surfacePressureHpa)
+
+        // Visibility
         val visStr = if (windUnit == WindSpeedUnit.MPH) {
             "${(current.visibilityKm * 0.621371).roundToInt().coerceAtLeast(1)} mi"
         } else {
             "${current.visibilityKm.roundToInt().coerceAtLeast(1)} km"
         }
         binding.tvVisibilityValue.text = visStr
-        binding.tvPressureNote.text = context.getString(R.string.pressure_format, state.settings.pressureUnit.format(current.surfacePressureHpa))
-        binding.tvVisibilityDesc.text = context.getString(
-            if (current.visibilityKm >= 10.0) R.string.visibility_good else R.string.visibility_moderate
-        )
 
-        // Bento Grid Card 6: Sun Cycle & Solar Arc
+        // Full-Width Sunrise & Sunset Progress Card
         val sunriseTime = formatIsoTime(current.sunriseIso, "05:48")
         val sunsetTime = formatIsoTime(current.sunsetIso, "17:22")
         binding.tvSunriseValue.text = sunriseTime
@@ -222,6 +188,22 @@ class ForecastView(private val binding: LayoutForecastBinding) {
 
         val dayProgress = calculateDayProgress(current.sunriseIso, current.sunsetIso, locationZone)
         binding.solarArcView.setProgress(dayProgress, current.isDay)
+    }
+
+    private fun applyDailyViewMode() {
+        binding.dailyChartScroll.visibility = if (showDailyChart) View.VISIBLE else View.GONE
+        binding.dailyRows.visibility = if (showDailyChart) View.GONE else View.VISIBLE
+        if (showDailyChart) {
+            binding.btnDailyChart.setBackgroundResource(R.drawable.bg_segmented_selected)
+            binding.btnDailyChart.setTextColor(0xFFFFFFFF.toInt())
+            binding.btnDailyList.background = null
+            binding.btnDailyList.setTextColor(0x99FFFFFF.toInt())
+        } else {
+            binding.btnDailyList.setBackgroundResource(R.drawable.bg_segmented_selected)
+            binding.btnDailyList.setTextColor(0xFFFFFFFF.toInt())
+            binding.btnDailyChart.background = null
+            binding.btnDailyChart.setTextColor(0x99FFFFFF.toInt())
+        }
     }
 
     private fun setupCityPills(state: WeatherUiState, onSelectCity: (LocationItem) -> Unit) {

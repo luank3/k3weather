@@ -137,12 +137,23 @@
     <string name="location_updated">Location updated: %1$s</string>
 
     <!-- Home Screen Widgets -->
-    <string name="widget_small_title">Current Weather (2×2)</string>
+    <string name="widget_small_title">Current Weather</string>
     <string name="widget_small_desc">Current temperature, condition, and high/low for your location.</string>
-    <string name="widget_medium_title">Hourly Forecast (4×2)</string>
+    <string name="widget_medium_title">Hourly Forecast</string>
     <string name="widget_medium_desc">Current conditions plus a 5-hour forecast ribbon.</string>
-    <string name="widget_large_title">Detailed Forecast (4×4)</string>
+    <string name="widget_large_title">Detailed Forecast</string>
     <string name="widget_large_desc">Current weather, wind/humidity/UV details, 5-hour forecast, and 3-day outlook.</string>
+    <string name="temp_range_slash_format">%1$s / %2$s</string>
+    <string name="view_chart">Chart</string>
+    <string name="view_list">List</string>
+    <string name="weekly_multi_day">Multi-day forecast</string>
+    <string name="metric_uv_short">UV</string>
+    <string name="metric_feels_short">Feels like</string>
+    <string name="metric_humidity_short">Humidity</string>
+    <string name="metric_pressure_short">Pressure</string>
+    <string name="metric_visibility_short">Visibility</string>
+    <string name="sunrise_short">Sunrise</string>
+    <string name="sunset_short">Sunset</string>
     <string name="settings_precipitation">Precipitation</string>
     <string name="settings_pressure">Pressure</string>
     <string name="settings_section_about">ABOUT</string>

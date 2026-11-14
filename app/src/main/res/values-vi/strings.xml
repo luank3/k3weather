@@ -137,12 +137,23 @@
     <string name="location_updated">Đã cập nhật vị trí: %1$s</string>
 
     <!-- Home Screen Widgets -->
-    <string name="widget_small_title">Thời tiết hiện tại (2×2)</string>
+    <string name="widget_small_title">Thời tiết hiện tại</string>
     <string name="widget_small_desc">Nhiệt độ, tình trạng thời tiết và cao/thấp tại vị trí của bạn.</string>
-    <string name="widget_medium_title">Dự báo hàng giờ (4×2)</string>
+    <string name="widget_medium_title">Dự báo hàng giờ</string>
     <string name="widget_medium_desc">Thời tiết hiện tại kèm dự báo 5 giờ tới.</string>
-    <string name="widget_large_title">Dự báo chi tiết (4×4)</string>
+    <string name="widget_large_title">Dự báo chi tiết</string>
     <string name="widget_large_desc">Thời tiết hiện tại, gió/độ ẩm/UV, dự báo 5 giờ và 3 ngày tới.</string>
+    <string name="temp_range_slash_format">%1$s / %2$s</string>
+    <string name="view_chart">Biểu đồ</string>
+    <string name="view_list">Danh sách</string>
+    <string name="weekly_multi_day">Dự báo nhiều ngày</string>
+    <string name="metric_uv_short">UV</string>
+    <string name="metric_feels_short">Cảm giác như</string>
+    <string name="metric_humidity_short">Độ ẩm</string>
+    <string name="metric_pressure_short">Áp suất</string>
+    <string name="metric_visibility_short">Tầm nhìn</string>
+    <string name="sunrise_short">Bình minh</string>
+    <string name="sunset_short">Hoàng hôn</string>
     <string name="settings_precipitation">Lượng mưa</string>
     <string name="settings_pressure">Áp suất</string>
     <string name="settings_section_about">GIỚI THIỆU</string>

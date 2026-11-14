@@ -6,6 +6,10 @@
     android:viewportWidth="108"
     android:viewportHeight="108">
 
+    <group
+        android:translateX="4"
+        android:translateY="2">
+
     <!-- 1. Sun Atmospheric Ambient Glow -->
     <path
         android:pathData="M66,41m-23,0a23,23 0,1 1,46 0a23,23 0,1 1,-46 0">
@@ -85,7 +89,7 @@
         </aapt:attr>
     </path>
 
-    <!-- 8. Crisp Liquid Glass Specular Highlight Crest (Apple Weather Style) -->
+    <!-- 8. Crisp Liquid Glass Specular Highlight Crest -->
     <path
         android:pathData="M23,54 C23.5,48.5 27.5,45 32.5,44.5 C34.5,37 42,32 50,32 C58,32 65,36.5 67.5,43.5 C73,44.5 76.5,48.5 76.8,53"
         android:strokeWidth="1.6"
@@ -98,5 +102,7 @@
         android:strokeWidth="0.9"
         android:strokeColor="#3DFFFFFF"
         android:strokeLineCap="round" />
+
+    </group>
 
 </vector>

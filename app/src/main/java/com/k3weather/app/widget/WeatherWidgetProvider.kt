@@ -185,9 +185,9 @@ object WeatherWidgetUpdater {
         views.setTextViewText(
             R.id.widgetHighLow,
             context.getString(
-                R.string.high_low_short_format,
-                tempUnit.format(current.maxTempC),
-                tempUnit.format(current.minTempC)
+                R.string.temp_range_slash_format,
+                tempUnit.format(current.minTempC),
+                tempUnit.format(current.maxTempC)
             )
         )
 

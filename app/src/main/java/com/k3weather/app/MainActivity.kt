@@ -191,18 +191,58 @@ class MainActivity : AppCompatActivity() {
         outState.putString(KEY_ACTIVE_TAB, currentTab.name)
     }
 
+    private var cachedBottomNavClearancePx: Int = 0
+
     private fun setupInsets() {
         ViewCompat.setOnApplyWindowInsetsListener(binding.rootContainer) { _, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
+            val density = resources.displayMetrics.density
             binding.fragmentContainer.setPadding(0, systemBars.top, 0, 0)
             binding.searchContainer.setPadding(0, systemBars.top, 0, systemBars.bottom)
 
             val lp = binding.bottomNavBar.layoutParams as? ViewGroup.MarginLayoutParams
             if (lp != null) {
-                lp.bottomMargin = systemBars.bottom + (12 * resources.displayMetrics.density).toInt()
+                lp.bottomMargin = systemBars.bottom + (12 * density).toInt()
                 binding.bottomNavBar.layoutParams = lp
             }
+
+            // Ensure scrolled content on small screens cleanly clears the floating bottom nav bar
+            val navBarHeight = binding.bottomNavBar.height.takeIf { it > 0 } ?: (60 * density).toInt()
+            cachedBottomNavClearancePx = systemBars.bottom + navBarHeight + (44 * density).toInt()
+            applyBottomNavClearance()
             insets
+        }
+    }
+
+    private fun applyBottomNavClearance() {
+        if (cachedBottomNavClearancePx <= 0) return
+        if (::forecastBinding.isInitialized) {
+            val container = forecastBinding.forecastContentContainer
+            container.setPadding(
+                container.paddingLeft,
+                container.paddingTop,
+                container.paddingRight,
+                cachedBottomNavClearancePx
+            )
+        }
+        if (::savedBinding.isInitialized) {
+            val list = savedBinding.savedList
+            list.setPadding(
+                list.paddingLeft,
+                list.paddingTop,
+                list.paddingRight,
+                cachedBottomNavClearancePx
+            )
+        }
+        if (::settingsBinding.isInitialized) {
+            (settingsBinding.root as? ViewGroup)?.getChildAt(0)?.let { content ->
+                content.setPadding(
+                    content.paddingLeft,
+                    content.paddingTop,
+                    content.paddingRight,
+                    cachedBottomNavClearancePx
+                )
+            }
         }
     }
 
@@ -878,6 +918,7 @@ class MainActivity : AppCompatActivity() {
 
         setupChildViews(currentTab)
         setupScrollAwareBottomNav()
+        applyBottomNavClearance()
 
         binding.fragmentContainer.removeView(oldForecast)
         binding.fragmentContainer.removeView(oldSaved)

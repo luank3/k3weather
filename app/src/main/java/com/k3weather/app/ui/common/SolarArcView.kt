@@ -42,6 +42,20 @@ class SolarArcView @JvmOverloads constructor(
         pathEffect = DashPathEffect(floatArrayOf(2f * density, 2f * density), 0f)
     }
 
+    private val trackPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        style = Paint.Style.STROKE
+        strokeWidth = 3f * density
+        color = 0x33FFFFFF
+        strokeCap = Paint.Cap.ROUND
+    }
+
+    private val progressPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        style = Paint.Style.STROKE
+        strokeWidth = 3.2f * density
+        color = 0xF2FFFFFF.toInt()
+        strokeCap = Paint.Cap.ROUND
+    }
+
     private val sunGlowPaint = Paint(Paint.ANTI_ALIAS_FLAG)
     private val sunCorePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         style = Paint.Style.FILL
@@ -61,6 +75,11 @@ class SolarArcView @JvmOverloads constructor(
         val w = width.toFloat()
         val h = height.toFloat()
         if (w <= 0 || h <= 0) return
+
+        if (h <= 34f * density) {
+            drawLinearBar(canvas, w, h)
+            return
+        }
 
         val paddingHorizontal = 16f * density
         val horizonY = h - (12f * density)
@@ -106,5 +125,31 @@ class SolarArcView @JvmOverloads constructor(
         // Core sun disc
         sunCorePaint.color = if (isDay) 0xFFFDE047.toInt() else 0xFFC7D2FE.toInt()
         canvas.drawCircle(sunX, sunY, 4.5f * density, sunCorePaint)
+    }
+
+    private fun drawLinearBar(canvas: Canvas, w: Float, h: Float) {
+        val pad = 8f * density
+        val cy = h / 2f
+        val startX = pad
+        val endX = (w - pad).coerceAtLeast(startX + 1f)
+        val sunX = startX + (endX - startX) * dayProgress
+
+        canvas.drawLine(startX, cy, endX, cy, trackPaint)
+        progressPaint.color = if (isDay) 0xF2FFFFFF.toInt() else 0xB3C7D2FE.toInt()
+        canvas.drawLine(startX, cy, sunX, cy, progressPaint)
+
+        val glowRadius = 11f * density
+        sunGlowPaint.shader = RadialGradient(
+            sunX, cy, glowRadius,
+            intArrayOf(
+                if (isDay) 0x80FDE047.toInt() else 0x5593C5FD.toInt(),
+                0x00000000
+            ),
+            null,
+            Shader.TileMode.CLAMP
+        )
+        canvas.drawCircle(sunX, cy, glowRadius, sunGlowPaint)
+        sunCorePaint.color = if (isDay) 0xFFFDE047.toInt() else 0xFFE0E7FF.toInt()
+        canvas.drawCircle(sunX, cy, 4.5f * density, sunCorePaint)
     }
 }
