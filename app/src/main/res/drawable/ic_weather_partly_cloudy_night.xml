@@ -1,17 +1,63 @@
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:aapt="http://schemas.android.com/aapt"
     android:width="32dp"
     android:height="32dp"
     android:viewportWidth="32"
     android:viewportHeight="32">
-    <!-- Golden Crescent Moon -->
+
+    <!-- Moonlight Glow -->
+    <path android:pathData="M21,11m-9,0a9,9 0,1 1,18 0a9,9 0,1 1,-18 0">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:centerX="21"
+                android:centerY="11"
+                android:gradientRadius="9"
+                android:startColor="#4DFFE082"
+                android:centerColor="#1A93C5FD"
+                android:endColor="#0038BDF8"
+                android:type="radial" />
+        </aapt:attr>
+    </path>
+
+    <!-- Crescent Moon Behind Cloud -->
+    <path android:pathData="M21.2,4 A7.2,7.2 0 1,0 27.6,14.8 A6.6,6.6 0 0,1 21.2,4 Z">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:startX="15"
+                android:startY="5"
+                android:endX="25"
+                android:endY="16"
+                android:startColor="#FFFDE7"
+                android:centerColor="#FFE082"
+                android:endColor="#F59E0B"
+                android:type="linear" />
+        </aapt:attr>
+    </path>
+
+    <!-- Twinkling Star -->
     <path
-        android:fillColor="#FFD54F"
-        android:pathData="M18,3 A9,9 0 0,0 23,17.8 A9,9 0 1,1 12.2,7 A9,9 0 0,0 18,3 Z"/>
-    <!-- Foreground White Cloud -->
+        android:fillColor="#FFF59D"
+        android:pathData="M26.5,5.5 L27,6.8 L28.3,7.3 L27,7.8 L26.5,9.1 L26,7.8 L24.7,7.3 L26,6.8 Z" />
+
+    <!-- Twilight Frosted Cloud -->
+    <path android:pathData="M9.5,26.2 C5.8,26.2 3.5,23.8 3.5,20.7 C3.5,17.9 5.4,15.7 8,15.1 C9,12.2 11.7,10.5 14.8,10.5 C18.3,10.5 21.1,12.6 22,15.9 C24.6,16.3 26.5,18.3 26.5,20.9 C26.5,23.9 24.1,26.2 20.6,26.2 Z">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:startX="14"
+                android:startY="10.5"
+                android:endX="15"
+                android:endY="26.2"
+                android:startColor="#F2F8FC"
+                android:centerColor="#CDE2F3"
+                android:endColor="#8FB3D4"
+                android:type="linear" />
+        </aapt:attr>
+    </path>
+
+    <!-- Cool Glass Specular Rim -->
     <path
-        android:fillColor="#CFD8DC"
-        android:pathData="M11,14 A5,5 0 0,1 15.5,17.2 A6.5,6.5 0 0,1 22,23.5 A6.5,6.5 0 0,1 15.5,30 L8,30 A7,7 0 0,1 8,16 A6.8,6.8 0 0,1 11,14 Z"/>
-    <path
-        android:fillColor="#ECEFF1"
-        android:pathData="M10.5,13 A5,5 0 0,1 15,16 A6,6 0 0,1 21,22.5 A5.5,5.5 0 0,1 15.5,28 L7.5,28 A6.5,6.5 0 0,1 7.5,15 A6.5,6.5 0 0,1 10.5,13 Z"/>
+        android:pathData="M5.4,19.5 C5.7,17.2 7.3,15.9 9.1,15.5 C10,12.9 12.3,11.4 14.8,11.4 C17.9,11.4 20.4,13.2 21.3,15.9"
+        android:strokeWidth="0.95"
+        android:strokeColor="#E6FFFFFF"
+        android:strokeLineCap="round" />
 </vector>

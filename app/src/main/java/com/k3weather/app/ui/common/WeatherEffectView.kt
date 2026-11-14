@@ -91,6 +91,17 @@ class WeatherEffectView @JvmOverloads constructor(
     private var lightningAlpha = 0
     private var nextLightningFrame = 150
     private var boltStartX = 0.65f
+    private var transitionStartMs = 0L
+
+    private val crescentGlowPaint = Paint(Paint.ANTI_ALIAS_FLAG)
+    private val beamPaint = Paint(Paint.ANTI_ALIAS_FLAG)
+    private val mistMotePaint = Paint(Paint.ANTI_ALIAS_FLAG)
+    private val boltGlowPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        style = Paint.Style.STROKE
+        strokeCap = Paint.Cap.ROUND
+        strokeJoin = Paint.Join.ROUND
+    }
+    private val branchPath = Path()
 
     init {
         initParticles()
@@ -137,11 +148,19 @@ class WeatherEffectView @JvmOverloads constructor(
         colorScheme: AppColorScheme = AppColorScheme.CYAN
     ) {
         if (this.condition != condition || this.isDay != isDay || this.reduceMotion != reduceMotion || this.colorScheme != colorScheme) {
+            val changedAtmosphere = this.condition != condition || this.isDay != isDay
             this.condition = condition
             this.isDay = isDay
             this.reduceMotion = reduceMotion
             this.colorScheme = colorScheme
             invalidateShaders()
+            if (changedAtmosphere && !reduceMotion) {
+                transitionStartMs = System.currentTimeMillis()
+                alpha = 0.86f
+                animate().alpha(1f).setDuration(260L).setInterpolator(MotionHelper.FLUID_EASE).start()
+            } else {
+                alpha = 1f
+            }
             invalidate()
         }
     }
@@ -243,90 +262,97 @@ class WeatherEffectView @JvmOverloads constructor(
             val colors = when (condition) {
                 WeatherCondition.CLEAR -> {
                     if (isDay) intArrayOf(
-                        Color.rgb(12, 62, 130),
-                        Color.rgb(24, 98, 176),
-                        Color.rgb(48, 138, 212),
-                        Color.rgb(72, 162, 228)
+                        Color.rgb(11, 74, 158),
+                        Color.rgb(24, 114, 200),
+                        Color.rgb(46, 148, 224),
+                        Color.rgb(86, 178, 238)
                     ) else intArrayOf(
-                        Color.rgb(4, 9, 24),
-                        Color.rgb(10, 20, 46),
-                        Color.rgb(16, 32, 66),
-                        Color.rgb(22, 44, 84)
+                        Color.rgb(5, 11, 30),
+                        Color.rgb(11, 23, 54),
+                        Color.rgb(18, 37, 78),
+                        Color.rgb(28, 52, 98)
                     )
                 }
                 WeatherCondition.PARTLY_CLOUDY -> {
                     if (isDay) intArrayOf(
-                        Color.rgb(16, 56, 108),
-                        Color.rgb(28, 82, 142),
-                        Color.rgb(44, 110, 170),
-                        Color.rgb(58, 128, 186)
+                        Color.rgb(18, 66, 128),
+                        Color.rgb(33, 96, 164),
+                        Color.rgb(52, 124, 190),
+                        Color.rgb(74, 144, 204)
                     ) else intArrayOf(
-                        Color.rgb(6, 12, 28),
-                        Color.rgb(12, 24, 48),
-                        Color.rgb(20, 36, 66),
-                        Color.rgb(26, 46, 78)
+                        Color.rgb(8, 15, 36),
+                        Color.rgb(15, 29, 60),
+                        Color.rgb(24, 44, 82),
+                        Color.rgb(34, 58, 96)
                     )
                 }
                 WeatherCondition.CLOUDY -> {
                     if (isDay) intArrayOf(
-                        Color.rgb(20, 40, 64),
-                        Color.rgb(30, 56, 84),
-                        Color.rgb(42, 72, 102),
-                        Color.rgb(50, 84, 114)
+                        Color.rgb(30, 56, 86),
+                        Color.rgb(45, 76, 110),
+                        Color.rgb(62, 96, 130),
+                        Color.rgb(78, 112, 144)
                     ) else intArrayOf(
-                        Color.rgb(8, 15, 26),
-                        Color.rgb(14, 25, 40),
-                        Color.rgb(20, 35, 54),
-                        Color.rgb(26, 44, 66)
+                        Color.rgb(10, 18, 32),
+                        Color.rgb(17, 30, 50),
+                        Color.rgb(26, 43, 68),
+                        Color.rgb(34, 54, 82)
                     )
                 }
-                WeatherCondition.FOG -> intArrayOf(
-                    Color.rgb(24, 42, 58),
-                    Color.rgb(36, 58, 76),
-                    Color.rgb(48, 74, 94),
-                    Color.rgb(58, 86, 106)
-                )
+                WeatherCondition.FOG -> {
+                    if (isDay) intArrayOf(
+                        Color.rgb(40, 64, 84),
+                        Color.rgb(58, 86, 108),
+                        Color.rgb(78, 106, 128),
+                        Color.rgb(94, 122, 142)
+                    ) else intArrayOf(
+                        Color.rgb(16, 28, 42),
+                        Color.rgb(26, 42, 58),
+                        Color.rgb(38, 56, 74),
+                        Color.rgb(48, 68, 86)
+                    )
+                }
                 WeatherCondition.DRIZZLE -> intArrayOf(
-                    Color.rgb(14, 30, 48),
-                    Color.rgb(22, 44, 68),
-                    Color.rgb(30, 58, 84),
-                    Color.rgb(38, 68, 96)
+                    Color.rgb(16, 38, 62),
+                    Color.rgb(26, 56, 86),
+                    Color.rgb(38, 72, 104),
+                    Color.rgb(50, 86, 118)
                 )
                 WeatherCondition.RAIN -> intArrayOf(
-                    Color.rgb(10, 24, 40),
-                    Color.rgb(16, 35, 56),
-                    Color.rgb(24, 46, 70),
-                    Color.rgb(30, 56, 82)
+                    Color.rgb(12, 29, 50),
+                    Color.rgb(20, 44, 72),
+                    Color.rgb(28, 58, 90),
+                    Color.rgb(38, 70, 102)
                 )
                 WeatherCondition.HEAVY_RAIN -> intArrayOf(
-                    Color.rgb(7, 16, 28),
-                    Color.rgb(12, 24, 40),
-                    Color.rgb(18, 34, 54),
-                    Color.rgb(24, 42, 64)
+                    Color.rgb(8, 19, 34),
+                    Color.rgb(14, 30, 50),
+                    Color.rgb(22, 42, 66),
+                    Color.rgb(30, 52, 78)
                 )
                 WeatherCondition.SLEET -> intArrayOf(
-                    Color.rgb(16, 28, 44),
-                    Color.rgb(26, 42, 62),
-                    Color.rgb(36, 54, 76),
-                    Color.rgb(44, 64, 88)
+                    Color.rgb(18, 34, 54),
+                    Color.rgb(30, 52, 76),
+                    Color.rgb(44, 68, 94),
+                    Color.rgb(56, 82, 108)
                 )
                 WeatherCondition.SNOW -> intArrayOf(
-                    Color.rgb(20, 36, 58),
-                    Color.rgb(32, 54, 82),
-                    Color.rgb(46, 74, 104),
-                    Color.rgb(58, 90, 122)
+                    Color.rgb(24, 46, 76),
+                    Color.rgb(40, 68, 104),
+                    Color.rgb(58, 90, 128),
+                    Color.rgb(74, 108, 146)
                 )
                 WeatherCondition.THUNDER -> intArrayOf(
-                    Color.rgb(7, 11, 22),
-                    Color.rgb(13, 20, 36),
-                    Color.rgb(20, 30, 50),
-                    Color.rgb(26, 38, 60)
+                    Color.rgb(9, 13, 28),
+                    Color.rgb(18, 25, 48),
+                    Color.rgb(28, 36, 66),
+                    Color.rgb(36, 46, 78)
                 )
                 WeatherCondition.THUNDER_HAIL -> intArrayOf(
-                    Color.rgb(5, 9, 18),
-                    Color.rgb(10, 16, 28),
-                    Color.rgb(16, 24, 40),
-                    Color.rgb(22, 32, 50)
+                    Color.rgb(6, 10, 22),
+                    Color.rgb(13, 20, 38),
+                    Color.rgb(22, 30, 54),
+                    Color.rgb(30, 40, 66)
                 )
             }
 
@@ -469,12 +495,12 @@ class WeatherEffectView @JvmOverloads constructor(
             cloudUnitGradient = RadialGradient(
                 0f, 0f, 1f,
                 intArrayOf(
-                    Color.argb(42, 240, 248, 255),
-                    Color.argb(22, 224, 238, 250),
-                    Color.argb(7, 210, 228, 245),
+                    Color.argb(58, 244, 250, 255),
+                    Color.argb(30, 224, 240, 252),
+                    Color.argb(10, 200, 224, 246),
                     Color.TRANSPARENT
                 ),
-                floatArrayOf(0f, 0.45f, 0.76f, 1f),
+                floatArrayOf(0f, 0.45f, 0.78f, 1f),
                 Shader.TileMode.CLAMP
             )
         }
@@ -502,35 +528,49 @@ class WeatherEffectView @JvmOverloads constructor(
         }
     }
 
-    /** Smooth horizontal mist bands fading vertically via LinearGradient (no hard ovals) */
+    /** Smooth drifting mist banks + soft glowing fog haze */
     private fun drawAtmosphericFog(canvas: Canvas, w: Float, h: Float) {
         if (fogBandGradient == null) {
             fogBandGradient = LinearGradient(
                 0f, -1f, 0f, 1f,
                 intArrayOf(
                     Color.TRANSPARENT,
-                    Color.argb(34, 216, 230, 242),
-                    Color.argb(46, 226, 238, 248),
-                    Color.argb(34, 216, 230, 242),
+                    Color.argb(38, 220, 236, 248),
+                    Color.argb(62, 232, 244, 252),
+                    Color.argb(38, 220, 236, 248),
                     Color.TRANSPARENT
                 ),
-                floatArrayOf(0f, 0.28f, 0.5f, 0.72f, 1f),
+                floatArrayOf(0f, 0.25f, 0.5f, 0.75f, 1f),
                 Shader.TileMode.CLAMP
             )
         }
         val grad = fogBandGradient ?: return
-        val bands = floatArrayOf(0.18f, 0.34f, 0.52f, 0.70f)
-        val bandHeights = floatArrayOf(0.11f, 0.14f, 0.15f, 0.13f)
+        val bands = floatArrayOf(0.16f, 0.30f, 0.46f, 0.62f, 0.78f)
+        val bandHeights = floatArrayOf(0.12f, 0.16f, 0.18f, 0.15f, 0.14f)
+        val now = System.currentTimeMillis()
 
         for (i in bands.indices) {
-            val cy = bands[i] * h
+            val swayY = if (reduceMotion) 0f else sin(now * 0.00035 + i * 1.3).toFloat() * (h * 0.015f)
+            val cy = bands[i] * h + swayY
             val halfH = bandHeights[i] * h
             shaderMatrix.reset()
             shaderMatrix.postScale(1f, halfH)
             shaderMatrix.postTranslate(0f, cy)
             grad.setLocalMatrix(shaderMatrix)
             fogPaint.shader = grad
+            fogPaint.alpha = (210 + (if (reduceMotion) 0 else (sin(now * 0.0005 + i) * 35).toInt())).coerceIn(150, 250)
             canvas.drawRect(0f, cy - halfH, w, cy + halfH, fogPaint)
+        }
+
+        // Subtle drifting foreground mist motes for atmospheric depth
+        mistMotePaint.style = Paint.Style.FILL
+        for (i in 0 until minOf(18, snowFlakes.size)) {
+            val p = snowFlakes[i]
+            val driftX = if (reduceMotion) 0f else ((now * 0.000018f * (i % 3 + 1)) % 1f)
+            val mx = ((p.x + driftX) % 1f) * w
+            val my = (0.15f + p.y * 0.7f) * h
+            mistMotePaint.color = Color.argb(26, 224, 242, 254)
+            canvas.drawCircle(mx, my, p.size * 5.5f, mistMotePaint)
         }
     }
 
@@ -628,22 +668,41 @@ class WeatherEffectView @JvmOverloads constructor(
         }
 
         if (lightningAlpha > 0) {
-            lightningPaint.color = Color.argb((lightningAlpha * 0.55f).toInt(), 210, 232, 255)
+            lightningPaint.color = Color.argb((lightningAlpha * 0.52f).toInt(), 210, 232, 255)
             canvas.drawRect(0f, 0f, w, h, lightningPaint)
 
-            // Branched lightning bolt in upper sky
+            // Branched lightning bolt with electric cyan outer glow + crisp white core
             boltPath.reset()
+            branchPath.reset()
             val bx = boltStartX * w
+            val p1x = bx - w * 0.045f
+            val p1y = h * 0.09f
+            val p2x = bx + w * 0.025f
+            val p2y = h * 0.15f
+            val p3x = bx - w * 0.055f
+            val p3y = h * 0.27f
+
             boltPath.moveTo(bx, 0f)
-            boltPath.lineTo(bx - w * 0.04f, h * 0.09f)
-            boltPath.lineTo(bx + w * 0.02f, h * 0.15f)
-            boltPath.lineTo(bx - w * 0.05f, h * 0.26f)
+            boltPath.lineTo(p1x, p1y)
+            boltPath.lineTo(p2x, p2y)
+            boltPath.lineTo(p3x, p3y)
+
+            branchPath.moveTo(p1x, p1y)
+            branchPath.lineTo(p1x - w * 0.05f, p1y + h * 0.06f)
+
+            boltGlowPaint.strokeWidth = 9f
+            boltGlowPaint.color = Color.argb((lightningAlpha * 0.45f).toInt(), 125, 211, 252)
+            canvas.drawPath(boltPath, boltGlowPaint)
+            canvas.drawPath(branchPath, boltGlowPaint)
+
             boltPaint.strokeWidth = 2.6f
-            boltPaint.color = Color.argb(lightningAlpha.coerceAtMost(220), 240, 249, 255)
+            boltPaint.color = Color.argb(lightningAlpha.coerceAtMost(235), 245, 250, 255)
             canvas.drawPath(boltPath, boltPaint)
+            boltPaint.strokeWidth = 1.4f
+            canvas.drawPath(branchPath, boltPaint)
 
             if (!reduceMotion) {
-                lightningAlpha = (lightningAlpha - 18).coerceAtLeast(0)
+                lightningAlpha = (lightningAlpha - 16).coerceAtLeast(0)
             }
         }
     }
@@ -657,6 +716,10 @@ class WeatherEffectView @JvmOverloads constructor(
 
             particlePaint.color = Color.argb(flake.alpha, 242, 249, 255)
             canvas.drawCircle(sx, sy, flake.size, particlePaint)
+            if (flake.depth > 0.78f) {
+                particlePaint.color = Color.argb((flake.alpha * 0.25f).toInt(), 210, 240, 255)
+                canvas.drawCircle(sx, sy, flake.size * 2.1f, particlePaint)
+            }
 
             if (!reduceMotion) {
                 flake.y += flake.speed

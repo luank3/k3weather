@@ -1,14 +1,28 @@
 <?xml version="1.0" encoding="utf-8"?>
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
-    <!-- Bright Clear Day Sky Atmosphere Base -->
+    <!-- Luminous Sky Atmosphere Base -->
     <item>
         <shape android:shape="rectangle">
             <gradient
                 android:angle="315"
-                android:startColor="#F2164E8A"
-                android:centerColor="#F2226BB3"
-                android:endColor="#F23285D1"
+                android:startColor="#F51257A6"
+                android:centerColor="#F52278CE"
+                android:endColor="#F548A5EB"
                 android:type="linear" />
+            <corners android:radius="24dp" />
+        </shape>
+    </item>
+    <!-- Soft Warm Atmospheric Halo Top-Right -->
+    <item>
+        <shape android:shape="rectangle">
+            <gradient
+                android:type="radial"
+                android:gradientRadius="160dp"
+                android:centerX="0.88"
+                android:centerY="0.16"
+                android:startColor="#3DFFF3B0"
+                android:centerColor="#14FFE082"
+                android:endColor="#00FFFFFF" />
             <corners android:radius="24dp" />
         </shape>
     </item>
@@ -17,13 +31,13 @@
         <shape android:shape="rectangle">
             <gradient
                 android:angle="270"
-                android:startColor="#29FFFFFF"
+                android:startColor="#2EFFFFFF"
                 android:centerColor="#08FFFFFF"
-                android:endColor="#12FFFFFF"
+                android:endColor="#14FFFFFF"
                 android:type="linear" />
             <stroke
-                android:width="1dp"
-                android:color="#47FFFFFF" />
+                android:width="0.9dp"
+                android:color="#52FFFFFF" />
             <corners android:radius="24dp" />
         </shape>
     </item>

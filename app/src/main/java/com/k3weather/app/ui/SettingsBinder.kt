@@ -1,9 +1,11 @@
 package com.k3weather.app.ui
 
 import android.content.res.ColorStateList
+import android.view.HapticFeedbackConstants
 import com.k3weather.app.BuildConfig
 import com.k3weather.app.core.model.*
 import com.k3weather.app.databinding.LayoutSettingsBinding
+import com.k3weather.app.ui.common.MotionHelper
 
 class SettingsBinder(
     private val binding: LayoutSettingsBinding,
@@ -12,21 +14,29 @@ class SettingsBinder(
 ) {
     fun bind(settings: AppSettings) {
         val context = binding.root.context
+        val reduceMotion = settings.reduceMotion
 
         // Units
-        binding.tvTemperatureUnitValue.text = if (settings.tempUnit == TemperatureUnit.CELSIUS) "°C" else "°F"
-        binding.tvWindSpeedUnitValue.text = when (settings.windSpeedUnit) {
+        MotionHelper.pulseTextChange(
+            binding.tvTemperatureUnitValue,
+            if (settings.tempUnit == TemperatureUnit.CELSIUS) "°C" else "°F",
+            reduceMotion
+        )
+        val windLabel = when (settings.windSpeedUnit) {
             WindSpeedUnit.KMH -> "km/h"
             WindSpeedUnit.MS -> "m/s"
             WindSpeedUnit.MPH -> "mph"
         }
+        MotionHelper.pulseTextChange(binding.tvWindSpeedUnitValue, windLabel, reduceMotion)
 
         binding.rowTemperature.setOnClickListener {
+            it.performHapticFeedback(HapticFeedbackConstants.CLOCK_TICK)
             val next = if (settings.tempUnit == TemperatureUnit.CELSIUS) TemperatureUnit.FAHRENHEIT else TemperatureUnit.CELSIUS
             send(settings.copy(tempUnit = next))
         }
 
         binding.rowWindSpeed.setOnClickListener {
+            it.performHapticFeedback(HapticFeedbackConstants.CLOCK_TICK)
             val next = when (settings.windSpeedUnit) {
                 WindSpeedUnit.KMH -> WindSpeedUnit.MS
                 WindSpeedUnit.MS -> WindSpeedUnit.MPH
@@ -35,13 +45,15 @@ class SettingsBinder(
             send(settings.copy(windSpeedUnit = next))
         }
 
-        binding.tvPrecipitationUnitValue.text = settings.precipitationUnit.symbol
+        MotionHelper.pulseTextChange(binding.tvPrecipitationUnitValue, settings.precipitationUnit.symbol, reduceMotion)
         binding.rowPrecipitation.setOnClickListener {
+            it.performHapticFeedback(HapticFeedbackConstants.CLOCK_TICK)
             val next = if (settings.precipitationUnit == PrecipitationUnit.MILLIMETERS) PrecipitationUnit.INCHES else PrecipitationUnit.MILLIMETERS
             send(settings.copy(precipitationUnit = next))
         }
-        binding.tvPressureUnitValue.text = settings.pressureUnit.symbol
+        MotionHelper.pulseTextChange(binding.tvPressureUnitValue, settings.pressureUnit.symbol, reduceMotion)
         binding.rowPressure.setOnClickListener {
+            it.performHapticFeedback(HapticFeedbackConstants.CLOCK_TICK)
             val next = when (settings.pressureUnit) {
                 PressureUnit.HPA -> PressureUnit.INHG
                 PressureUnit.INHG -> PressureUnit.MMHG
@@ -51,32 +63,21 @@ class SettingsBinder(
         }
         binding.tvVersionValue.text = "${BuildConfig.VERSION_SEMVER} (${BuildConfig.GIT_HASH})"
 
-        // Stateful theme color for switches
-        val accentColor = settings.colorScheme.primaryAccent
-        val activeTrackColor = (accentColor and 0x00FFFFFF) or 0x73000000
-        val states = arrayOf(
-            intArrayOf(android.R.attr.state_checked),
-            intArrayOf(-android.R.attr.state_checked)
-        )
-        val thumbTintList = ColorStateList(
-            states,
-            intArrayOf(accentColor, 0xFFB0BEC5.toInt())
-        )
-        val trackTintList = ColorStateList(
-            states,
-            intArrayOf(activeTrackColor, 0x3DFFFFFF)
-        )
-
-
-        // Language: simple click to toggle directly like wind speed and temperature
-        // "system" must resolve to the language the app is actually displaying
+        // Language toggle
         val effective = if (settings.language == "system") {
             if (context.resources.configuration.locales[0]?.language == "vi") "vi" else "en"
         } else settings.language
         binding.tvLanguageValue.text = if (effective == "vi") "Tiếng Việt" else "English"
         binding.rowLanguage.setOnClickListener {
+            it.performHapticFeedback(HapticFeedbackConstants.CLOCK_TICK)
             send(settings.copy(language = if (effective == "vi") "en" else "vi"))
         }
+
+        MotionHelper.attachPressScale(binding.rowTemperature, pressedScale = 0.985f)
+        MotionHelper.attachPressScale(binding.rowWindSpeed, pressedScale = 0.985f)
+        MotionHelper.attachPressScale(binding.rowPrecipitation, pressedScale = 0.985f)
+        MotionHelper.attachPressScale(binding.rowPressure, pressedScale = 0.985f)
+        MotionHelper.attachPressScale(binding.rowLanguage, pressedScale = 0.985f)
     }
 
     private fun send(settings: AppSettings) = onSettingsChanged(settings)

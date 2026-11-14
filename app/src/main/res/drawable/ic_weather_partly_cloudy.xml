@@ -1,29 +1,84 @@
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:aapt="http://schemas.android.com/aapt"
     android:width="32dp"
     android:height="32dp"
     android:viewportWidth="32"
     android:viewportHeight="32">
-    <!-- Golden Sun Rays and Core -->
+
+    <!-- Sun Ambient Glow Behind Cloud -->
+    <path android:pathData="M21,11.5m-9.5,0a9.5,9.5 0,1 1,19 0a9.5,9.5 0,1 1,-19 0">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:centerX="21"
+                android:centerY="11.5"
+                android:gradientRadius="9.5"
+                android:startColor="#66FFE082"
+                android:centerColor="#26FFB300"
+                android:endColor="#00FF8F00"
+                android:type="radial" />
+        </aapt:attr>
+    </path>
+
+    <!-- Sun Rays -->
     <path
-        android:fillColor="#FFB300"
-        android:pathData="M20,6 L20,3 A1,1 0 0,0 18,3 L18,6 A1,1 0 0,0 20,6 Z"/>
+        android:pathData="M21,3 L21,5.2 M29.5,11.5 L27.3,11.5 M27,5.5 L25.4,7.1 M15,5.5 L16.6,7.1 M27,17.5 L25.4,15.9"
+        android:strokeWidth="1.7"
+        android:strokeColor="#FFCA28"
+        android:strokeLineCap="round" />
+
+    <!-- Luminous Sun Core Disc -->
+    <path android:pathData="M21,6.2 A5.3,5.3 0 1,0 26.3,11.5 A5.3,5.3 0 0,0 21,6.2 Z">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:startX="18"
+                android:startY="7"
+                android:endX="25"
+                android:endY="16"
+                android:startColor="#FFFDE7"
+                android:centerColor="#FFD54F"
+                android:endColor="#FF8F00"
+                android:type="linear" />
+        </aapt:attr>
+    </path>
+
+    <!-- Cloud Dimensional Drop Shadow -->
     <path
-        android:fillColor="#FFB300"
-        android:pathData="M25.66,9.34 L27.78,7.22 A1,1 0 1,0 26.36,5.8 L24.24,7.93 A1,1 0 0,0 25.66,9.34 Z"/>
+        android:fillColor="#2E082342"
+        android:pathData="M9.5,27.5 C5.8,27.5 3.5,25.1 3.5,22 C3.5,19.2 5.4,17 8,16.4 C9,13.5 11.7,11.8 14.8,11.8 C18.3,11.8 21.1,13.9 22,17.2 C24.6,17.6 26.5,19.6 26.5,22.2 C26.5,25.2 24.1,27.5 20.6,27.5 Z" />
+
+    <!-- Frosted Liquid Glass Cloud -->
+    <path android:pathData="M9.5,26.2 C5.8,26.2 3.5,23.8 3.5,20.7 C3.5,17.9 5.4,15.7 8,15.1 C9,12.2 11.7,10.5 14.8,10.5 C18.3,10.5 21.1,12.6 22,15.9 C24.6,16.3 26.5,18.3 26.5,20.9 C26.5,23.9 24.1,26.2 20.6,26.2 Z">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:startX="14"
+                android:startY="10.5"
+                android:endX="15"
+                android:endY="26.2"
+                android:startColor="#FFFFFFFF"
+                android:centerColor="#EEF6FC"
+                android:endColor="#C4DDF2"
+                android:type="linear" />
+        </aapt:attr>
+    </path>
+
+    <!-- Warm Solar Bleed on Right Cloud Edge -->
+    <path android:pathData="M16.5,11.2 C19.2,11.8 21.2,13.5 22,15.9 C24,16.3 25.7,17.7 26.2,19.7 C24.3,17.5 21,15.2 17.8,13.8 Z">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:startX="25"
+                android:startY="14"
+                android:endX="18"
+                android:endY="18"
+                android:startColor="#59FFE082"
+                android:endColor="#00FFB300"
+                android:type="linear" />
+        </aapt:attr>
+    </path>
+
+    <!-- Crisp Specular Rim -->
     <path
-        android:fillColor="#FFB300"
-        android:pathData="M26,16 L29,16 A1,1 0 0,0 29,14 L26,14 A1,1 0 0,0 26,16 Z"/>
-    <path
-        android:fillColor="#FFB300"
-        android:pathData="M24.24,20.07 L26.36,22.19 A1,1 0 1,0 27.78,20.78 L25.66,18.66 A1,1 0 0,0 24.24,20.07 Z"/>
-    <path
-        android:fillColor="#FFC107"
-        android:pathData="M19,9 A6,6 0 1,0 25,15 A6,6 0 0,0 19,9 Z"/>
-    <!-- Puffy White Cloud in foreground -->
-    <path
-        android:fillColor="#ECEFF1"
-        android:pathData="M11,14 A5,5 0 0,1 15.5,17.2 A6.5,6.5 0 0,1 22,23.5 A6.5,6.5 0 0,1 15.5,30 L8,30 A7,7 0 0,1 8,16 A6.8,6.8 0 0,1 11,14 Z"/>
-    <path
-        android:fillColor="#FFFFFF"
-        android:pathData="M10.5,13 A5,5 0 0,1 15,16 A6,6 0 0,1 21,22.5 A5.5,5.5 0 0,1 15.5,28 L7.5,28 A6.5,6.5 0 0,1 7.5,15 A6.5,6.5 0 0,1 10.5,13 Z"/>
+        android:pathData="M5.4,19.5 C5.7,17.2 7.3,15.9 9.1,15.5 C10,12.9 12.3,11.4 14.8,11.4 C17.9,11.4 20.4,13.2 21.3,15.9"
+        android:strokeWidth="0.95"
+        android:strokeColor="#F5FFFFFF"
+        android:strokeLineCap="round" />
 </vector>

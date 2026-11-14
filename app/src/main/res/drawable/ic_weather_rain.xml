@@ -1,23 +1,76 @@
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:aapt="http://schemas.android.com/aapt"
     android:width="32dp"
     android:height="32dp"
     android:viewportWidth="32"
     android:viewportHeight="32">
-    <!-- White cloud -->
+
+    <!-- Cool Frosted Rain Cloud -->
+    <path android:pathData="M9.5,20 C5.8,20 3.5,17.7 3.5,14.6 C3.5,11.9 5.4,9.8 8,9.2 C9,6.4 11.7,4.7 14.8,4.7 C18.3,4.7 21.1,6.7 22,10 C24.6,10.4 26.5,12.3 26.5,14.9 C26.5,17.8 24.1,20 20.6,20 Z">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:startX="14"
+                android:startY="4.7"
+                android:endX="15"
+                android:endY="20"
+                android:startColor="#F0F7FC"
+                android:centerColor="#C3D9EC"
+                android:endColor="#8AA9C6"
+                android:type="linear" />
+        </aapt:attr>
+    </path>
+
+    <!-- Specular Crown -->
     <path
-        android:fillColor="#CFD8DC"
-        android:pathData="M11,6 A5.5,5.5 0 0,1 16.2,9.8 A7,7 0 0,1 24,16.5 A6.5,6.5 0 0,1 17.5,23 L8,23 A7.5,7.5 0 0,1 8,8 A7,7 0 0,1 11,6 Z"/>
+        android:pathData="M5.4,13.4 C5.7,11.2 7.3,9.9 9.1,9.5 C10,7 12.3,5.5 14.8,5.5 C17.9,5.5 20.4,7.3 21.3,9.9"
+        android:strokeWidth="0.9"
+        android:strokeColor="#E6FFFFFF"
+        android:strokeLineCap="round" />
+
+    <!-- Glossy Diagonal Rain Streaks -->
     <path
-        android:fillColor="#ECEFF1"
-        android:pathData="M10.5,5 A5.5,5.5 0 0,1 15.5,8.8 A6.5,6.5 0 0,1 23,15 A6,6 0 0,1 17,21 L7.5,21 A7,7 0 0,1 7.5,7 A6.5,6.5 0 0,1 10.5,5 Z"/>
-    <!-- Cyan Rain Drops -->
+        android:pathData="M10.2,22.5 L8.3,27.8"
+        android:strokeWidth="2.2"
+        android:strokeLineCap="round">
+        <aapt:attr name="android:strokeColor">
+            <gradient
+                android:startX="10.2"
+                android:startY="22.5"
+                android:endX="8.3"
+                android:endY="27.8"
+                android:startColor="#BAE6FD"
+                android:endColor="#0EA5E9"
+                android:type="linear" />
+        </aapt:attr>
+    </path>
     <path
-        android:fillColor="#00E5FF"
-        android:pathData="M9,24 L7.5,28.5 A1,1 0 0,0 9.4,29.1 L10.9,24.6 A1,1 0 0,0 9,24 Z"/>
+        android:pathData="M16,23.2 L14.1,28.5"
+        android:strokeWidth="2.2"
+        android:strokeLineCap="round">
+        <aapt:attr name="android:strokeColor">
+            <gradient
+                android:startX="16"
+                android:startY="23.2"
+                android:endX="14.1"
+                android:endY="28.5"
+                android:startColor="#BAE6FD"
+                android:endColor="#0EA5E9"
+                android:type="linear" />
+        </aapt:attr>
+    </path>
     <path
-        android:fillColor="#00E5FF"
-        android:pathData="M15,24 L13.5,28.5 A1,1 0 0,0 15.4,29.1 L16.9,24.6 A1,1 0 0,0 15,24 Z"/>
-    <path
-        android:fillColor="#00E5FF"
-        android:pathData="M21,24 L19.5,28.5 A1,1 0 0,0 21.4,29.1 L22.9,24.6 A1,1 0 0,0 21,24 Z"/>
+        android:pathData="M21.8,22.5 L19.9,27.8"
+        android:strokeWidth="2.2"
+        android:strokeLineCap="round">
+        <aapt:attr name="android:strokeColor">
+            <gradient
+                android:startX="21.8"
+                android:startY="22.5"
+                android:endX="19.9"
+                android:endY="27.8"
+                android:startColor="#BAE6FD"
+                android:endColor="#0EA5E9"
+                android:type="linear" />
+        </aapt:attr>
+    </path>
 </vector>

@@ -1,17 +1,57 @@
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:aapt="http://schemas.android.com/aapt"
     android:width="32dp"
     android:height="32dp"
     android:viewportWidth="32"
     android:viewportHeight="32">
-    <!-- Dark cloud -->
+
+    <!-- Electric Storm Glow Halo -->
+    <path android:pathData="M15.5,24m-7,0a7,7 0,1 1,14 0a7,7 0,1 1,-14 0">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:centerX="15.5"
+                android:centerY="24"
+                android:gradientRadius="7"
+                android:startColor="#4DFFCA28"
+                android:endColor="#00FFD600"
+                android:type="radial" />
+        </aapt:attr>
+    </path>
+
+    <!-- Storm Glass Cloud -->
+    <path android:pathData="M9.5,19.5 C5.8,19.5 3.5,17.2 3.5,14.1 C3.5,11.4 5.4,9.3 8,8.7 C9,5.9 11.7,4.2 14.8,4.2 C18.3,4.2 21.1,6.2 22,9.5 C24.6,9.9 26.5,11.8 26.5,14.4 C26.5,17.3 24.1,19.5 20.6,19.5 Z">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:startX="14"
+                android:startY="4.2"
+                android:endX="15"
+                android:endY="19.5"
+                android:startColor="#D8E5F2"
+                android:centerColor="#8FA7C0"
+                android:endColor="#5A7490"
+                android:type="linear" />
+        </aapt:attr>
+    </path>
+
+    <!-- Specular Top Crown -->
     <path
-        android:fillColor="#78909C"
-        android:pathData="M11,5 A5.5,5.5 0 0,1 16.2,8.8 A7,7 0 0,1 24,15.5 A6.5,6.5 0 0,1 17.5,22 L8,22 A7.5,7.5 0 0,1 8,7 A7,7 0 0,1 11,5 Z"/>
-    <path
-        android:fillColor="#90A4AE"
-        android:pathData="M10.5,4 A5.5,5.5 0 0,1 15.5,7.8 A6.5,6.5 0 0,1 23,14 A6,6 0 0,1 17,20 L7.5,20 A7,7 0 0,1 7.5,6 A6.5,6.5 0 0,1 10.5,4 Z"/>
-    <!-- Yellow Lightning Bolt -->
-    <path
-        android:fillColor="#FFD600"
-        android:pathData="M16,16 L11,24 L15,24 L13,31 L20,22 L16,22 Z"/>
+        android:pathData="M5.4,12.9 C5.7,10.7 7.3,9.4 9.1,9 C10,6.5 12.3,5 14.8,5 C17.9,5 20.4,6.8 21.3,9.4"
+        android:strokeWidth="0.9"
+        android:strokeColor="#CCFFFFFF"
+        android:strokeLineCap="round" />
+
+    <!-- Luminous Amber Glass Lightning Bolt -->
+    <path android:pathData="M16.5,15.5 L11.2,23 L15,23 L13.2,29.5 L20.5,21 L16.3,21 Z">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:startX="16"
+                android:startY="15.5"
+                android:endX="14"
+                android:endY="29.5"
+                android:startColor="#FFFDE7"
+                android:centerColor="#FFD600"
+                android:endColor="#FF9100"
+                android:type="linear" />
+        </aapt:attr>
+    </path>
 </vector>

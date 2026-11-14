@@ -1,21 +1,85 @@
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:aapt="http://schemas.android.com/aapt"
     android:width="32dp"
     android:height="32dp"
     android:viewportWidth="32"
     android:viewportHeight="32">
-    <!-- Dark storm cloud -->
+
+    <!-- Electric Glow -->
+    <path android:pathData="M13.5,23m-6.5,0a6.5,6.5 0,1 1,13 0a6.5,6.5 0,1 1,-13 0">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:centerX="13.5"
+                android:centerY="23"
+                android:gradientRadius="6.5"
+                android:startColor="#4DFFCA28"
+                android:endColor="#00FFD600"
+                android:type="radial" />
+        </aapt:attr>
+    </path>
+
+    <!-- Severe Storm Cloud -->
+    <path android:pathData="M9.5,19 C5.8,19 3.5,16.7 3.5,13.6 C3.5,10.9 5.4,8.8 8,8.2 C9,5.4 11.7,3.7 14.8,3.7 C18.3,3.7 21.1,5.7 22,9 C24.6,9.4 26.5,11.3 26.5,13.9 C26.5,16.8 24.1,19 20.6,19 Z">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:startX="14"
+                android:startY="3.7"
+                android:endX="15"
+                android:endY="19"
+                android:startColor="#CBD9E8"
+                android:centerColor="#7B93AC"
+                android:endColor="#4A627C"
+                android:type="linear" />
+        </aapt:attr>
+    </path>
+
+    <!-- Specular Top Crown -->
     <path
-        android:fillColor="#546E7A"
-        android:pathData="M11,4 A5.5,5.5 0 0,1 16.2,7.8 A7,7 0 0,1 24,14.5 A6.5,6.5 0 0,1 17.5,21 L8,21 A7.5,7.5 0 0,1 8,6 A7,7 0 0,1 11,4 Z"/>
-    <!-- Yellow Lightning Bolt -->
-    <path
-        android:fillColor="#FFD600"
-        android:pathData="M14,14 L10,21 L13,21 L11,28 L17,19 L14,19 Z"/>
-    <!-- Hail pellets -->
-    <path
-        android:fillColor="#E0F7FA"
-        android:pathData="M20,22 A2,2 0 1,0 20,26 A2,2 0 1,0 20,22 Z"/>
-    <path
-        android:fillColor="#E0F7FA"
-        android:pathData="M25,24 A1.8,1.8 0 1,0 25,27.6 A1.8,1.8 0 1,0 25,24 Z"/>
+        android:pathData="M5.4,12.4 C5.7,10.2 7.3,8.9 9.1,8.5 C10,6 12.3,4.5 14.8,4.5 C17.9,4.5 20.4,6.3 21.3,8.9"
+        android:strokeWidth="0.9"
+        android:strokeColor="#CCFFFFFF"
+        android:strokeLineCap="round" />
+
+    <!-- Lightning Bolt -->
+    <path android:pathData="M14.5,15 L9.8,21.8 L13.2,21.8 L11.5,28.5 L18,20.2 L14.4,20.2 Z">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:startX="14"
+                android:startY="15"
+                android:endX="12"
+                android:endY="28.5"
+                android:startColor="#FFFDE7"
+                android:centerColor="#FFD600"
+                android:endColor="#FF9100"
+                android:type="linear" />
+        </aapt:attr>
+    </path>
+
+    <!-- Faceted Ice Hail Pellets -->
+    <path android:pathData="M21,21.5 A2.1,2.1 0 1,0 21,25.7 A2.1,2.1 0 1,0 21,21.5 Z">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:startX="19.8"
+                android:startY="21.7"
+                android:endX="22.4"
+                android:endY="25.5"
+                android:startColor="#FFFFFFFF"
+                android:centerColor="#BAE6FD"
+                android:endColor="#38BDF8"
+                android:type="linear" />
+        </aapt:attr>
+    </path>
+    <path android:pathData="M25.8,24 A1.7,1.7 0 1,0 25.8,27.4 A1.7,1.7 0 1,0 25.8,24 Z">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:startX="24.8"
+                android:startY="24.2"
+                android:endX="26.8"
+                android:endY="27.2"
+                android:startColor="#FFFFFFFF"
+                android:centerColor="#BAE6FD"
+                android:endColor="#38BDF8"
+                android:type="linear" />
+        </aapt:attr>
+    </path>
 </vector>

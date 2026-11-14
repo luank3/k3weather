@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Atmospheric Cloudy Glass Slate-Blue -->
+    <item>
+        <shape android:shape="rectangle">
+            <gradient
+                android:angle="315"
+                android:startColor="#F526476D"
+                android:centerColor="#F53A628D"
+                android:endColor="#F55680AB"
+                android:type="linear" />
+            <corners android:radius="24dp" />
+        </shape>
+    </item>
+    <!-- Diffuse Overhead Cloud Light Glow -->
+    <item>
+        <shape android:shape="rectangle">
+            <gradient
+                android:type="radial"
+                android:gradientRadius="150dp"
+                android:centerX="0.82"
+                android:centerY="0.18"
+                android:startColor="#33E0F2FE"
+                android:endColor="#00FFFFFF" />
+            <corners android:radius="24dp" />
+        </shape>
+    </item>
+    <!-- Liquid Glass Specular Rim -->
+    <item>
+        <shape android:shape="rectangle">
+            <gradient
+                android:angle="270"
+                android:startColor="#29FFFFFF"
+                android:centerColor="#08FFFFFF"
+                android:endColor="#12FFFFFF"
+                android:type="linear" />
+            <stroke
+                android:width="0.9dp"
+                android:color="#4AFFFFFF" />
+            <corners android:radius="24dp" />
+        </shape>
+    </item>
+</layer-list>

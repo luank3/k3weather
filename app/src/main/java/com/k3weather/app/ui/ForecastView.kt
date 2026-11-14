@@ -1,13 +1,19 @@
 package com.k3weather.app.ui
 
+import android.animation.ValueAnimator
+import android.annotation.SuppressLint
 import android.content.Context
 import android.content.res.ColorStateList
 import android.graphics.Color
 import android.graphics.drawable.GradientDrawable
+import android.view.HapticFeedbackConstants
 import android.view.LayoutInflater
+import android.view.MotionEvent
 import android.view.View
+import android.view.ViewConfiguration
 import android.view.ViewGroup
 import android.widget.FrameLayout
+import android.widget.HorizontalScrollView
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
@@ -19,6 +25,7 @@ import com.k3weather.app.databinding.ItemDailyForecastBinding
 import com.k3weather.app.databinding.ItemHourlyForecastBinding
 import com.k3weather.app.databinding.LayoutForecastBinding
 import com.k3weather.app.ui.common.HeroWeatherArtworkView
+import com.k3weather.app.ui.common.MotionHelper
 import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -31,6 +38,11 @@ import kotlin.math.roundToInt
 class ForecastView(private val binding: LayoutForecastBinding) {
 
     private var showDailyChart = true
+    private var isInteractiveSetupDone = false
+    private var isScrubbingDaily = false
+    private var reduceMotion = false
+    private var lastBoundCityId: String? = null
+    private var dailyIndicatorAnimator: ValueAnimator? = null
 
     fun bind(
         state: WeatherUiState,
@@ -42,6 +54,13 @@ class ForecastView(private val binding: LayoutForecastBinding) {
         val context = binding.root.context
         val colorScheme = state.settings.colorScheme
         val accentColor = colorScheme.primaryAccent
+        reduceMotion = state.settings.reduceMotion
+
+        if (!isInteractiveSetupDone) {
+            isInteractiveSetupDone = true
+            MotionHelper.attachPressScale(binding.searchButton, pressedScale = 0.91f, hapticOnTap = true)
+            setupDailySwitch()
+        }
 
         binding.searchButton.setOnClickListener { onSearch() }
         binding.swipeRefresh.setColorSchemeColors(accentColor)
@@ -60,9 +79,17 @@ class ForecastView(private val binding: LayoutForecastBinding) {
             latitude = 16.0678,
             longitude = 108.2208
         )
+        val cityChanged = lastBoundCityId != null && lastBoundCityId != loc.id
+        if (forecast != null) {
+            lastBoundCityId = loc.id
+        }
 
-        // Location Hero Heading (Apple Weather style: clean place name + subtle uppercase subtitle)
-        binding.cityName.text = loc.name
+        // Location Hero Heading
+        if (cityChanged) {
+            MotionHelper.pulseTextChange(binding.cityName, loc.name, reduceMotion)
+        } else {
+            binding.cityName.text = loc.name
+        }
         val isCurrentLoc = loc.isCurrentLocation || loc.id == state.detectedCurrentLocation?.id
         val subtitleText = when {
             isCurrentLoc && loc.region.isNotBlank() && !loc.region.equals(loc.name, ignoreCase = true) ->
@@ -96,17 +123,23 @@ class ForecastView(private val binding: LayoutForecastBinding) {
         binding.heroWeatherArtwork.setTheme(effectiveTheme)
         binding.heroWeatherArtwork.setReduceMotion(state.settings.reduceMotion)
 
-        // Hero Temperature
-        binding.temperature.text = tempUnit.format(current.temperatureC)
-
-        // Single Concise Condition + Min/Max Range Summary
+        // Hero Temperature & Concise Summary (animated on city switch)
+        val newTemp = tempUnit.format(current.temperatureC)
         val conditionLabel = WeatherCodeMapper.getLocalizedLabel(context, current.weatherCode)
-        binding.condition.text = conditionLabel
-        binding.highLow.text = context.getString(
+        val newRange = context.getString(
             R.string.temp_range_slash_format,
             tempUnit.format(current.minTempC),
             tempUnit.format(current.maxTempC)
         )
+        if (cityChanged) {
+            MotionHelper.pulseTextChange(binding.temperature, newTemp, reduceMotion)
+            MotionHelper.pulseTextChange(binding.condition, conditionLabel, reduceMotion)
+            MotionHelper.pulseTextChange(binding.highLow, newRange, reduceMotion)
+        } else {
+            binding.temperature.text = newTemp
+            binding.condition.text = conditionLabel
+            binding.highLow.text = newRange
+        }
 
         // Hourly Forecast Ribbon (24-hour window)
         val hourlyWindow = forecast.hourly.take(24)
@@ -128,22 +161,10 @@ class ForecastView(private val binding: LayoutForecastBinding) {
             precipUnit = state.settings.precipitationUnit
         )
 
-        // Multi-Day Forecast: Dual-Curve Chart & 7-Day Range List with Segmented Toggle
+        // Multi-Day Forecast: Dual-Curve Chart & 7-Day Range List with Scrubbable Segmented Toggle
         binding.dailyTrendChart.setForecastDays(forecast.daily, tempUnit)
         setupWeeklyForecast(forecast, tempUnit, colorScheme)
-        applyDailyViewMode()
-        binding.btnDailyChart.setOnClickListener {
-            if (!showDailyChart) {
-                showDailyChart = true
-                applyDailyViewMode()
-            }
-        }
-        binding.btnDailyList.setOnClickListener {
-            if (showDailyChart) {
-                showDailyChart = false
-                applyDailyViewMode()
-            }
-        }
+        applyDailyViewMode(animate = false)
 
         // Compact 3-Column Metrics Grid
         val uvInt = current.uvIndexInt
@@ -190,20 +211,175 @@ class ForecastView(private val binding: LayoutForecastBinding) {
         binding.solarArcView.setProgress(dayProgress, current.isDay)
     }
 
-    private fun applyDailyViewMode() {
-        binding.dailyChartScroll.visibility = if (showDailyChart) View.VISIBLE else View.GONE
-        binding.dailyRows.visibility = if (showDailyChart) View.GONE else View.VISIBLE
-        if (showDailyChart) {
-            binding.btnDailyChart.setBackgroundResource(R.drawable.bg_segmented_selected)
-            binding.btnDailyChart.setTextColor(0xFFFFFFFF.toInt())
-            binding.btnDailyList.background = null
-            binding.btnDailyList.setTextColor(0x99FFFFFF.toInt())
-        } else {
-            binding.btnDailyList.setBackgroundResource(R.drawable.bg_segmented_selected)
-            binding.btnDailyList.setTextColor(0xFFFFFFFF.toInt())
-            binding.btnDailyChart.background = null
-            binding.btnDailyChart.setTextColor(0x99FFFFFF.toInt())
+    @SuppressLint("ClickableViewAccessibility")
+    private fun setupDailySwitch() {
+        binding.btnDailyChart.setOnClickListener {
+            if (!showDailyChart) {
+                binding.dailyToggleTrack.performHapticFeedback(HapticFeedbackConstants.CLOCK_TICK)
+                showDailyChart = true
+                applyDailyViewMode(animate = true)
+            }
         }
+        binding.btnDailyList.setOnClickListener {
+            if (showDailyChart) {
+                binding.dailyToggleTrack.performHapticFeedback(HapticFeedbackConstants.CLOCK_TICK)
+                showDailyChart = false
+                applyDailyViewMode(animate = true)
+            }
+        }
+
+        val touchSlop = ViewConfiguration.get(binding.root.context).scaledTouchSlop
+        var startRawX = 0f
+
+        val scrubListener = View.OnTouchListener { view, event ->
+            when (event.actionMasked) {
+                MotionEvent.ACTION_DOWN -> {
+                    startRawX = event.rawX
+                    isScrubbingDaily = false
+                    false
+                }
+                MotionEvent.ACTION_MOVE -> {
+                    val dx = kotlin.math.abs(event.rawX - startRawX)
+                    if (!isScrubbingDaily && dx > touchSlop * 0.25f) {
+                        isScrubbingDaily = true
+                        view.parent?.requestDisallowInterceptTouchEvent(true)
+                        binding.dailyToggleTrack.requestDisallowInterceptTouchEvent(true)
+                    }
+                    if (isScrubbingDaily) {
+                        val contentLoc = IntArray(2)
+                        binding.dailyToggleContent.getLocationOnScreen(contentLoc)
+                        val localX = (event.rawX - contentLoc[0]).coerceIn(
+                            0f,
+                            binding.dailyToggleContent.width.toFloat()
+                        )
+                        updateDailyIndicatorForScrub(localX)
+
+                        val midpoint = (binding.btnDailyChart.right + binding.btnDailyList.left) * 0.5f
+                        val targetChart = localX < midpoint
+                        if (targetChart != showDailyChart) {
+                            binding.dailyToggleTrack.performHapticFeedback(HapticFeedbackConstants.CLOCK_TICK)
+                            showDailyChart = targetChart
+                            applyDailyViewMode(animate = true, fromScrub = true)
+                        }
+                        true
+                    } else {
+                        false
+                    }
+                }
+                MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
+                    if (isScrubbingDaily) {
+                        isScrubbingDaily = false
+                        view.parent?.requestDisallowInterceptTouchEvent(false)
+                        binding.dailyToggleTrack.requestDisallowInterceptTouchEvent(false)
+                        positionDailyIndicator(immediate = reduceMotion)
+                        true
+                    } else {
+                        false
+                    }
+                }
+                else -> false
+            }
+        }
+
+        binding.btnDailyChart.setOnTouchListener(scrubListener)
+        binding.btnDailyList.setOnTouchListener(scrubListener)
+        binding.dailyToggleTrack.setOnTouchListener(scrubListener)
+        binding.dailyToggleContent.post {
+            positionDailyIndicator(immediate = true)
+        }
+    }
+
+    private fun updateDailyIndicatorForScrub(localX: Float) {
+        dailyIndicatorAnimator?.cancel()
+        val chartCenter = binding.btnDailyChart.left + binding.btnDailyChart.width * 0.5f
+        val listCenter = binding.btnDailyList.left + binding.btnDailyList.width * 0.5f
+        val span = (listCenter - chartCenter).coerceAtLeast(1f)
+        val frac = ((localX - chartCenter) / span).coerceIn(0f, 1f)
+
+        val interpW = (binding.btnDailyChart.width + (binding.btnDailyList.width - binding.btnDailyChart.width) * frac).toInt()
+        val interpX = binding.btnDailyChart.left + (binding.btnDailyList.left - binding.btnDailyChart.left) * frac
+        val lp = binding.dailyToggleIndicator.layoutParams
+        lp.width = interpW
+        binding.dailyToggleIndicator.layoutParams = lp
+        binding.dailyToggleIndicator.translationX = interpX
+    }
+
+    private fun positionDailyIndicator(immediate: Boolean) {
+        val target = if (showDailyChart) binding.btnDailyChart else binding.btnDailyList
+        val targetW = target.width
+        val targetX = target.left.toFloat()
+        if (targetW <= 0) return
+
+        dailyIndicatorAnimator?.cancel()
+        val lp = binding.dailyToggleIndicator.layoutParams
+        if (immediate) {
+            lp.width = targetW
+            binding.dailyToggleIndicator.layoutParams = lp
+            binding.dailyToggleIndicator.translationX = targetX
+            return
+        }
+
+        val startX = binding.dailyToggleIndicator.translationX
+        val startW = if (lp.width > 0) lp.width else targetW
+        dailyIndicatorAnimator = ValueAnimator.ofFloat(0f, 1f).apply {
+            duration = 210L
+            interpolator = MotionHelper.FLUID_EASE
+            addUpdateListener { va ->
+                val f = va.animatedFraction
+                binding.dailyToggleIndicator.translationX = startX + (targetX - startX) * f
+                val wLp = binding.dailyToggleIndicator.layoutParams
+                wLp.width = (startW + (targetW - startW) * f).toInt()
+                binding.dailyToggleIndicator.layoutParams = wLp
+            }
+            start()
+        }
+    }
+
+    private fun applyDailyViewMode(animate: Boolean, fromScrub: Boolean = false) {
+        binding.btnDailyChart.setTextColor(if (showDailyChart) 0xFFFFFFFF.toInt() else 0x99FFFFFF.toInt())
+        binding.btnDailyList.setTextColor(if (!showDailyChart) 0xFFFFFFFF.toInt() else 0x99FFFFFF.toInt())
+
+        if (!fromScrub) {
+            if (binding.btnDailyChart.width > 0) {
+                positionDailyIndicator(immediate = !animate || reduceMotion)
+            } else {
+                binding.dailyToggleContent.post { positionDailyIndicator(immediate = true) }
+            }
+        }
+
+        val incoming = if (showDailyChart) binding.dailyChartScroll else binding.dailyRows
+        val outgoing = if (showDailyChart) binding.dailyRows else binding.dailyChartScroll
+
+        if (!animate || reduceMotion) {
+            outgoing.animate().cancel()
+            incoming.animate().cancel()
+            outgoing.visibility = View.GONE
+            outgoing.alpha = 1f
+            outgoing.translationX = 0f
+            incoming.visibility = View.VISIBLE
+            incoming.alpha = 1f
+            incoming.translationX = 0f
+            return
+        }
+
+        val density = binding.root.resources.displayMetrics.density
+        val slideOffset = if (showDailyChart) -14f * density else 14f * density
+
+        outgoing.animate().cancel()
+        outgoing.visibility = View.GONE
+        outgoing.alpha = 1f
+        outgoing.translationX = 0f
+
+        incoming.animate().cancel()
+        incoming.visibility = View.VISIBLE
+        incoming.alpha = 0f
+        incoming.translationX = slideOffset
+        incoming.animate()
+            .alpha(1f)
+            .translationX(0f)
+            .setDuration(220L)
+            .setInterpolator(MotionHelper.FLUID_EASE)
+            .start()
     }
 
     private fun setupCityPills(state: WeatherUiState, onSelectCity: (LocationItem) -> Unit) {
@@ -224,6 +400,7 @@ class ForecastView(private val binding: LayoutForecastBinding) {
         val activeId = state.selectedLocation?.id ?: allCities.firstOrNull()?.id
         val pillHeightPx = (42 * density).toInt()
 
+        var activePill: View? = null
         allCities.forEach { city ->
             val isSelected = city.id == activeId
             val pill = LinearLayout(context).apply {
@@ -270,8 +447,19 @@ class ForecastView(private val binding: LayoutForecastBinding) {
                 addView(text)
 
                 setOnClickListener { onSelectCity(city) }
+                MotionHelper.attachPressScale(this, pressedScale = 0.94f, hapticOnTap = true)
             }
+            if (isSelected) activePill = pill
             binding.cityPillsContainer.addView(pill)
+        }
+
+        val targetPill = activePill
+        val scroller = binding.cityPillsContainer.parent as? HorizontalScrollView
+        if (targetPill != null && scroller != null) {
+            scroller.post {
+                val targetX = (targetPill.left - (scroller.width - targetPill.width) / 2).coerceAtLeast(0)
+                if (reduceMotion) scroller.scrollTo(targetX, 0) else scroller.smoothScrollTo(targetX, 0)
+            }
         }
     }
 

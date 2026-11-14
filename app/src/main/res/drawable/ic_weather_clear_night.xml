@@ -1,14 +1,51 @@
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:aapt="http://schemas.android.com/aapt"
     android:width="32dp"
     android:height="32dp"
     android:viewportWidth="32"
     android:viewportHeight="32">
-    <!-- Golden Crescent Moon -->
+
+    <!-- Cool Moonlight Ambient Glow -->
+    <path android:pathData="M15,16m-13,0a13,13 0,1 1,26 0a13,13 0,1 1,-26 0">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:centerX="15"
+                android:centerY="16"
+                android:gradientRadius="13"
+                android:startColor="#40FFF59D"
+                android:centerColor="#1A93C5FD"
+                android:endColor="#0038BDF8"
+                android:type="radial" />
+        </aapt:attr>
+    </path>
+
+    <!-- Luminous Glass Crescent Moon -->
+    <path android:pathData="M18.8,5 A10.8,10.8 0 1,0 26.8,20.8 A9.8,9.8 0 0,1 18.8,5 Z">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:startX="9"
+                android:startY="6"
+                android:endX="24"
+                android:endY="24"
+                android:startColor="#FFFDE7"
+                android:centerColor="#FFE082"
+                android:endColor="#F59E0B"
+                android:type="linear" />
+        </aapt:attr>
+    </path>
+
+    <!-- Specular Outer Crescent Edge -->
     <path
-        android:fillColor="#FFD54F"
-        android:pathData="M19.5,4 A12,12 0 1,0 28,21.5 A11,11 0 0,1 19.5,4 Z"/>
-    <!-- Small star sparkles -->
+        android:pathData="M16.2,5.6 A10.2,10.2 0 0,0 7.2,17.2"
+        android:strokeWidth="0.9"
+        android:strokeColor="#B3FFFFFF"
+        android:strokeLineCap="round" />
+
+    <!-- Starlight Sparkles -->
     <path
-        android:fillColor="#FFF59D"
-        android:pathData="M23,6 L23.8,8.2 L26,9 L23.8,9.8 L23,12 L22.2,9.8 L20,9 L22.2,8.2 Z"/>
+        android:fillColor="#FFFDE7"
+        android:pathData="M23.5,6.5 L24.2,8.6 L26.3,9.3 L24.2,10 L23.5,12.1 L22.8,10 L20.7,9.3 L22.8,8.6 Z" />
+    <path
+        android:fillColor="#BAE6FD"
+        android:pathData="M26.5,13.5 L26.9,14.6 L28,15 L26.9,15.4 L26.5,16.5 L26.1,15.4 L25,15 L26.1,14.6 Z" />
 </vector>

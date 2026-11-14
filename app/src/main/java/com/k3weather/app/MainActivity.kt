@@ -481,8 +481,8 @@ class MainActivity : AppCompatActivity() {
             val startX = binding.navActiveIndicator.translationX
             val startW = if (lp.width > 0) lp.width else targetWidth
             navIndicatorAnimator = android.animation.ValueAnimator.ofFloat(0f, 1f).apply {
-                duration = 200L
-                interpolator = DecelerateInterpolator()
+                duration = 230L
+                interpolator = com.k3weather.app.ui.common.MotionHelper.FLUID_EASE
                 addUpdateListener { va ->
                     val f = va.animatedFraction
                     binding.navActiveIndicator.translationX = startX + (targetX - startX) * f
@@ -673,9 +673,9 @@ class MainActivity : AppCompatActivity() {
             outgoingView.animate().cancel()
             outgoingView.animate()
                 .alpha(0f)
-                .translationX(-distance * 0.5f)
-                .setDuration(160)
-                .setInterpolator(AccelerateInterpolator())
+                .translationX(-distance * 0.45f)
+                .setDuration(170)
+                .setInterpolator(com.k3weather.app.ui.common.MotionHelper.FLUID_EASE)
                 .withEndAction {
                     outgoingView.visibility = View.GONE
                     outgoingView.translationX = 0f
@@ -690,8 +690,8 @@ class MainActivity : AppCompatActivity() {
             targetView.animate()
                 .alpha(1f)
                 .translationX(0f)
-                .setDuration(220)
-                .setInterpolator(DecelerateInterpolator())
+                .setDuration(240)
+                .setInterpolator(com.k3weather.app.ui.common.MotionHelper.FLUID_EASE)
                 .start()
         }
 
@@ -723,12 +723,16 @@ class MainActivity : AppCompatActivity() {
             binding.searchContainer.animate().cancel()
             binding.searchContainer.visibility = View.VISIBLE
             binding.searchContainer.alpha = 0f
-            binding.searchContainer.translationY = 40f * density
+            binding.searchContainer.translationY = 32f * density
+            binding.searchContainer.scaleX = 0.97f
+            binding.searchContainer.scaleY = 0.97f
             binding.searchContainer.animate()
                 .alpha(1f)
                 .translationY(0f)
-                .setDuration(220)
-                .setInterpolator(DecelerateInterpolator())
+                .scaleX(1f)
+                .scaleY(1f)
+                .setDuration(240)
+                .setInterpolator(com.k3weather.app.ui.common.MotionHelper.FLUID_EASE)
                 .start()
 
             binding.bottomNavBar.animate().cancel()
@@ -767,12 +771,16 @@ class MainActivity : AppCompatActivity() {
             binding.searchContainer.animate().cancel()
             binding.searchContainer.animate()
                 .alpha(0f)
-                .translationY(40f * density)
+                .translationY(32f * density)
+                .scaleX(0.97f)
+                .scaleY(0.97f)
                 .setDuration(180)
-                .setInterpolator(AccelerateInterpolator())
+                .setInterpolator(com.k3weather.app.ui.common.MotionHelper.FLUID_EASE)
                 .withEndAction {
                     binding.searchContainer.visibility = View.GONE
                     binding.searchContainer.translationY = 0f
+                    binding.searchContainer.scaleX = 1f
+                    binding.searchContainer.scaleY = 1f
                 }
                 .start()
 

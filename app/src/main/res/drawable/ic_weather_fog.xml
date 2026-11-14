@@ -1,12 +1,86 @@
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:aapt="http://schemas.android.com/aapt"
     android:width="32dp"
     android:height="32dp"
     android:viewportWidth="32"
     android:viewportHeight="32">
-    <!-- Mist / Fog lines -->
+
+    <!-- Soft Fog Ambient Glow -->
+    <path android:pathData="M16,14m-13,0a13,13 0,1 1,26 0a13,13 0,1 1,-26 0">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:centerX="16"
+                android:centerY="14"
+                android:gradientRadius="13"
+                android:startColor="#33BAE6FD"
+                android:centerColor="#14E0F2FE"
+                android:endColor="#00FFFFFF"
+                android:type="radial" />
+        </aapt:attr>
+    </path>
+
+    <!-- Frosted Cloud Partially Veiled in Mist -->
+    <path android:pathData="M10.5,17.5 C6.8,17.5 4.5,15.3 4.5,12.4 C4.5,9.8 6.4,7.8 9,7.3 C10,4.6 12.6,3 15.6,3 C19,3 21.8,5 22.7,8 C25.2,8.4 27,10.2 27,12.6 C27,15.4 24.8,17.5 21.5,17.5 Z">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:startX="16"
+                android:startY="3"
+                android:endX="16"
+                android:endY="18"
+                android:startColor="#F5FFFFFF"
+                android:centerColor="#D9E8F4"
+                android:endColor="#99B8D0E4"
+                android:type="linear" />
+        </aapt:attr>
+    </path>
+
+    <!-- Glass Specular Crown on Cloud -->
     <path
-        android:strokeColor="#FFFFFF"
-        android:strokeWidth="2.5"
-        android:strokeLineCap="round"
-        android:pathData="M6,10 L26,10 M4,16 L28,16 M7,22 L25,22 M10,27 L22,27"/>
+        android:pathData="M6.2,11.6 C6.5,9.4 8,8.1 9.8,7.7 C10.7,5.2 13,3.8 15.6,3.8 C18.6,3.8 21.1,5.5 22,8"
+        android:strokeWidth="0.9"
+        android:strokeColor="#D9FFFFFF"
+        android:strokeLineCap="round" />
+
+    <!-- Drifting Mist Banks (staggered soft glass ribbons) -->
+    <path android:pathData="M4,18.2 C4,17.5 4.6,17 5.3,17 L24.7,17 C25.4,17 26,17.5 26,18.2 C26,18.9 25.4,19.4 24.7,19.4 L5.3,19.4 C4.6,19.4 4,18.9 4,18.2 Z">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:startX="4"
+                android:startY="18.2"
+                android:endX="26"
+                android:endY="18.2"
+                android:startColor="#66E0F2FE"
+                android:centerColor="#F2FFFFFF"
+                android:endColor="#80BAE6FD"
+                android:type="linear" />
+        </aapt:attr>
+    </path>
+
+    <path android:pathData="M6.5,22.2 C6.5,21.5 7.1,21 7.8,21 L27.2,21 C27.9,21 28.5,21.5 28.5,22.2 C28.5,22.9 27.9,23.4 27.2,23.4 L7.8,23.4 C7.1,23.4 6.5,22.9 6.5,22.2 Z">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:startX="6.5"
+                android:startY="22.2"
+                android:endX="28.5"
+                android:endY="22.2"
+                android:startColor="#80BAE6FD"
+                android:centerColor="#E6FFFFFF"
+                android:endColor="#59E0F2FE"
+                android:type="linear" />
+        </aapt:attr>
+    </path>
+
+    <path android:pathData="M5,26.2 C5,25.5 5.6,25 6.3,25 L22.2,25 C22.9,25 23.5,25.5 23.5,26.2 C23.5,26.9 22.9,27.4 22.2,27.4 L6.3,27.4 C5.6,27.4 5,26.9 5,26.2 Z">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:startX="5"
+                android:startY="26.2"
+                android:endX="23.5"
+                android:endY="26.2"
+                android:startColor="#59E0F2FE"
+                android:centerColor="#CCFFFFFF"
+                android:endColor="#4D7DD3FC"
+                android:type="linear" />
+        </aapt:attr>
+    </path>
 </vector>

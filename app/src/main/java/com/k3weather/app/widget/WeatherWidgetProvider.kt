@@ -146,12 +146,18 @@ object WeatherWidgetUpdater {
         val windUnit = settings.windSpeedUnit
         val zoneId = runCatching { ZoneId.of(forecast.location.timezone) }.getOrDefault(ZoneId.systemDefault())
 
-        // Dynamic sky background based on day/night and precipitation
+        // Dynamic Liquid Glass sky background matched to condition and day/night
         val bgRes = when {
-            current.weatherCode in listOf(51, 53, 55, 61, 63, 65, 80, 81, 82, 95, 96, 99) ->
+            current.weatherCode in listOf(51, 53, 55, 56, 57, 61, 63, 65, 66, 67, 80, 81, 82, 95, 96, 99) ->
                 R.drawable.bg_widget_sky_rain
-            current.isDay -> R.drawable.bg_widget_sky_day
-            else -> R.drawable.bg_widget_sky_night
+            current.weatherCode in listOf(45, 48) ->
+                R.drawable.bg_widget_sky_fog
+            !current.isDay ->
+                R.drawable.bg_widget_sky_night
+            current.weatherCode in listOf(2, 3) ->
+                R.drawable.bg_widget_sky_cloudy
+            else ->
+                R.drawable.bg_widget_sky_day
         }
         views.setInt(R.id.widgetRoot, "setBackgroundResource", bgRes)
 

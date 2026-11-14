@@ -1,20 +1,61 @@
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:aapt="http://schemas.android.com/aapt"
     android:width="32dp"
     android:height="32dp"
     android:viewportWidth="32"
     android:viewportHeight="32">
-    <!-- Sun center -->
+
+    <!-- Warm Atmospheric Solar Halo -->
+    <path android:pathData="M16,16m-14,0a14,14 0,1 1,28 0a14,14 0,1 1,-28 0">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:centerX="16"
+                android:centerY="16"
+                android:gradientRadius="14"
+                android:startColor="#59FFE082"
+                android:centerColor="#26FFB300"
+                android:endColor="#00FF8F00"
+                android:type="radial" />
+        </aapt:attr>
+    </path>
+
+    <!-- Soft Glowing Solar Rays -->
     <path
-        android:fillColor="#FFB300"
-        android:pathData="M16,9 A7,7 0 1,0 23,16 A7,7 0 0,0 16,9 Z"/>
+        android:pathData="M16,2.8 L16,5.6 M16,26.4 L16,29.2 M2.8,16 L5.6,16 M26.4,16 L29.2,16 M6.7,6.7 L8.7,8.7 M23.3,23.3 L25.3,25.3 M6.7,25.3 L8.7,23.3 M23.3,8.7 L25.3,6.7"
+        android:strokeWidth="2.1"
+        android:strokeLineCap="round">
+        <aapt:attr name="android:strokeColor">
+            <gradient
+                android:startX="6"
+                android:startY="6"
+                android:endX="26"
+                android:endY="26"
+                android:startColor="#FFF59D"
+                android:centerColor="#FFCA28"
+                android:endColor="#FF8F00"
+                android:type="linear" />
+        </aapt:attr>
+    </path>
+
+    <!-- Luminous Liquid Glass Sun Sphere -->
+    <path android:pathData="M16,8.5 A7.5,7.5 0 1,0 23.5,16 A7.5,7.5 0 0,0 16,8.5 Z">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:startX="11"
+                android:startY="10"
+                android:endX="22"
+                android:endY="22"
+                android:startColor="#FFFDE7"
+                android:centerColor="#FFD54F"
+                android:endColor="#FF8F00"
+                android:type="linear" />
+        </aapt:attr>
+    </path>
+
+    <!-- Specular Rim Highlight -->
     <path
-        android:fillColor="#FFC107"
-        android:pathData="M16,10 A6,6 0 1,0 22,16 A6,6 0 0,0 16,10 Z"/>
-    <!-- Sun rays -->
-    <path
-        android:fillColor="#FFA000"
-        android:pathData="M16,2 L16,6 M16,26 L16,30 M2,16 L6,16 M26,16 L30,16 M6.1,6.1 L8.9,8.9 M23.1,23.1 L25.9,25.9 M6.1,25.9 L8.9,23.1 M23.1,8.9 L25.9,6.1"
-        android:strokeWidth="2.5"
-        android:strokeColor="#FFB300"
-        android:strokeLineCap="round"/>
+        android:pathData="M11.2,12.2 A6.2,6.2 0 0,1 19.6,11.2"
+        android:strokeWidth="1.0"
+        android:strokeColor="#CCFFFFFF"
+        android:strokeLineCap="round" />
 </vector>

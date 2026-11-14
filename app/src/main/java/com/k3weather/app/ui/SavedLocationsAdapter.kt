@@ -9,6 +9,7 @@ import com.k3weather.app.R
 import com.k3weather.app.core.model.*
 import com.k3weather.app.data.mapper.WeatherCodeMapper
 import com.k3weather.app.databinding.ItemSavedLocationBinding
+import com.k3weather.app.ui.common.MotionHelper
 import com.k3weather.app.ui.common.WeatherBackgroundHelper
 
 class SavedLocationsAdapter(
@@ -102,6 +103,7 @@ class SavedLocationsAdapter(
         )
 
         holder.binding.root.setOnClickListener { onSelect(location) }
+        MotionHelper.attachPressScale(holder.binding.root, pressedScale = 0.975f, hapticOnTap = true)
         if (location.isCurrentLocation) {
             holder.binding.deleteButton.setImageResource(R.drawable.ic_my_location)
             holder.binding.deleteButton.imageTintList = ColorStateList.valueOf(0xE6FFFFFF.toInt())
