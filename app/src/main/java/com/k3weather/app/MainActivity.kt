@@ -284,7 +284,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun resolveInitialLocation() {
         if (LocationResolver.hasLocationPermission(this)) {
-            resolveRealStartupLocation()
+            resolveRealStartupLocation(retryOnEmpty = true)
         } else {
             // Ask first; IP geolocation is used only if the user denies.
             startupLocationPending = true

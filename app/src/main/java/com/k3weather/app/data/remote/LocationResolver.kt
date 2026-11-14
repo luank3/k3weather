@@ -57,7 +57,7 @@ object LocationResolver {
             return null
         }
 
-        val fix = freshestLastKnown(lm, allCandidateProviders)
+val fix = freshestLastKnown(lm, allCandidateProviders)
             ?: if (activeProviders.isNotEmpty()) awaitFreshFix(context, lm, activeProviders, allCandidateProviders)
             else allCandidateProviders.mapNotNull { runCatching { lm.getLastKnownLocation(it) }.getOrNull() }.maxByOrNull { it.time }
         return fix?.let { withContext(Dispatchers.IO) { toLocationItem(context, it) } }
