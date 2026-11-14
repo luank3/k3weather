@@ -43,6 +43,7 @@ class ForecastView(private val binding: LayoutForecastBinding) {
     private var reduceMotion = false
     private var lastBoundCityId: String? = null
     private var dailyIndicatorAnimator: ValueAnimator? = null
+    private var dailyBarUpdaters: List<() -> Unit> = emptyList()
 
     fun bind(
         state: WeatherUiState,
@@ -106,12 +107,37 @@ class ForecastView(private val binding: LayoutForecastBinding) {
             binding.citySubtitle.visibility = View.GONE
         }
 
-        if (forecast == null) return
+        if (forecast == null) {
+            binding.temperature.text = "--"
+            binding.highLow.text = ""
+            binding.condition.text = when {
+                state.loading -> context.getString(R.string.forecast_loading)
+                !state.error.isNullOrBlank() -> context.getString(R.string.forecast_unavailable)
+                else -> ""
+            }
+            if (!state.error.isNullOrBlank() && !state.loading) {
+                binding.tvForecastStatus.visibility = View.VISIBLE
+                binding.tvForecastStatus.text = state.error
+                binding.tvForecastStatus.setOnClickListener { onRefresh() }
+            } else {
+                binding.tvForecastStatus.visibility = View.GONE
+                binding.tvForecastStatus.setOnClickListener(null)
+            }
+            binding.hourlyList.adapter = null
+            binding.dailyRows.removeAllViews()
+            dailyBarUpdaters = emptyList()
+            setForecastSectionsVisibility(View.GONE)
+            return
+        }
+
+        setForecastSectionsVisibility(View.VISIBLE)
 
         val current = forecast.current
         val tempUnit = state.settings.tempUnit
         val windUnit = state.settings.windSpeedUnit
         val locationZone = runCatching { ZoneId.of(forecast.location.timezone) }.getOrDefault(ZoneId.systemDefault())
+
+        updateForecastStatusBanner(context, forecast, state.error, locationZone, onRefresh)
 
         // Natural Atmosphere Theme derived directly from weather code & day/night
         val effectiveTheme = when {
@@ -149,7 +175,8 @@ class ForecastView(private val binding: LayoutForecastBinding) {
             unit = tempUnit,
             nowLabel = context.getString(R.string.time_now),
             accentColor = accentColor,
-            zoneId = locationZone
+            zoneId = locationZone,
+            isStale = forecast.isStale
         )
 
         // Data-backed Narrative Weather Description
@@ -162,8 +189,8 @@ class ForecastView(private val binding: LayoutForecastBinding) {
         )
 
         // Multi-Day Forecast: Dual-Curve Chart & 7-Day Range List with Scrubbable Segmented Toggle
-        binding.dailyTrendChart.setForecastDays(forecast.daily, tempUnit)
-        setupWeeklyForecast(forecast, tempUnit, colorScheme)
+        binding.dailyTrendChart.setForecastDays(forecast.daily, tempUnit, locationZone)
+        setupWeeklyForecast(forecast, tempUnit, colorScheme, locationZone)
         applyDailyViewMode(animate = false)
 
         // Compact 3-Column Metrics Grid
@@ -194,12 +221,7 @@ class ForecastView(private val binding: LayoutForecastBinding) {
         binding.tvPressureNote.text = state.settings.pressureUnit.format(current.surfacePressureHpa)
 
         // Visibility
-        val visStr = if (windUnit == WindSpeedUnit.MPH) {
-            "${(current.visibilityKm * 0.621371).roundToInt().coerceAtLeast(1)} mi"
-        } else {
-            "${current.visibilityKm.roundToInt().coerceAtLeast(1)} km"
-        }
-        binding.tvVisibilityValue.text = visStr
+        binding.tvVisibilityValue.text = formatVisibility(current.visibilityKm, windUnit)
 
         // Full-Width Sunrise & Sunset Progress Card
         val sunriseTime = formatIsoTime(current.sunriseIso, "05:48")
@@ -359,6 +381,9 @@ class ForecastView(private val binding: LayoutForecastBinding) {
             incoming.visibility = View.VISIBLE
             incoming.alpha = 1f
             incoming.translationX = 0f
+            if (!showDailyChart) {
+                binding.dailyRows.post { dailyBarUpdaters.forEach { it() } }
+            }
             return
         }
 
@@ -380,6 +405,9 @@ class ForecastView(private val binding: LayoutForecastBinding) {
             .setDuration(220L)
             .setInterpolator(MotionHelper.FLUID_EASE)
             .start()
+        if (!showDailyChart) {
+            binding.dailyRows.post { dailyBarUpdaters.forEach { it() } }
+        }
     }
 
     private fun setupCityPills(state: WeatherUiState, onSelectCity: (LocationItem) -> Unit) {
@@ -463,7 +491,12 @@ class ForecastView(private val binding: LayoutForecastBinding) {
         }
     }
 
-    private fun setupWeeklyForecast(forecast: ForecastData, tempUnit: TemperatureUnit, colorScheme: AppColorScheme) {
+    private fun setupWeeklyForecast(
+        forecast: ForecastData,
+        tempUnit: TemperatureUnit,
+        colorScheme: AppColorScheme,
+        locationZone: ZoneId
+    ) {
         val context = binding.root.context
         val daysToRender = forecast.daily.take(7)
         val minGlobal = daysToRender.minOfOrNull { it.minTempC } ?: 0.0
@@ -472,16 +505,18 @@ class ForecastView(private val binding: LayoutForecastBinding) {
 
         binding.dailyRows.removeAllViews()
         val currentLocale = context.resources.configuration.locales[0] ?: Locale.getDefault()
+        val todayDate = LocalDate.now(locationZone)
+        val updaters = mutableListOf<() -> Unit>()
 
         daysToRender.forEachIndexed { index, day ->
             val row = ItemDailyForecastBinding.inflate(LayoutInflater.from(context), binding.dailyRows, false)
 
-            val dayName = if (index == 0) {
+            val parsedDate = runCatching { LocalDate.parse(day.dateIso) }.getOrNull()
+            val isToday = parsedDate != null && parsedDate == todayDate
+            val dayName = if (isToday) {
                 context.getString(R.string.day_today)
             } else {
-                runCatching {
-                    LocalDate.parse(day.dateIso).format(DateTimeFormatter.ofPattern("EEE", currentLocale))
-                }.getOrDefault(day.dayLabel)
+                parsedDate?.format(DateTimeFormatter.ofPattern("EEE", currentLocale)) ?: day.dayLabel
             }
 
             row.dayLabel.text = dayName
@@ -507,9 +542,11 @@ class ForecastView(private val binding: LayoutForecastBinding) {
             }
             row.temperatureRange.background = barGradient
 
-            row.temperatureRangeContainer.post {
-                val totalWidth = row.temperatureRangeContainer.width.toFloat()
-                if (totalWidth > 0) {
+            val updateBar = {
+                val containerWidth = row.temperatureRangeContainer.width
+                if (containerWidth > 0 && (row.temperatureRangeContainer.tag as? Int) != containerWidth) {
+                    row.temperatureRangeContainer.tag = containerWidth
+                    val totalWidth = containerWidth.toFloat()
                     val minRatio = ((day.minTempC - minGlobal) / tempRange).coerceIn(0.0, 1.0).toFloat()
                     val maxRatio = ((day.maxTempC - minGlobal) / tempRange).coerceIn(0.0, 1.0).toFloat()
                     val minBarPx = (16 * context.resources.displayMetrics.density).toInt()
@@ -524,7 +561,7 @@ class ForecastView(private val binding: LayoutForecastBinding) {
                     lp.width = barWidth
                     row.temperatureRange.layoutParams = lp
 
-                    if (index == 0) {
+                    if (isToday && !forecast.isStale) {
                         row.currentTempDot.visibility = View.VISIBLE
                         val curRatio = ((forecast.current.temperatureC - minGlobal) / tempRange).coerceIn(0.0, 1.0).toFloat()
                         val dotSize = (8 * context.resources.displayMetrics.density).toInt()
@@ -538,6 +575,13 @@ class ForecastView(private val binding: LayoutForecastBinding) {
                     }
                 }
             }
+            updaters.add(updateBar)
+            row.temperatureRangeContainer.addOnLayoutChangeListener { v, _, _, _, _, _, _, _, _ ->
+                if (v.width > 0 && (v.tag as? Int) != v.width) {
+                    v.post(updateBar)
+                }
+            }
+            row.temperatureRangeContainer.post(updateBar)
 
             binding.dailyRows.addView(row.root)
 
@@ -552,6 +596,41 @@ class ForecastView(private val binding: LayoutForecastBinding) {
                 binding.dailyRows.addView(divider)
             }
         }
+        dailyBarUpdaters = updaters
+    }
+
+    private fun setForecastSectionsVisibility(visibility: Int) {
+        binding.cardHourly.visibility = visibility
+        binding.cardWeekly.visibility = visibility
+        binding.metricsRow1.visibility = visibility
+        binding.metricsRow2.visibility = visibility
+        binding.cardSolar.visibility = visibility
+    }
+
+    private fun updateForecastStatusBanner(
+        context: Context,
+        forecast: ForecastData,
+        error: String?,
+        zoneId: ZoneId,
+        onRefresh: () -> Unit
+    ) {
+        val showOffline = !error.isNullOrBlank()
+        if (!forecast.isStale && !showOffline) {
+            binding.tvForecastStatus.visibility = View.GONE
+            binding.tvForecastStatus.setOnClickListener(null)
+            return
+        }
+        val formattedTime = runCatching {
+            val fetchedZdt = Instant.ofEpochMilli(forecast.fetchedAtEpochMs).atZone(zoneId)
+            val nowZdt = ZonedDateTime.now(zoneId)
+            val pattern = if (fetchedZdt.toLocalDate() == nowZdt.toLocalDate()) "HH:mm" else "d/M HH:mm"
+            fetchedZdt.format(DateTimeFormatter.ofPattern(pattern, Locale.getDefault()))
+        }.getOrDefault("--:--")
+
+        val resId = if (showOffline) R.string.forecast_offline_stale_format else R.string.forecast_stale_format
+        binding.tvForecastStatus.visibility = View.VISIBLE
+        binding.tvForecastStatus.text = context.getString(resId, formattedTime)
+        binding.tvForecastStatus.setOnClickListener { onRefresh() }
     }
 
     private fun generateNarrativeDescription(
@@ -565,13 +644,14 @@ class ForecastView(private val binding: LayoutForecastBinding) {
         val windStr = windUnit.format(current.windSpeedKmh)
         val compass = degreesToCompass(context, current.windDirectionDeg)
         val precipStr = precipUnit.format(current.precipitationMm)
+        val visibilityStr = formatVisibility(current.visibilityKm, windUnit)
         return if (isVi) {
             val windPart = "Gió $compass $windStr, độ ẩm ${current.humidityPercent}%"
             when {
                 current.precipitationMm > 0.5 -> "Đang có mưa ($precipStr) • $windPart."
                 maxPop24h >= 40 -> "Khả năng mưa lên tới $maxPop24h% trong 24 giờ tới • $windPart."
                 current.uvIndex >= 6.0 && current.isDay -> "Chỉ số UV hiện tại ${current.uvIndexInt} • $windPart."
-                else -> "$windPart • Tầm nhìn ${current.visibilityKm.roundToInt().coerceAtLeast(1)} km."
+                else -> "$windPart • Tầm nhìn $visibilityStr."
             }
         } else {
             val windPart = "$compass wind at $windStr, ${current.humidityPercent}% humidity"
@@ -579,7 +659,7 @@ class ForecastView(private val binding: LayoutForecastBinding) {
                 current.precipitationMm > 0.5 -> "Active precipitation ($precipStr) • $windPart."
                 maxPop24h >= 40 -> "Rain chance up to $maxPop24h% over the next 24h • $windPart."
                 current.uvIndex >= 6.0 && current.isDay -> "UV index at ${current.uvIndexInt} • $windPart."
-                else -> "$windPart • Visibility ${current.visibilityKm.roundToInt().coerceAtLeast(1)} km."
+                else -> "$windPart • Visibility $visibilityStr."
             }
         }
     }
@@ -612,6 +692,25 @@ class ForecastView(private val binding: LayoutForecastBinding) {
             iso.substringAfter('T', fallback).take(5).ifBlank { fallback }
         }
     }
+
+    companion object {
+        internal fun formatVisibility(visibilityKm: Double, windUnit: WindSpeedUnit): String {
+            return if (windUnit == WindSpeedUnit.MPH) {
+                val miles = visibilityKm * 0.621371
+                if (miles < 1.0) {
+                    String.format(Locale.US, "%.1f mi", miles.coerceAtLeast(0.1))
+                } else {
+                    "${miles.roundToInt()} mi"
+                }
+            } else {
+                if (visibilityKm < 1.0) {
+                    "${(visibilityKm * 1000.0).roundToInt().coerceAtLeast(50)} m"
+                } else {
+                    "${visibilityKm.roundToInt()} km"
+                }
+            }
+        }
+    }
 }
 
 class ForecastBinder(private val view: ForecastView) {
@@ -629,8 +728,12 @@ private class HourlyAdapter(
     private val unit: TemperatureUnit,
     private val nowLabel: String,
     private val accentColor: Int,
-    private val zoneId: ZoneId
+    private val zoneId: ZoneId,
+    private val isStale: Boolean
 ) : RecyclerView.Adapter<HourlyAdapter.Holder>() {
+
+    private val nowEpochSec = Instant.now().epochSecond
+    private val todayDate = LocalDate.now(zoneId)
 
     class Holder(val binding: ItemHourlyForecastBinding) : RecyclerView.ViewHolder(binding.root)
 
@@ -641,23 +744,24 @@ private class HourlyAdapter(
 
     override fun onBindViewHolder(holder: Holder, position: Int) {
         val item = items[position]
-        val isNow = position == 0
+        val isCurrentHour = position == 0 && !isStale && kotlin.math.abs(nowEpochSec - item.timeEpochSeconds) < 5400L
 
-        if (isNow) {
+        if (isCurrentHour) {
             holder.binding.hourlyCard.setBackgroundResource(R.drawable.bg_hourly_card_active)
         } else {
             holder.binding.hourlyCard.setBackgroundResource(R.drawable.bg_hourly_card)
         }
 
-        holder.binding.hourTime.text = if (isNow) {
+        holder.binding.hourTime.text = if (isCurrentHour) {
             nowLabel
         } else {
             runCatching {
-                val instant = Instant.ofEpochSecond(item.timeEpochSeconds)
-                instant.atZone(zoneId).format(DateTimeFormatter.ofPattern("HH:mm", Locale.US))
+                val zdt = Instant.ofEpochSecond(item.timeEpochSeconds).atZone(zoneId)
+                val pattern = if (zdt.toLocalDate() == todayDate) "HH:mm" else "d/M HH:mm"
+                zdt.format(DateTimeFormatter.ofPattern(pattern, Locale.US))
             }.getOrDefault(item.timeLabel)
         }
-        holder.binding.hourTime.setTextColor(if (isNow) 0xFFFFFFFF.toInt() else 0xD9FFFFFF.toInt())
+        holder.binding.hourTime.setTextColor(if (isCurrentHour) 0xFFFFFFFF.toInt() else 0xD9FFFFFF.toInt())
         holder.binding.hourIcon.setImageResource(WeatherCodeMapper.getIcon(item.weatherCode, item.isDay))
         if (item.precipitationProbability >= 15) {
             holder.binding.hourPop.visibility = View.VISIBLE

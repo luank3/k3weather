@@ -222,6 +222,10 @@ object LocationResolver {
     }
 
     fun resolveIpLocation(): LocationItem? {
+        return resolvePrimaryIpLocation() ?: resolveSecondaryIpLocation()
+    }
+
+    private fun resolvePrimaryIpLocation(): LocationItem? {
         return try {
             val url = URL("https://ipwho.is/")
             val connection = (url.openConnection() as HttpURLConnection).apply {
@@ -232,73 +236,84 @@ object LocationResolver {
                 setRequestProperty("Accept", "application/json")
             }
 
-            if (connection.responseCode == 200) {
-                val responseText = connection.inputStream.bufferedReader().use { it.readText() }
-                val json = JSONObject(responseText)
-                if (json.optBoolean("success", false)) {
-                    val city = json.optString("city").takeIf { it.isNotBlank() } ?: "Current location"
-                    val region = json.optString("region", "")
-                    val country = json.optString("country", "")
-                    val lat = json.optDouble("latitude", Double.NaN)
-                    val lon = json.optDouble("longitude", Double.NaN)
-                    val tz = json.optJSONObject("timezone")?.optString("id", "auto") ?: "auto"
-
-                    if (!lat.isNaN() && !lon.isNaN()) {
-                        return LocationItem(
-                            id = "ip_${String.format(Locale.US, "%.4f_%.4f", lat, lon)}",
-                            name = city,
-                            region = region,
-                            country = country,
-                            latitude = lat,
-                            longitude = lon,
-                            timezone = tz,
-                            isCurrentLocation = true
-                        )
-                    }
+            try {
+                if (connection.responseCode == 200) {
+                    val responseText = connection.inputStream.bufferedReader().use { it.readText() }
+                    parseIpWhoIsJson(JSONObject(responseText))
+                } else {
+                    null
                 }
+            } finally {
+                connection.disconnect()
             }
-            null
         } catch (_: Exception) {
-            // Fallback to secondary endpoint if ipwho.is is unreachable
-            resolveSecondaryIpLocation()
+            null
         }
     }
 
     private fun resolveSecondaryIpLocation(): LocationItem? {
         return try {
-            val url = URL("http://ip-api.com/json/")
+            val url = URL("https://get.geojs.io/v1/ip/geo.json")
             val connection = (url.openConnection() as HttpURLConnection).apply {
                 requestMethod = "GET"
-                connectTimeout = 3000
-                readTimeout = 3000
-                setRequestProperty("User-Agent", "K3Weather/1.0")
+                connectTimeout = 3500
+                readTimeout = 3500
+                setRequestProperty("User-Agent", "K3Weather/1.0 (Android)")
+                setRequestProperty("Accept", "application/json")
             }
-            if (connection.responseCode == 200) {
-                val json = JSONObject(connection.inputStream.bufferedReader().use { it.readText() })
-                if (json.optString("status") == "success") {
-                    val city = json.optString("city").takeIf { it.isNotBlank() } ?: "Current location"
-                    val region = json.optString("regionName", "")
-                    val country = json.optString("country", "")
-                    val lat = json.optDouble("lat", Double.NaN)
-                    val lon = json.optDouble("lon", Double.NaN)
-                    val tz = json.optString("timezone", "auto")
-                    if (!lat.isNaN() && !lon.isNaN()) {
-                        return LocationItem(
-                            id = "ip_${String.format(Locale.US, "%.4f_%.4f", lat, lon)}",
-                            name = city,
-                            region = region,
-                            country = country,
-                            latitude = lat,
-                            longitude = lon,
-                            timezone = tz,
-                            isCurrentLocation = true
-                        )
-                    }
+            try {
+                if (connection.responseCode == 200) {
+                    val responseText = connection.inputStream.bufferedReader().use { it.readText() }
+                    parseGeoJsJson(JSONObject(responseText))
+                } else {
+                    null
                 }
+            } finally {
+                connection.disconnect()
             }
-            null
         } catch (_: Exception) {
             null
         }
+    }
+
+    internal fun parseIpWhoIsJson(json: JSONObject): LocationItem? {
+        if (!json.optBoolean("success", false)) return null
+        val lat = json.optDouble("latitude", Double.NaN)
+        val lon = json.optDouble("longitude", Double.NaN)
+        if (lat.isNaN() || lon.isNaN()) return null
+        val city = json.optString("city").takeIf { it.isNotBlank() } ?: "Current location"
+        val region = json.optString("region", "")
+        val country = json.optString("country", "")
+        val tz = json.optJSONObject("timezone")?.optString("id", "auto")?.ifBlank { "auto" } ?: "auto"
+        return LocationItem(
+            id = "ip_${String.format(Locale.US, "%.4f_%.4f", lat, lon)}",
+            name = city,
+            region = region,
+            country = country,
+            latitude = lat,
+            longitude = lon,
+            timezone = tz,
+            isCurrentLocation = true
+        )
+    }
+
+    internal fun parseGeoJsJson(json: JSONObject): LocationItem? {
+        val lat = json.optString("latitude").toDoubleOrNull() ?: json.optDouble("latitude", Double.NaN)
+        val lon = json.optString("longitude").toDoubleOrNull() ?: json.optDouble("longitude", Double.NaN)
+        if (lat.isNaN() || lon.isNaN()) return null
+        val city = json.optString("city").takeIf { it.isNotBlank() } ?: "Current location"
+        val region = json.optString("region", "")
+        val country = json.optString("country", "")
+        val tz = json.optString("timezone", "auto").ifBlank { "auto" }
+        return LocationItem(
+            id = "ip_${String.format(Locale.US, "%.4f_%.4f", lat, lon)}",
+            name = city,
+            region = region,
+            country = country,
+            latitude = lat,
+            longitude = lon,
+            timezone = tz,
+            isCurrentLocation = true
+        )
     }
 }

@@ -31,6 +31,10 @@
     <string name="time_now">Now</string>
     <string name="day_today">Today</string>
     <string name="showing_saved_forecast">Cached forecast • Tap to refresh</string>
+    <string name="forecast_loading">Loading forecast…</string>
+    <string name="forecast_unavailable">Weather unavailable</string>
+    <string name="forecast_stale_format">Cached · Updated %1$s</string>
+    <string name="forecast_offline_stale_format">Offline · Last updated %1$s</string>
     <string name="current_location">Current location</string>
     <string name="my_location">MY LOCATION</string>
     <string name="return_to_current_location">Switch to current location</string>

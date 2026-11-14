@@ -56,10 +56,6 @@ class HeroWeatherArtworkView @JvmOverloads constructor(
 
     private var animator: ValueAnimator? = null
 
-    init {
-        startAnimation()
-    }
-
     fun setTheme(newTheme: Theme) {
         if (theme != newTheme) {
             theme = newTheme
@@ -71,7 +67,7 @@ class HeroWeatherArtworkView @JvmOverloads constructor(
         if (reduceMotion != reduce) {
             reduceMotion = reduce
             if (reduce) {
-                animator?.cancel()
+                stopAnimation()
                 sunRotation = 0f
                 cloudOffset = 0f
                 rainPhase = 0.25f
@@ -79,14 +75,34 @@ class HeroWeatherArtworkView @JvmOverloads constructor(
                 auraScale = 1f
                 invalidate()
             } else {
+                updateAnimationState()
+            }
+        }
+    }
+
+    private fun stopAnimation() {
+        animator?.cancel()
+        animator = null
+    }
+
+    private fun updateAnimationState() {
+        val shouldAnimate = isAttachedToWindow &&
+            visibility == VISIBLE &&
+            windowVisibility == VISIBLE &&
+            isShown &&
+            !reduceMotion
+        if (shouldAnimate) {
+            if (animator?.isRunning != true) {
                 startAnimation()
             }
+        } else {
+            stopAnimation()
         }
     }
 
     private fun startAnimation() {
         if (reduceMotion) return
-        animator?.cancel()
+        stopAnimation()
         animator = ValueAnimator.ofFloat(0f, 1f).apply {
             duration = 10000L
             repeatCount = ValueAnimator.INFINITE
@@ -106,12 +122,22 @@ class HeroWeatherArtworkView @JvmOverloads constructor(
 
     override fun onDetachedFromWindow() {
         super.onDetachedFromWindow()
-        animator?.cancel()
+        stopAnimation()
     }
 
     override fun onAttachedToWindow() {
         super.onAttachedToWindow()
-        if (!reduceMotion && animator?.isStarted != true) startAnimation()
+        updateAnimationState()
+    }
+
+    override fun onVisibilityChanged(changedView: View, visibility: Int) {
+        super.onVisibilityChanged(changedView, visibility)
+        updateAnimationState()
+    }
+
+    override fun onWindowVisibilityChanged(visibility: Int) {
+        super.onWindowVisibilityChanged(visibility)
+        updateAnimationState()
     }
 
     override fun onDraw(canvas: Canvas) {

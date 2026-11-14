@@ -8,6 +8,7 @@ import android.content.IntentFilter
 import android.content.pm.PackageManager
 import android.content.res.ColorStateList
 import android.content.res.Configuration
+import android.content.res.Resources
 import android.graphics.drawable.GradientDrawable
 import android.location.Geocoder
 import android.location.Location
@@ -33,6 +34,7 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import com.k3weather.app.core.model.AppColorScheme
@@ -56,6 +58,7 @@ import com.k3weather.app.ui.SearchView
 import com.k3weather.app.ui.SettingsBinder
 import com.k3weather.app.ui.WeatherUiState
 import com.k3weather.app.ui.WeatherViewModel
+import com.k3weather.app.ui.WeatherViewModelFactory
 import com.k3weather.app.ui.common.HeroWeatherArtworkView
 import com.k3weather.app.ui.common.WeatherBackgroundHelper
 import kotlinx.coroutines.Dispatchers
@@ -96,6 +99,18 @@ class MainActivity : AppCompatActivity() {
     private var locationResolveJob: Job? = null
     private var locationDisabledToastShown = false
     private var wasLocationEnabled = false
+    private var lastLocationResolvedAtMs = 0L
+
+    private data class WidgetTriggerKey(
+        val detectedId: String?,
+        val selectedId: String?,
+        val currentForecastTs: Long?,
+        val selectedForecastTs: Long?,
+        val tempUnit: TemperatureUnit,
+        val windUnit: com.k3weather.app.core.model.WindSpeedUnit,
+        val language: String
+    )
+    private var lastWidgetTriggerKey: WidgetTriggerKey? = null
 
     private val locationProviderReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
@@ -150,7 +165,11 @@ class MainActivity : AppCompatActivity() {
         val repository = app.repository
         val initialSettings = app.preferences.getSettings()
         lastAppliedLanguage = initialSettings.language
-        viewModel = WeatherViewModel(repository, initialSettings)
+        lastAppliedLocaleTag = resolveLocaleForLanguage(initialSettings.language, resources.configuration).toLanguageTag()
+        viewModel = ViewModelProvider(
+            this,
+            WeatherViewModelFactory(repository, initialSettings)
+        )[WeatherViewModel::class.java]
 
         val initialTabName = savedInstanceState?.getString(KEY_ACTIVE_TAB)
             ?: intent.getStringExtra(KEY_ACTIVE_TAB)
@@ -334,17 +353,21 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun refreshLocationIfNeeded(fromResumeOrProviderChange: Boolean) {
+    private fun refreshLocationIfNeeded(
+        fromResumeOrProviderChange: Boolean,
+        forceLocationRefresh: Boolean = false
+    ) {
         if (!LocationResolver.hasLocationPermission(this)) return
         val enabled = LocationResolver.isLocationEnabled(this)
         val justEnabled = enabled && !wasLocationEnabled
         wasLocationEnabled = enabled
         if (!enabled) return
-        if (fromResumeOrProviderChange && !justEnabled && locationResolveJob?.isActive == true) return
+        if (!forceLocationRefresh && fromResumeOrProviderChange && !justEnabled && locationResolveJob?.isActive == true) return
         val cur = viewModel.state.value.detectedCurrentLocation
         val needsRealLocation = cur == null || cur.id.startsWith("ip_") || cur.id == LocationResolver.FALLBACK_DALAT.id
-        if (!fromResumeOrProviderChange || justEnabled || needsRealLocation) {
-            resolveRealStartupLocation(retryOnEmpty = justEnabled)
+        val isLocationStale = (System.currentTimeMillis() - lastLocationResolvedAtMs) >= LOCATION_REFRESH_INTERVAL_MS
+        if (forceLocationRefresh || !fromResumeOrProviderChange || justEnabled || needsRealLocation || isLocationStale) {
+            resolveRealStartupLocation(retryOnEmpty = justEnabled || forceLocationRefresh)
         }
     }
 
@@ -362,6 +385,7 @@ class MainActivity : AppCompatActivity() {
                 }
             }
             if (real != null) {
+                lastLocationResolvedAtMs = System.currentTimeMillis()
                 locationDisabledToastShown = false
                 applyDetectedLocation(real)
             } else {
@@ -392,13 +416,15 @@ class MainActivity : AppCompatActivity() {
         val hasExplicit = withContext(Dispatchers.IO) { repository.hasSelectedLocation() }
         val settings = withContext(Dispatchers.IO) { repository.getSettings() }
         val currentSelected = viewModel.state.value.selectedLocation
+            ?: if (hasExplicit) withContext(Dispatchers.IO) { repository.getSelectedLocation() } else null
         val isAutoSelected = currentSelected == null ||
             currentSelected.isCurrentLocation ||
             currentSelected.id.startsWith("ip_") ||
             currentSelected.id.startsWith("gps_") ||
             currentSelected.id.startsWith("current_") ||
             (currentSelected.id == LocationResolver.FALLBACK_DALAT.id && previousDetected == null)
-        if (!hasExplicit || settings.useCurrentLocation || isAutoSelected) {
+        val shouldSelectDetected = !hasExplicit || (settings.useCurrentLocation && isAutoSelected)
+        if (shouldSelectDetected) {
             viewModel.selectLocation(detected)
         }
     }
@@ -824,7 +850,7 @@ class MainActivity : AppCompatActivity() {
                         onSearch = { openSearch(SearchSource.FORECAST) },
                         onRefresh = {
                             viewModel.refresh(force = true)
-                            refreshLocationIfNeeded(fromResumeOrProviderChange = true)
+                            refreshLocationIfNeeded(fromResumeOrProviderChange = false, forceLocationRefresh = true)
                         },
                         onSelectCity = { location -> viewModel.selectLocation(location) }
                     )
@@ -832,8 +858,9 @@ class MainActivity : AppCompatActivity() {
                     // Keep active and current-location forecasts in savedForecasts map
                     state.forecast?.let { savedForecasts[it.location.id] = it }
                     val cur = state.detectedCurrentLocation
-                    if (cur != null && state.currentLocationForecast != null) {
-                        savedForecasts[cur.id] = state.currentLocationForecast
+                    val curForecast = state.currentLocationForecast
+                    if (cur != null && curForecast != null && curForecast.location.id == cur.id) {
+                        savedForecasts[cur.id] = curForecast
                     }
 
                     savedBinder.bind(state, savedForecasts)
@@ -861,7 +888,22 @@ class MainActivity : AppCompatActivity() {
                     )
 
                     updateMainBackground(state)
-                    com.k3weather.app.widget.WeatherWidgetUpdater.updateAllWidgets(this@MainActivity)
+                    val widgetKey = WidgetTriggerKey(
+                        detectedId = cur?.id,
+                        selectedId = state.selectedLocation?.id,
+                        currentForecastTs = curForecast?.fetchedAtEpochMs,
+                        selectedForecastTs = state.forecast?.fetchedAtEpochMs,
+                        tempUnit = state.settings.tempUnit,
+                        windUnit = state.settings.windSpeedUnit,
+                        language = state.settings.language
+                    )
+                    if (widgetKey != lastWidgetTriggerKey && (curForecast != null || state.forecast != null)) {
+                        lastWidgetTriggerKey = widgetKey
+                        com.k3weather.app.widget.WeatherWidgetUpdater.updateAllWidgets(
+                            this@MainActivity,
+                            allowNetwork = false
+                        )
+                    }
                 }
             }
         }
@@ -880,15 +922,31 @@ class MainActivity : AppCompatActivity() {
     }
 
     private var lastAppliedLanguage: String? = null
+    private var lastAppliedLocaleTag: String? = null
+
+    private fun resolveLocaleForLanguage(language: String, referenceConfig: Configuration = Resources.getSystem().configuration): Locale {
+        return when (language) {
+            "vi" -> Locale("vi")
+            "en" -> Locale("en")
+            else -> referenceConfig.locales[0] ?: Resources.getSystem().configuration.locales[0] ?: Locale.getDefault()
+        }
+    }
 
     override fun onConfigurationChanged(newConfig: Configuration) {
         super.onConfigurationChanged(newConfig)
         val lang = viewModel.state.value.settings.language
-        val locale = if (lang == "vi") Locale("vi") else Locale("en")
+        val locale = resolveLocaleForLanguage(lang, newConfig)
         val config = Configuration(newConfig)
         config.setLocale(locale)
         config.setLayoutDirection(locale)
         resources.updateConfiguration(config, resources.displayMetrics)
+        applicationContext.resources.updateConfiguration(config, resources.displayMetrics)
+
+        val newTag = locale.toLanguageTag()
+        if (lastAppliedLocaleTag != newTag) {
+            lastAppliedLocaleTag = newTag
+            reloadChildViews()
+        }
     }
 
     private fun applyLanguage(language: String) {
@@ -899,7 +957,8 @@ class MainActivity : AppCompatActivity() {
         if (lastAppliedLanguage == language) return
         lastAppliedLanguage = language
 
-        val locale = if (language == "vi") Locale("vi") else Locale("en")
+        val locale = resolveLocaleForLanguage(language)
+        lastAppliedLocaleTag = locale.toLanguageTag()
         Locale.setDefault(locale)
 
         val config = Configuration(resources.configuration)
@@ -949,7 +1008,7 @@ class MainActivity : AppCompatActivity() {
             onSearch = { openSearch(SearchSource.FORECAST) },
             onRefresh = {
                 viewModel.refresh(force = true)
-                refreshLocationIfNeeded(fromResumeOrProviderChange = true)
+                refreshLocationIfNeeded(fromResumeOrProviderChange = false, forceLocationRefresh = true)
             },
             onSelectCity = { location -> viewModel.selectLocation(location) }
         )
@@ -1026,6 +1085,7 @@ class MainActivity : AppCompatActivity() {
         lifecycleScope.launch {
             val real = LocationResolver.resolveRealLocation(this@MainActivity)
             if (real != null) {
+                lastLocationResolvedAtMs = System.currentTimeMillis()
                 viewModel.setDetectedCurrentLocation(real)
                 viewModel.selectLocation(real)
                 selectTab(Tab.FORECAST)
@@ -1038,5 +1098,6 @@ class MainActivity : AppCompatActivity() {
 
     companion object {
         private const val KEY_ACTIVE_TAB = "key_active_tab"
+        private const val LOCATION_REFRESH_INTERVAL_MS = 10 * 60 * 1000L
     }
 }

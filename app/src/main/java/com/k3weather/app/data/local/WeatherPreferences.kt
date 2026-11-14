@@ -6,8 +6,10 @@ import com.k3weather.app.core.model.*
 import org.json.JSONArray
 import org.json.JSONObject
 
-class WeatherPreferences(context: Context) {
-    private val prefs: SharedPreferences = context.getSharedPreferences("weather_preferences", Context.MODE_PRIVATE)
+class WeatherPreferences internal constructor(private val prefs: SharedPreferences) {
+    constructor(context: Context) : this(
+        context.getSharedPreferences("weather_preferences", Context.MODE_PRIVATE)
+    )
 
     fun getSettings(): AppSettings = runCatching {
         JSONObject(prefs.getString(KEY_SETTINGS, null) ?: "{}").let {
@@ -17,7 +19,7 @@ class WeatherPreferences(context: Context) {
                 precipitationUnit = runCatching { PrecipitationUnit.valueOf(it.optString("precipitationUnit", "MILLIMETERS")) }.getOrDefault(PrecipitationUnit.MILLIMETERS),
                 pressureUnit = runCatching { PressureUnit.valueOf(it.optString("pressureUnit", "HPA")) }.getOrDefault(PressureUnit.HPA),
                 weatherBackgroundsEnabled = it.optBoolean("weatherBackgroundsEnabled", true),
-                reduceMotion = false,
+                reduceMotion = it.optBoolean("reduceMotion", false),
                 useCurrentLocation = it.optBoolean("useCurrentLocation", true),
                 colorScheme = AppColorScheme.fromId(it.optString("colorScheme", "cyan")),
                 language = it.optString("language", "system"),
@@ -62,7 +64,11 @@ class WeatherPreferences(context: Context) {
     }
 
     fun setDetectedCurrentLocation(location: LocationItem) {
+        val previous = getDetectedCurrentLocation()
         prefs.edit().putString(KEY_CURRENT_LOCATION, location.toJson()).apply()
+        if (previous != null && previous.id != location.id) {
+            removeCachedIfUnused(previous.id)
+        }
     }
 
     fun getSavedLocations(): List<LocationItem> {
@@ -93,6 +99,63 @@ class WeatherPreferences(context: Context) {
             .put("location", location.toJsonObject())
             .put("data", data)
         prefs.edit().putString(KEY_CACHE_PREFIX + location.id, wrapper.toString()).apply()
+        pruneCaches(keepLocationId = location.id, nowMs = timestamp)
+    }
+
+    private fun removeCachedIfUnused(locationId: String) {
+        val protectedIds = buildProtectedLocationIds()
+        if (locationId !in protectedIds) {
+            prefs.edit().remove(KEY_CACHE_PREFIX + locationId).apply()
+        }
+    }
+
+    private fun buildProtectedLocationIds(): Set<String> {
+        val ids = mutableSetOf<String>()
+        runCatching { JSONArray(prefs.getString(KEY_LOCATIONS, null) ?: "[]").toLocations() }
+            .getOrDefault(emptyList())
+            .forEach { ids.add(it.id) }
+        getDetectedCurrentLocation()?.let { ids.add(it.id) }
+        prefs.getString(KEY_SELECTED, null)
+            ?.let { raw -> runCatching { JSONObject(raw).toLocation()?.id }.getOrNull() }
+            ?.let { ids.add(it) }
+        return ids
+    }
+
+    private fun pruneCaches(keepLocationId: String, nowMs: Long) {
+        val protectedIds = buildProtectedLocationIds() + keepLocationId
+        val cacheEntries = mutableListOf<Pair<String, Long>>()
+        val editor = prefs.edit()
+        var dirty = false
+
+        for ((key, value) in prefs.all) {
+            if (!key.startsWith(KEY_CACHE_PREFIX)) continue
+            val locId = key.removePrefix(KEY_CACHE_PREFIX)
+            if (locId in protectedIds) {
+                cacheEntries.add(key to Long.MAX_VALUE)
+                continue
+            }
+            val ts = runCatching { JSONObject(value as? String ?: "").optLong("timestamp", 0L) }.getOrDefault(0L)
+            if (ts <= 0L || (nowMs - ts) > MAX_CACHE_AGE_MS) {
+                editor.remove(key)
+                dirty = true
+            } else {
+                cacheEntries.add(key to ts)
+            }
+        }
+
+        if (cacheEntries.size > MAX_CACHED_FORECASTS) {
+            val evictCount = cacheEntries.size - MAX_CACHED_FORECASTS
+            cacheEntries
+                .filter { it.second != Long.MAX_VALUE }
+                .sortedBy { it.second }
+                .take(evictCount)
+                .forEach { (key, _) ->
+                    editor.remove(key)
+                    dirty = true
+                }
+        }
+
+        if (dirty) editor.apply()
     }
 
     fun parseLocationFromJson(obj: JSONObject?): LocationItem? = obj?.toLocation()
@@ -111,6 +174,7 @@ class WeatherPreferences(context: Context) {
         val updated = locations.filterNot { it.id == id }
         if (updated.size == locations.size) return false
         saveLocations(updated)
+        removeCachedIfUnused(id)
         return true
     }
 
@@ -143,6 +207,8 @@ class WeatherPreferences(context: Context) {
         private const val KEY_SELECTED = "selected_location"
         private const val KEY_CURRENT_LOCATION = "detected_current_location"
         private const val KEY_CACHE_PREFIX = "forecast_"
+        private const val MAX_CACHED_FORECASTS = 16
+        private const val MAX_CACHE_AGE_MS = 7 * 24 * 60 * 60 * 1000L
         val DEFAULT_LOCATIONS = listOf(
             LocationItem("1584071", "Đà Lạt", "Lâm Đồng", "Vietnam", 11.94646, 108.44193),
             LocationItem("1583992", "Đà Nẵng", "Đà Nẵng", "Vietnam", 16.06778, 108.22083),

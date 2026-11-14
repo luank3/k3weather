@@ -7,6 +7,7 @@ import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.content.res.Configuration
+import android.content.res.Resources
 import android.os.Bundle
 import android.view.View
 import android.widget.RemoteViews
@@ -20,13 +21,19 @@ import com.k3weather.app.data.local.WeatherPreferences
 import com.k3weather.app.data.mapper.WeatherCodeMapper
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.withTimeoutOrNull
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.util.Locale
+import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.atomic.AtomicLong
 
 enum class WidgetSize {
     SMALL, MEDIUM, LARGE
@@ -41,10 +48,20 @@ open class BaseWeatherWidgetProvider(
         appWidgetManager: AppWidgetManager,
         appWidgetIds: IntArray
     ) {
-        for (appWidgetId in appWidgetIds) {
+        if (appWidgetIds.isEmpty()) return
+        val targets = appWidgetIds.map { appWidgetId ->
             val options = appWidgetManager.getAppWidgetOptions(appWidgetId)
-            val effectiveSize = resolveWidgetSize(options, defaultSize)
-            WeatherWidgetUpdater.updateWidget(context, appWidgetManager, appWidgetId, effectiveSize)
+            appWidgetId to resolveWidgetSize(options, defaultSize)
+        }
+        val pendingResult = runCatching { goAsync() }.getOrNull()
+        WeatherWidgetUpdater.scope.launch {
+            try {
+                withTimeoutOrNull(BROADCAST_TIMEOUT_MS) {
+                    WeatherWidgetUpdater.updateWidgetsSuspend(context, appWidgetManager, targets, allowNetwork = true)
+                }
+            } finally {
+                pendingResult?.finish()
+            }
         }
     }
 
@@ -56,10 +73,26 @@ open class BaseWeatherWidgetProvider(
     ) {
         super.onAppWidgetOptionsChanged(context, appWidgetManager, appWidgetId, newOptions)
         val effectiveSize = resolveWidgetSize(newOptions, defaultSize)
-        WeatherWidgetUpdater.updateWidget(context, appWidgetManager, appWidgetId, effectiveSize)
+        val pendingResult = runCatching { goAsync() }.getOrNull()
+        WeatherWidgetUpdater.scope.launch {
+            try {
+                withTimeoutOrNull(BROADCAST_TIMEOUT_MS) {
+                    WeatherWidgetUpdater.updateWidgetsSuspend(
+                        context,
+                        appWidgetManager,
+                        listOf(appWidgetId to effectiveSize),
+                        allowNetwork = true
+                    )
+                }
+            } finally {
+                pendingResult?.finish()
+            }
+        }
     }
 
     companion object {
+        private const val BROADCAST_TIMEOUT_MS = 8_500L
+
         fun resolveWidgetSize(options: Bundle?, fallback: WidgetSize): WidgetSize {
             if (options == null) return fallback
             val minWidth = options.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH, 0)
@@ -79,9 +112,12 @@ class WeatherWidgetMediumProvider : BaseWeatherWidgetProvider(WidgetSize.MEDIUM)
 class WeatherWidgetLargeProvider : BaseWeatherWidgetProvider(WidgetSize.LARGE)
 
 object WeatherWidgetUpdater {
-    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+    internal val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+    private val widgetSeq = ConcurrentHashMap<Int, AtomicLong>()
+    private val widgetMutex = ConcurrentHashMap<Int, Mutex>()
+    private var refreshAllJob: Job? = null
 
-    fun updateAllWidgets(context: Context) {
+    fun updateAllWidgets(context: Context, allowNetwork: Boolean = false) {
         val appContext = context.applicationContext
         val manager = AppWidgetManager.getInstance(appContext)
         val providers = listOf(
@@ -89,13 +125,20 @@ object WeatherWidgetUpdater {
             ComponentName(appContext, WeatherWidgetMediumProvider::class.java) to WidgetSize.MEDIUM,
             ComponentName(appContext, WeatherWidgetLargeProvider::class.java) to WidgetSize.LARGE
         )
+        val targets = mutableListOf<Pair<Int, WidgetSize>>()
         for ((component, fallbackSize) in providers) {
             val ids = manager.getAppWidgetIds(component)
             for (id in ids) {
                 val options = manager.getAppWidgetOptions(id)
                 val effectiveSize = BaseWeatherWidgetProvider.resolveWidgetSize(options, fallbackSize)
-                updateWidget(appContext, manager, id, effectiveSize)
+                targets.add(id to effectiveSize)
             }
+        }
+        if (targets.isEmpty()) return
+
+        refreshAllJob?.cancel()
+        refreshAllJob = scope.launch {
+            updateWidgetsSuspend(appContext, manager, targets, allowNetwork = allowNetwork)
         }
     }
 
@@ -103,27 +146,66 @@ object WeatherWidgetUpdater {
         context: Context,
         appWidgetManager: AppWidgetManager,
         appWidgetId: Int,
-        size: WidgetSize
+        size: WidgetSize,
+        allowNetwork: Boolean = true
     ) {
-        val appContext = context.applicationContext
         scope.launch {
-            val prefs = WeatherPreferences(appContext)
-            val repo = WeatherRepositoryImpl(prefs)
-            val settings = repo.getSettings()
-            val locContext = localizedContext(appContext, settings.language)
+            updateWidgetsSuspend(context, appWidgetManager, listOf(appWidgetId to size), allowNetwork = allowNetwork)
+        }
+    }
 
-            val location = repo.getDetectedCurrentLocation() ?: repo.getSelectedLocation()
-            val cached = repo.getCachedForecast(location.id)
-                ?: repo.getCachedForecast(repo.getSelectedLocation().id)
+    internal suspend fun updateWidgetsSuspend(
+        context: Context,
+        appWidgetManager: AppWidgetManager,
+        targets: List<Pair<Int, WidgetSize>>,
+        allowNetwork: Boolean
+    ) {
+        if (targets.isEmpty()) return
+        val appContext = context.applicationContext
+        val tokens = targets.associate { (id, _) ->
+            id to widgetSeq.getOrPut(id) { AtomicLong(0L) }.incrementAndGet()
+        }
 
-            if (cached != null) {
-                val views = buildRemoteViews(locContext, size, location, cached, settings)
-                appWidgetManager.updateAppWidget(appWidgetId, views)
+        val prefs = WeatherPreferences(appContext)
+        val repo = WeatherRepositoryImpl(prefs)
+        val settings = repo.getSettings()
+        val locContext = localizedContext(appContext, settings.language)
+
+        val targetLocation = repo.getDetectedCurrentLocation() ?: repo.getSelectedLocation()
+        val ownCached = repo.getCachedForecast(targetLocation.id)
+        val selectedCached = if (ownCached == null) {
+            val selected = repo.getSelectedLocation()
+            if (selected.id != targetLocation.id) repo.getCachedForecast(selected.id) else null
+        } else {
+            null
+        }
+        val initialForecast = ownCached ?: selectedCached
+
+        if (initialForecast != null) {
+            for ((widgetId, size) in targets) {
+                val token = tokens[widgetId] ?: continue
+                val mutex = widgetMutex.getOrPut(widgetId) { Mutex() }
+                mutex.withLock {
+                    if (widgetSeq[widgetId]?.get() == token) {
+                        val views = buildRemoteViews(locContext, size, initialForecast.location, initialForecast, settings)
+                        appWidgetManager.updateAppWidget(widgetId, views)
+                    }
+                }
             }
+        }
 
-            repo.getForecast(location, forceRefresh = false).onSuccess { fresh ->
-                val freshViews = buildRemoteViews(locContext, size, fresh.location, fresh, settings)
-                appWidgetManager.updateAppWidget(appWidgetId, freshViews)
+        if (!allowNetwork) return
+
+        repo.getForecast(targetLocation, forceRefresh = false).onSuccess { fresh ->
+            for ((widgetId, size) in targets) {
+                val token = tokens[widgetId] ?: continue
+                val mutex = widgetMutex.getOrPut(widgetId) { Mutex() }
+                mutex.withLock {
+                    if (widgetSeq[widgetId]?.get() == token) {
+                        val freshViews = buildRemoteViews(locContext, size, fresh.location, fresh, settings)
+                        appWidgetManager.updateAppWidget(widgetId, freshViews)
+                    }
+                }
             }
         }
     }
@@ -213,15 +295,18 @@ object WeatherWidgetUpdater {
             )
             val hours = forecast.hourly.take(5)
             val nowLabel = context.getString(R.string.time_now)
+            val nowEpochSec = Instant.now().epochSecond
+            val todayDate = LocalDate.now(zoneId)
             for (i in 0 until 5) {
                 val h = hours.getOrNull(i) ?: continue
-                val timeStr = if (i == 0) {
+                val isCurrentHour = i == 0 && !forecast.isStale && kotlin.math.abs(nowEpochSec - h.timeEpochSeconds) < 5400L
+                val timeStr = if (isCurrentHour) {
                     nowLabel
                 } else {
                     runCatching {
-                        Instant.ofEpochSecond(h.timeEpochSeconds)
-                            .atZone(zoneId)
-                            .format(DateTimeFormatter.ofPattern("HH:mm", Locale.US))
+                        val zdt = Instant.ofEpochSecond(h.timeEpochSeconds).atZone(zoneId)
+                        val pattern = if (zdt.toLocalDate() == todayDate) "HH:mm" else "d/M HH:mm"
+                        zdt.format(DateTimeFormatter.ofPattern(pattern, Locale.US))
                     }.getOrDefault(h.timeLabel)
                 }
                 views.setTextViewText(timeIds[i], timeStr)
@@ -249,15 +334,15 @@ object WeatherWidgetUpdater {
             val dayMaxIds = intArrayOf(R.id.widgetDayMax1, R.id.widgetDayMax2, R.id.widgetDayMax3)
 
             val locale = context.resources.configuration.locales[0] ?: Locale.getDefault()
+            val todayDate = LocalDate.now(zoneId)
             val days = forecast.daily.take(3)
             for (i in 0 until 3) {
                 val d = days.getOrNull(i) ?: continue
-                val dayName = if (i == 0) {
+                val parsedDate = runCatching { LocalDate.parse(d.dateIso) }.getOrNull()
+                val dayName = if (parsedDate != null && parsedDate == todayDate) {
                     context.getString(R.string.day_today)
                 } else {
-                    runCatching {
-                        LocalDate.parse(d.dateIso).format(DateTimeFormatter.ofPattern("EEE", locale))
-                    }.getOrDefault(d.dayLabel)
+                    parsedDate?.format(DateTimeFormatter.ofPattern("EEE", locale)) ?: d.dayLabel
                 }
                 views.setTextViewText(dayLabelIds[i], dayName)
                 views.setImageViewResource(dayIconIds[i], WeatherCodeMapper.getIcon(d.weatherCode, isDay = true))
@@ -287,7 +372,7 @@ object WeatherWidgetUpdater {
         val locale = when (lang) {
             "vi" -> Locale("vi")
             "en" -> Locale("en")
-            else -> Locale.getDefault()
+            else -> Resources.getSystem().configuration.locales[0] ?: Locale.getDefault()
         }
         val config = Configuration(context.resources.configuration)
         config.setLocale(locale)

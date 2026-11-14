@@ -31,6 +31,10 @@
     <string name="time_now">Hiện tại</string>
     <string name="day_today">Hôm nay</string>
     <string name="showing_saved_forecast">Dữ liệu đã lưu • Chạm để làm mới</string>
+    <string name="forecast_loading">Đang tải thời tiết…</string>
+    <string name="forecast_unavailable">Không có dữ liệu thời tiết</string>
+    <string name="forecast_stale_format">Đã lưu · Cập nhật %1$s</string>
+    <string name="forecast_offline_stale_format">Ngoại tuyến · Cập nhật %1$s</string>
     <string name="current_location">Vị trí hiện tại</string>
     <string name="my_location">VỊ TRÍ CỦA TÔI</string>
     <string name="return_to_current_location">Về vị trí hiện tại</string>

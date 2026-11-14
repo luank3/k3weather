@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.swiperefreshlayout.widget.SwipeRefreshLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/swipeRefresh"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
@@ -91,7 +92,8 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:gravity="center"
-                        android:text="Phong Phú"
+                        android:text=""
+                        tools:text="Phong Phú"
                         android:textColor="@android:color/white"
                         android:textSize="28sp"
                         android:includeFontPadding="false"
@@ -107,7 +109,8 @@
                         android:layout_height="wrap_content"
                         android:layout_marginTop="4dp"
                         android:gravity="center"
-                        android:text="MY LOCATION"
+                        android:text=""
+                        tools:text="MY LOCATION"
                         android:textAllCaps="true"
                         android:textColor="#B3FFFFFF"
                         android:textSize="10.5sp"
@@ -128,7 +131,8 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="6dp"
-                    android:text="26°"
+                    android:text="--"
+                    tools:text="26°"
                     android:textColor="@android:color/white"
                     android:textSize="86sp"
                     android:letterSpacing="-0.03"
@@ -151,7 +155,8 @@
                         android:id="@+id/condition"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="U ám"
+                        android:text=""
+                        tools:text="U ám"
                         android:textColor="#F5FFFFFF"
                         android:textSize="16sp"
                         android:fontFamily="sans-serif-medium"
@@ -165,7 +170,8 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginStart="10dp"
-                        android:text="22° / 27°"
+                        android:text=""
+                        tools:text="22° / 27°"
                         android:textColor="#E6FFFFFF"
                         android:textSize="16sp"
                         android:fontFamily="sans-serif"
@@ -174,10 +180,26 @@
                         android:shadowDy="1"
                         android:shadowRadius="4" />
                 </LinearLayout>
+
+                <TextView
+                    android:id="@+id/tvForecastStatus"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:background="@drawable/bg_pill_accent_translucent"
+                    android:paddingHorizontal="12dp"
+                    android:paddingVertical="4dp"
+                    android:textColor="#E6FFFFFF"
+                    android:textSize="11.5sp"
+                    android:fontFamily="sans-serif-medium"
+                    android:visibility="gone"
+                    tools:text="Cached · Updated 14:20"
+                    tools:visibility="visible" />
             </LinearLayout>
 
             <!-- HOURLY FORECAST CARD -->
             <LinearLayout
+                android:id="@+id/cardHourly"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="12dp"
@@ -217,6 +239,7 @@
 
             <!-- MULTI-DAY FORECAST CARD (Chart & List Segmented Toggle) -->
             <LinearLayout
+                android:id="@+id/cardWeekly"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="12dp"
@@ -331,6 +354,7 @@
 
             <!-- COMPACT 3-COLUMN WEATHER METRICS GRID (ROW 1: UV, Feels Like, Humidity) -->
             <LinearLayout
+                android:id="@+id/metricsRow1"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="12dp"
@@ -381,7 +405,8 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:includeFontPadding="false"
-                            android:text="2"
+                            android:text=""
+                            tools:text="2"
                             android:textColor="@android:color/white"
                             android:textSize="21sp"
                             android:fontFamily="sans-serif-medium" />
@@ -394,7 +419,8 @@
                             android:layout_marginStart="4dp"
                             android:ellipsize="end"
                             android:maxLines="1"
-                            android:text="Thấp"
+                            android:text=""
+                            tools:text="Thấp"
                             android:textColor="#D9FFFFFF"
                             android:textSize="11sp"
                             android:fontFamily="sans-serif-medium" />
@@ -440,7 +466,8 @@
                         android:layout_height="wrap_content"
                         android:includeFontPadding="false"
                         android:maxLines="1"
-                        android:text="28°"
+                        android:text=""
+                        tools:text="28°"
                         android:textColor="@android:color/white"
                         android:textSize="21sp"
                         android:fontFamily="sans-serif-medium" />
@@ -485,7 +512,8 @@
                         android:layout_height="wrap_content"
                         android:includeFontPadding="false"
                         android:maxLines="1"
-                        android:text="81%"
+                        android:text=""
+                        tools:text="81%"
                         android:textColor="@android:color/white"
                         android:textSize="21sp"
                         android:fontFamily="sans-serif-medium" />
@@ -494,6 +522,7 @@
 
             <!-- COMPACT 3-COLUMN WEATHER METRICS GRID (ROW 2: Wind, Pressure, Visibility) -->
             <LinearLayout
+                android:id="@+id/metricsRow2"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="10dp"
@@ -524,7 +553,8 @@
                         android:layout_marginTop="6dp"
                         android:ellipsize="end"
                         android:maxLines="1"
-                        android:text="Gió Tây Bắc"
+                        android:text=""
+                        tools:text="Gió Tây Bắc"
                         android:textColor="#99FFFFFF"
                         android:textSize="11.5sp"
                         android:fontFamily="sans-serif" />
@@ -541,7 +571,8 @@
                         android:ellipsize="end"
                         android:includeFontPadding="false"
                         android:maxLines="1"
-                        android:text="13 km/h"
+                        android:text=""
+                        tools:text="13 km/h"
                         android:textColor="@android:color/white"
                         android:textSize="17.5sp"
                         android:fontFamily="sans-serif-medium" />
@@ -587,7 +618,8 @@
                         android:ellipsize="end"
                         android:includeFontPadding="false"
                         android:maxLines="1"
-                        android:text="1012 hPa"
+                        android:text=""
+                        tools:text="1012 hPa"
                         android:textColor="@android:color/white"
                         android:textSize="17.5sp"
                         android:fontFamily="sans-serif-medium" />
@@ -633,7 +665,8 @@
                         android:ellipsize="end"
                         android:includeFontPadding="false"
                         android:maxLines="1"
-                        android:text="14 km"
+                        android:text=""
+                        tools:text="14 km"
                         android:textColor="@android:color/white"
                         android:textSize="19.5sp"
                         android:fontFamily="sans-serif-medium" />
@@ -642,6 +675,7 @@
 
             <!-- FULL-WIDTH SUNRISE & SUNSET PROGRESS CARD -->
             <LinearLayout
+                android:id="@+id/cardSolar"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="10dp"
@@ -692,7 +726,8 @@
                             android:layout_height="wrap_content"
                             android:layout_marginTop="4dp"
                             android:includeFontPadding="false"
-                            android:text="05:48"
+                            android:text=""
+                            tools:text="05:48"
                             android:textColor="@android:color/white"
                             android:textSize="19sp"
                             android:fontFamily="sans-serif-medium" />
@@ -734,7 +769,8 @@
                             android:layout_height="wrap_content"
                             android:layout_marginTop="4dp"
                             android:includeFontPadding="false"
-                            android:text="17:22"
+                            android:text=""
+                            tools:text="17:22"
                             android:textColor="@android:color/white"
                             android:textSize="19sp"
                             android:fontFamily="sans-serif-medium" />

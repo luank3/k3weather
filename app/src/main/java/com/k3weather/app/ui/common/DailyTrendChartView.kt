@@ -14,6 +14,7 @@ import com.k3weather.app.core.model.DailyForecast
 import com.k3weather.app.core.model.TemperatureUnit
 import com.k3weather.app.data.mapper.WeatherCodeMapper
 import java.time.LocalDate
+import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.util.Locale
 
@@ -108,15 +109,16 @@ class DailyTrendChartView @JvmOverloads constructor(
     private val highPath = Path()
     private val lowPath = Path()
 
-    fun setForecastDays(days: List<DailyForecast>, unit: TemperatureUnit) {
+    fun setForecastDays(days: List<DailyForecast>, unit: TemperatureUnit, zoneId: ZoneId = ZoneId.systemDefault()) {
         val locale = context.resources.configuration.locales[0] ?: Locale.getDefault()
         val dayFmt = DateTimeFormatter.ofPattern("EEE", locale)
         val dateFmt = DateTimeFormatter.ofPattern("d/M", locale)
         val todayLabel = context.getString(R.string.day_today)
+        val todayDate = LocalDate.now(zoneId)
 
-        columns = days.take(7).mapIndexed { index, day ->
+        columns = days.take(7).map { day ->
             val parsedDate = runCatching { LocalDate.parse(day.dateIso) }.getOrNull()
-            val dayName = if (index == 0) todayLabel else parsedDate?.format(dayFmt) ?: day.dayLabel
+            val dayName = if (parsedDate != null && parsedDate == todayDate) todayLabel else parsedDate?.format(dayFmt) ?: day.dayLabel
             val dateText = parsedDate?.format(dateFmt).orEmpty()
             val iconRes = WeatherCodeMapper.getIcon(day.weatherCode, isDay = true)
             ChartColumn(
