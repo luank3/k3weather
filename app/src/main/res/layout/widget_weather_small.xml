@@ -10,14 +10,14 @@
     <!-- Top-Right Weather Icon (balances Hero Temp on Top-Left) -->
     <ImageView
         android:id="@+id/widgetIcon"
-        android:layout_width="36dp"
-        android:layout_height="36dp"
+        android:layout_width="34dp"
+        android:layout_height="34dp"
         android:layout_alignParentTop="true"
         android:layout_alignParentEnd="true"
         android:contentDescription="@null"
         android:src="@drawable/ic_weather_partly_cloudy" />
 
-    <!-- Top-Left Row: City Name + Location Pin -->
+    <!-- Top-Left Row: City Name + Location Pin (matches Medium & Large widgets) -->
     <LinearLayout
         android:id="@+id/widgetHeader"
         android:layout_width="match_parent"
@@ -29,15 +29,6 @@
         android:gravity="center_vertical"
         android:orientation="horizontal">
 
-        <ImageView
-            android:id="@+id/widgetLocationPin"
-            android:layout_width="11dp"
-            android:layout_height="11dp"
-            android:layout_marginEnd="4dp"
-            android:contentDescription="@null"
-            android:src="@drawable/ic_arrow_current_location"
-            android:tint="@android:color/white" />
-
         <TextView
             android:id="@+id/widgetCity"
             android:layout_width="wrap_content"
@@ -46,8 +37,18 @@
             android:maxLines="1"
             android:text="Phong Phú"
             android:textColor="@android:color/white"
-            android:textSize="14.5sp"
+            android:textSize="14sp"
+            android:textStyle="bold"
             android:fontFamily="sans-serif-medium" />
+
+        <ImageView
+            android:id="@+id/widgetLocationPin"
+            android:layout_width="11dp"
+            android:layout_height="11dp"
+            android:layout_marginStart="4dp"
+            android:contentDescription="@null"
+            android:src="@drawable/ic_arrow_current_location"
+            android:tint="@android:color/white" />
     </LinearLayout>
 
     <!-- Bold Confident Hero Temperature -->
@@ -62,7 +63,7 @@
         android:letterSpacing="-0.03"
         android:text="26°"
         android:textColor="@android:color/white"
-        android:textSize="46sp"
+        android:textSize="40sp"
         android:fontFamily="sans-serif-medium"
         android:shadowColor="#29000000"
         android:shadowDx="0"
@@ -84,7 +85,7 @@
             android:maxLines="1"
             android:text="Trời nhiều mây"
             android:textColor="#F5FFFFFF"
-            android:textSize="13sp"
+            android:textSize="12.5sp"
             android:fontFamily="sans-serif-medium" />
 
         <TextView
@@ -96,7 +97,7 @@
             android:maxLines="1"
             android:text="22° / 27°"
             android:textColor="#E0FFFFFF"
-            android:textSize="12.5sp"
+            android:textSize="12sp"
             android:fontFamily="sans-serif" />
     </LinearLayout>
 

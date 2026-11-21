@@ -6,7 +6,7 @@
     android:background="@drawable/bg_widget_sky_night"
     android:orientation="vertical"
     android:paddingHorizontal="16dp"
-    android:paddingVertical="13dp">
+    android:paddingVertical="10dp">
 
     <!-- Top Half: Left (Location + Big Temp) | Right (Icon + Condition + High/Low) -->
     <RelativeLayout
@@ -104,7 +104,7 @@
     <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="1dp"
-        android:layout_marginVertical="7dp"
+        android:layout_marginVertical="5dp"
         android:background="#26FFFFFF" />
 
     <!-- Bottom Half: 5-Hour Forecast Strip -->
