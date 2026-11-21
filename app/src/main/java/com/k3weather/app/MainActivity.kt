@@ -63,6 +63,9 @@ import com.k3weather.app.ui.common.HeroWeatherArtworkView
 import com.k3weather.app.ui.common.WeatherBackgroundHelper
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
