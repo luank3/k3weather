@@ -1087,12 +1087,12 @@ class MainActivity : AppCompatActivity() {
         val saved = viewModel.state.value.savedLocations
         savedRefreshJob?.cancel()
         savedRefreshJob = lifecycleScope.launch {
-            val cachedResults = kotlinx.coroutines.coroutineScope {
+            val cachedResults = coroutineScope {
                 saved.map { loc ->
-                    kotlinx.coroutines.async(Dispatchers.IO) {
+                    async(Dispatchers.IO) {
                         loc.id to repository.getCachedForecast(loc.id)
                     }
-                }.map { it.await() }
+                }.awaitAll()
             }
             cachedResults.forEach { (id, cached) ->
                 if (cached != null) savedForecasts[id] = cached
@@ -1100,12 +1100,12 @@ class MainActivity : AppCompatActivity() {
             savedBinder.bind(viewModel.state.value, savedForecasts)
 
             // Refresh stale or missing saved forecasts concurrently in background
-            val freshResults = kotlinx.coroutines.coroutineScope {
+            val freshResults = coroutineScope {
                 saved.map { loc ->
-                    kotlinx.coroutines.async(Dispatchers.IO) {
+                    async(Dispatchers.IO) {
                         loc.id to repository.getForecast(loc, forceRefresh = false).getOrNull()
                     }
-                }.map { it.await() }
+                }.awaitAll()
             }
             freshResults.forEach { (id, fresh) ->
                 if (fresh != null) savedForecasts[id] = fresh
