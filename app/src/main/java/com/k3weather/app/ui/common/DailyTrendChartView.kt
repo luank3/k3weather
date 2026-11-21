@@ -40,39 +40,46 @@ class DailyTrendChartView @JvmOverloads constructor(
     )
 
     private val density = resources.displayMetrics.density
-    private val scaledDensity = resources.displayMetrics.scaledDensity
+    private fun sp(value: Float): Float {
+        val raw = android.util.TypedValue.applyDimension(
+            android.util.TypedValue.COMPLEX_UNIT_SP,
+            value,
+            resources.displayMetrics
+        )
+        return raw.coerceAtMost(value * density * 1.25f)
+    }
     private var columns: List<ChartColumn> = emptyList()
 
     private val dayPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         color = 0xFFFFFFFF.toInt()
-        textSize = 12.5f * scaledDensity
+        textSize = sp(12.5f)
         textAlign = Paint.Align.CENTER
         typeface = Typeface.create("sans-serif-medium", Typeface.NORMAL)
     }
 
     private val datePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         color = 0x99FFFFFF.toInt()
-        textSize = 10.5f * scaledDensity
+        textSize = sp(10.5f)
         textAlign = Paint.Align.CENTER
     }
 
     private val popPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         color = 0xFF7DD3FC.toInt()
-        textSize = 10f * scaledDensity
+        textSize = sp(10f)
         textAlign = Paint.Align.CENTER
         typeface = Typeface.create("sans-serif-medium", Typeface.BOLD)
     }
 
     private val tempPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         color = 0xFFFFFFFF.toInt()
-        textSize = 13f * scaledDensity
+        textSize = sp(13f)
         textAlign = Paint.Align.CENTER
         typeface = Typeface.create("sans-serif-medium", Typeface.NORMAL)
     }
 
     private val minTempPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         color = 0xD9FFFFFF.toInt()
-        textSize = 12.5f * scaledDensity
+        textSize = sp(12.5f)
         textAlign = Paint.Align.CENTER
         typeface = Typeface.create("sans-serif-medium", Typeface.NORMAL)
     }
@@ -131,6 +138,9 @@ class DailyTrendChartView @JvmOverloads constructor(
                 maxLabel = unit.format(day.maxTempC),
                 minLabel = unit.format(day.minTempC)
             )
+        }
+        contentDescription = columns.joinToString(", ") { col ->
+            "${col.dayName} ${col.minLabel}/${col.maxLabel}"
         }
         requestLayout()
         invalidate()

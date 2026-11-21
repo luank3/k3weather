@@ -51,10 +51,10 @@
 
                 <ImageButton
                     android:id="@+id/searchButton"
-                    android:layout_width="42dp"
-                    android:layout_height="42dp"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
                     android:background="@drawable/bg_circle_translucent"
-                    android:padding="10dp"
+                    android:padding="12dp"
                     android:contentDescription="@string/search_locations"
                     android:src="@drawable/ic_search"
                     app:tint="@android:color/white" />
@@ -276,7 +276,7 @@
                     <FrameLayout
                         android:id="@+id/dailyToggleTrack"
                         android:layout_width="wrap_content"
-                        android:layout_height="30dp"
+                        android:layout_height="36dp"
                         android:background="@drawable/bg_segmented_track"
                         android:padding="3dp">
 
@@ -364,7 +364,8 @@
                 <!-- 1. UV Index Tile -->
                 <LinearLayout
                     android:layout_width="0dp"
-                    android:layout_height="104dp"
+                    android:layout_height="wrap_content"
+                    android:minHeight="104dp"
                     android:layout_weight="1"
                     android:layout_marginEnd="5dp"
                     android:background="@drawable/bg_card_translucent"
@@ -430,7 +431,8 @@
                 <!-- 2. Feels Like Tile -->
                 <LinearLayout
                     android:layout_width="0dp"
-                    android:layout_height="104dp"
+                    android:layout_height="wrap_content"
+                    android:minHeight="104dp"
                     android:layout_weight="1"
                     android:layout_marginHorizontal="5dp"
                     android:background="@drawable/bg_card_translucent"
@@ -476,7 +478,8 @@
                 <!-- 3. Humidity Tile -->
                 <LinearLayout
                     android:layout_width="0dp"
-                    android:layout_height="104dp"
+                    android:layout_height="wrap_content"
+                    android:minHeight="104dp"
                     android:layout_weight="1"
                     android:layout_marginStart="5dp"
                     android:background="@drawable/bg_card_translucent"
@@ -532,7 +535,8 @@
                 <!-- 4. Wind Tile -->
                 <LinearLayout
                     android:layout_width="0dp"
-                    android:layout_height="104dp"
+                    android:layout_height="wrap_content"
+                    android:minHeight="104dp"
                     android:layout_weight="1"
                     android:layout_marginEnd="5dp"
                     android:background="@drawable/bg_card_translucent"
@@ -581,7 +585,8 @@
                 <!-- 5. Pressure Tile -->
                 <LinearLayout
                     android:layout_width="0dp"
-                    android:layout_height="104dp"
+                    android:layout_height="wrap_content"
+                    android:minHeight="104dp"
                     android:layout_weight="1"
                     android:layout_marginHorizontal="5dp"
                     android:background="@drawable/bg_card_translucent"
@@ -628,7 +633,8 @@
                 <!-- 6. Visibility Tile -->
                 <LinearLayout
                     android:layout_width="0dp"
-                    android:layout_height="104dp"
+                    android:layout_height="wrap_content"
+                    android:minHeight="104dp"
                     android:layout_weight="1"
                     android:layout_marginStart="5dp"
                     android:background="@drawable/bg_card_translucent"
@@ -759,7 +765,7 @@
                                 android:layout_width="15dp"
                                 android:layout_height="15dp"
                                 android:contentDescription="@null"
-                                android:src="@drawable/ic_sunrise"
+                                android:src="@drawable/ic_sunset"
                                 app:tint="#CCFFFFFF" />
                         </LinearLayout>
 

@@ -63,6 +63,9 @@ import com.k3weather.app.ui.common.HeroWeatherArtworkView
 import com.k3weather.app.ui.common.WeatherBackgroundHelper
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -97,6 +100,7 @@ class MainActivity : AppCompatActivity() {
 
     private var startupLocationPending = false
     private var locationResolveJob: Job? = null
+    private var savedRefreshJob: Job? = null
     private var locationDisabledToastShown = false
     private var wasLocationEnabled = false
     private var lastLocationResolvedAtMs = 0L
@@ -367,20 +371,32 @@ class MainActivity : AppCompatActivity() {
         val needsRealLocation = cur == null || cur.id.startsWith("ip_") || cur.id == LocationResolver.FALLBACK_DALAT.id
         val isLocationStale = (System.currentTimeMillis() - lastLocationResolvedAtMs) >= LOCATION_REFRESH_INTERVAL_MS
         if (forceLocationRefresh || !fromResumeOrProviderChange || justEnabled || needsRealLocation || isLocationStale) {
-            resolveRealStartupLocation(retryOnEmpty = justEnabled || forceLocationRefresh)
+            resolveRealStartupLocation(
+                retryOnEmpty = justEnabled || forceLocationRefresh,
+                forceFresh = forceLocationRefresh
+            )
         }
     }
 
-    private fun resolveRealStartupLocation(retryOnEmpty: Boolean = false) {
+    private fun resolveRealStartupLocation(retryOnEmpty: Boolean = false, forceFresh: Boolean = false) {
         locationResolveJob?.cancel()
         locationResolveJob = lifecycleScope.launch {
-            var real = LocationResolver.resolveRealLocation(this@MainActivity)
+            val lang = viewModel.state.value.settings.language
+            var real = LocationResolver.resolveRealLocation(
+                context = this@MainActivity,
+                forceFresh = forceFresh,
+                preferredLanguage = lang
+            )
             if (real == null && retryOnEmpty && LocationResolver.isLocationEnabled(this@MainActivity)) {
                 // Location providers can take a few seconds to warm up after enabling system Location.
                 for (waitMs in longArrayOf(2_000L, 5_000L)) {
                     delay(waitMs)
                     if (!LocationResolver.isLocationEnabled(this@MainActivity)) break
-                    real = LocationResolver.resolveRealLocation(this@MainActivity)
+                    real = LocationResolver.resolveRealLocation(
+                        context = this@MainActivity,
+                        forceFresh = forceFresh,
+                        preferredLanguage = lang
+                    )
                     if (real != null) break
                 }
             }
@@ -392,7 +408,12 @@ class MainActivity : AppCompatActivity() {
                 // Permission granted but no fix (location services off / no signal): no IP guess.
                 if (!locationDisabledToastShown) {
                     locationDisabledToastShown = true
-                    Toast.makeText(this@MainActivity, getString(R.string.location_services_disabled), Toast.LENGTH_SHORT).show()
+                    val msgRes = if (LocationResolver.isLocationEnabled(this@MainActivity)) {
+                        R.string.location_unavailable
+                    } else {
+                        R.string.location_services_disabled
+                    }
+                    Toast.makeText(this@MainActivity, getString(msgRes), Toast.LENGTH_SHORT).show()
                 }
                 val repository = (application as WeatherApplication).repository
                 val hasExplicit = withContext(Dispatchers.IO) { repository.hasSelectedLocation() }
@@ -582,10 +603,19 @@ class MainActivity : AppCompatActivity() {
                         val localX = (event.rawX - contentLoc[0]).coerceIn(0f, binding.bottomNavContent.width.toFloat())
                         updateIndicatorForScrub(localX)
 
-                        val hoveredTab = when {
-                            localX < binding.tabSaved.left -> Tab.FORECAST
-                            localX < binding.tabSettings.left -> Tab.SAVED
-                            else -> Tab.SETTINGS
+                        val isRtl = binding.bottomNavContent.layoutDirection == View.LAYOUT_DIRECTION_RTL
+                        val hoveredTab = if (isRtl) {
+                            when {
+                                localX >= binding.tabForecast.left -> Tab.FORECAST
+                                localX >= binding.tabSaved.left -> Tab.SAVED
+                                else -> Tab.SETTINGS
+                            }
+                        } else {
+                            when {
+                                localX < binding.tabSaved.left -> Tab.FORECAST
+                                localX < binding.tabSettings.left -> Tab.SAVED
+                                else -> Tab.SETTINGS
+                            }
                         }
                         if (hoveredTab != currentTab) {
                             binding.bottomNavBar.performHapticFeedback(android.view.HapticFeedbackConstants.CLOCK_TICK)
@@ -1031,10 +1061,18 @@ class MainActivity : AppCompatActivity() {
         )
     }
 
+    private fun isSystemReduceMotionEnabled(): Boolean = runCatching {
+        android.provider.Settings.Global.getFloat(
+            contentResolver,
+            android.provider.Settings.Global.ANIMATOR_DURATION_SCALE,
+            1f
+        ) == 0f
+    }.getOrDefault(false)
+
     private fun updateMainBackground(state: WeatherUiState) {
         val code = state.forecast?.current?.weatherCode ?: 0
         val isDay = state.forecast?.current?.isDay ?: true
-        val reduceMotion = state.settings.reduceMotion
+        val reduceMotion = state.settings.reduceMotion || isSystemReduceMotionEnabled()
         val colorScheme = state.settings.colorScheme
 
         WeatherBackgroundHelper.applyWeatherEffect(
@@ -1043,29 +1081,37 @@ class MainActivity : AppCompatActivity() {
             isDay = isDay,
             reduceMotion = reduceMotion,
             colorScheme = colorScheme,
-            enabled = true
+            enabled = state.settings.weatherBackgroundsEnabled
         )
     }
 
     private fun refreshSavedForecasts() {
         val repository = (application as WeatherApplication).repository
         val saved = viewModel.state.value.savedLocations
-        lifecycleScope.launch {
-            saved.forEach { loc ->
-                val cached = withContext(Dispatchers.IO) {
-                    repository.getCachedForecast(loc.id)
-                }
-                if (cached != null) {
-                    savedForecasts[loc.id] = cached
-                }
+        savedRefreshJob?.cancel()
+        savedRefreshJob = lifecycleScope.launch {
+            val cachedResults = coroutineScope {
+                saved.map { loc ->
+                    async(Dispatchers.IO) {
+                        loc.id to repository.getCachedForecast(loc.id)
+                    }
+                }.awaitAll()
+            }
+            cachedResults.forEach { (id, cached) ->
+                if (cached != null) savedForecasts[id] = cached
             }
             savedBinder.bind(viewModel.state.value, savedForecasts)
 
-            // Refresh stale or missing saved forecasts in background
-            saved.forEach { loc ->
-                withContext(Dispatchers.IO) {
-                    repository.getForecast(loc, forceRefresh = false).getOrNull()
-                }?.let { savedForecasts[loc.id] = it }
+            // Refresh stale or missing saved forecasts concurrently in background
+            val freshResults = coroutineScope {
+                saved.map { loc ->
+                    async(Dispatchers.IO) {
+                        loc.id to repository.getForecast(loc, forceRefresh = false).getOrNull()
+                    }
+                }.awaitAll()
+            }
+            freshResults.forEach { (id, fresh) ->
+                if (fresh != null) savedForecasts[id] = fresh
             }
             savedBinder.bind(viewModel.state.value, savedForecasts)
         }
@@ -1083,7 +1129,11 @@ class MainActivity : AppCompatActivity() {
 
     private fun obtainCurrentLocation() {
         lifecycleScope.launch {
-            val real = LocationResolver.resolveRealLocation(this@MainActivity)
+            val real = LocationResolver.resolveRealLocation(
+                context = this@MainActivity,
+                forceFresh = true,
+                preferredLanguage = viewModel.state.value.settings.language
+            )
             if (real != null) {
                 lastLocationResolvedAtMs = System.currentTimeMillis()
                 viewModel.setDetectedCurrentLocation(real)
@@ -1091,7 +1141,12 @@ class MainActivity : AppCompatActivity() {
                 selectTab(Tab.FORECAST)
                 Toast.makeText(this@MainActivity, getString(R.string.location_updated, real.name), Toast.LENGTH_SHORT).show()
             } else {
-                Toast.makeText(this@MainActivity, getString(R.string.location_services_disabled), Toast.LENGTH_SHORT).show()
+                val msgRes = if (LocationResolver.isLocationEnabled(this@MainActivity)) {
+                    R.string.location_unavailable
+                } else {
+                    R.string.location_services_disabled
+                }
+                Toast.makeText(this@MainActivity, getString(msgRes), Toast.LENGTH_SHORT).show()
             }
         }
     }

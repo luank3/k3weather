@@ -49,11 +49,14 @@ class WeatherEffectView @JvmOverloads constructor(
     private var horizonGlowGradient: RadialGradient? = null
     private var sunGradient: RadialGradient? = null
     private var sunCoreGradient: RadialGradient? = null
+    private var sunCoronaGradient: RadialGradient? = null
     private var moonGradient: RadialGradient? = null
     private var cloudUnitGradient: RadialGradient? = null
     private var fogBandGradient: LinearGradient? = null
     private val shaderMatrix = Matrix()
     private val boltPath = Path()
+    private var lastFrameTimeMs: Long = 0L
+    private var frameScale: Float = 1f
 
     private class Particle(
         var x: Float = 0f,
@@ -88,8 +91,8 @@ class WeatherEffectView @JvmOverloads constructor(
         CloudPuff(0.84f, 0.32f, 0.44f, 0.13f, 0.00017f, 5.2f, 0.70f)
     )
 
-    private var lightningAlpha = 0
-    private var nextLightningFrame = 150
+    private var lightningAlpha = 0f
+    private var nextLightningMs = 2500f
     private var boltStartX = 0.65f
     private var transitionStartMs = 0L
 
@@ -153,6 +156,7 @@ class WeatherEffectView @JvmOverloads constructor(
             this.isDay = isDay
             this.reduceMotion = reduceMotion
             this.colorScheme = colorScheme
+            lastFrameTimeMs = 0L
             invalidateShaders()
             if (changedAtmosphere && !reduceMotion) {
                 transitionStartMs = System.currentTimeMillis()
@@ -165,6 +169,24 @@ class WeatherEffectView @JvmOverloads constructor(
         }
     }
 
+    override fun onAttachedToWindow() {
+        super.onAttachedToWindow()
+        lastFrameTimeMs = 0L
+        if (canAnimateNow()) postInvalidateOnAnimation()
+    }
+
+    override fun onVisibilityChanged(changedView: View, visibility: Int) {
+        super.onVisibilityChanged(changedView, visibility)
+        lastFrameTimeMs = 0L
+        if (canAnimateNow()) postInvalidateOnAnimation()
+    }
+
+    override fun onWindowVisibilityChanged(visibility: Int) {
+        super.onWindowVisibilityChanged(visibility)
+        lastFrameTimeMs = 0L
+        if (canAnimateNow()) postInvalidateOnAnimation()
+    }
+
     override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
         super.onSizeChanged(w, h, oldw, oldh)
         invalidateShaders()
@@ -175,16 +197,33 @@ class WeatherEffectView @JvmOverloads constructor(
         horizonGlowGradient = null
         sunGradient = null
         sunCoreGradient = null
+        sunCoronaGradient = null
         moonGradient = null
         cloudUnitGradient = null
         fogBandGradient = null
     }
+
+    private fun canAnimateNow(): Boolean =
+        !reduceMotion &&
+            isAttachedToWindow &&
+            visibility == VISIBLE &&
+            windowVisibility == VISIBLE &&
+            isShown
 
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
         val w = width.toFloat()
         val h = height.toFloat()
         if (w <= 0 || h <= 0) return
+
+        val nowUptime = android.os.SystemClock.uptimeMillis()
+        frameScale = if (lastFrameTimeMs == 0L || reduceMotion) {
+            1f
+        } else {
+            val dtMs = (nowUptime - lastFrameTimeMs).coerceIn(4L, 50L)
+            dtMs / 16.6667f
+        }
+        lastFrameTimeMs = nowUptime
 
         drawBackgroundGradient(canvas, w, h)
         drawAmbientAccentGlow(canvas, w, h)
@@ -236,24 +275,8 @@ class WeatherEffectView @JvmOverloads constructor(
             }
         }
 
-        if (!reduceMotion && shouldAnimate()) {
+        if (canAnimateNow()) {
             postInvalidateOnAnimation()
-        }
-    }
-
-    private fun shouldAnimate(): Boolean {
-        return when (condition) {
-            WeatherCondition.CLEAR -> true
-            WeatherCondition.PARTLY_CLOUDY,
-            WeatherCondition.CLOUDY,
-            WeatherCondition.FOG,
-            WeatherCondition.DRIZZLE,
-            WeatherCondition.RAIN,
-            WeatherCondition.HEAVY_RAIN,
-            WeatherCondition.SLEET,
-            WeatherCondition.SNOW,
-            WeatherCondition.THUNDER,
-            WeatherCondition.THUNDER_HAIL -> true
         }
     }
 
@@ -588,7 +611,7 @@ class WeatherEffectView @JvmOverloads constructor(
             canvas.drawLine(sx, sy, sx - 2.5f, sy + len, particlePaint)
 
             if (!reduceMotion) {
-                drop.y += drop.speed * 0.58f
+                drop.y += drop.speed * 0.58f * frameScale
                 if (drop.y > 1f) {
                     drop.y = -0.04f
                     drop.x = (drop.x + 0.11f) % 1f
@@ -616,7 +639,7 @@ class WeatherEffectView @JvmOverloads constructor(
 
             if (!reduceMotion) {
                 val speedMultiplier = if (isHeavy) 1.30f else 1.0f
-                drop.y += drop.speed * speedMultiplier
+                drop.y += drop.speed * speedMultiplier * frameScale
                 if (drop.y > 1f) {
                     drop.y = -0.05f
                     drop.x = (drop.x + 0.13f) % 1f
@@ -643,7 +666,7 @@ class WeatherEffectView @JvmOverloads constructor(
             canvas.drawCircle(sx, sy, hail.size, particlePaint)
 
             if (!reduceMotion) {
-                hail.y += hail.speed
+                hail.y += hail.speed * frameScale
                 if (hail.y > 1f) {
                     hail.y = -0.05f
                     hail.x = (hail.x + 0.19f) % 1f
@@ -659,16 +682,17 @@ class WeatherEffectView @JvmOverloads constructor(
         }
 
         if (!reduceMotion) {
-            nextLightningFrame--
-            if (nextLightningFrame <= 0) {
-                lightningAlpha = 140
+            nextLightningMs -= frameScale * 16.6667f
+            if (nextLightningMs <= 0f) {
+                lightningAlpha = 140f
                 boltStartX = 0.25f + Random.nextFloat() * 0.55f
-                nextLightningFrame = 150 + Random.nextInt(170)
+                nextLightningMs = 2500f + Random.nextInt(2800).toFloat()
             }
         }
 
-        if (lightningAlpha > 0) {
-            lightningPaint.color = Color.argb((lightningAlpha * 0.52f).toInt(), 210, 232, 255)
+        val alphaInt = lightningAlpha.toInt()
+        if (alphaInt > 0) {
+            lightningPaint.color = Color.argb((alphaInt * 0.52f).toInt(), 210, 232, 255)
             canvas.drawRect(0f, 0f, w, h, lightningPaint)
 
             // Branched lightning bolt with electric cyan outer glow + crisp white core
@@ -691,18 +715,18 @@ class WeatherEffectView @JvmOverloads constructor(
             branchPath.lineTo(p1x - w * 0.05f, p1y + h * 0.06f)
 
             boltGlowPaint.strokeWidth = 9f
-            boltGlowPaint.color = Color.argb((lightningAlpha * 0.45f).toInt(), 125, 211, 252)
+            boltGlowPaint.color = Color.argb((alphaInt * 0.45f).toInt(), 125, 211, 252)
             canvas.drawPath(boltPath, boltGlowPaint)
             canvas.drawPath(branchPath, boltGlowPaint)
 
             boltPaint.strokeWidth = 2.6f
-            boltPaint.color = Color.argb(lightningAlpha.coerceAtMost(235), 245, 250, 255)
+            boltPaint.color = Color.argb(alphaInt.coerceAtMost(235), 245, 250, 255)
             canvas.drawPath(boltPath, boltPaint)
             boltPaint.strokeWidth = 1.4f
             canvas.drawPath(branchPath, boltPaint)
 
             if (!reduceMotion) {
-                lightningAlpha = (lightningAlpha - 16).coerceAtLeast(0)
+                lightningAlpha = (lightningAlpha - 16f * frameScale).coerceAtLeast(0f)
             }
         }
     }
@@ -722,8 +746,8 @@ class WeatherEffectView @JvmOverloads constructor(
             }
 
             if (!reduceMotion) {
-                flake.y += flake.speed
-                flake.x += sin(flake.y * 12.0).toFloat() * 0.00065f
+                flake.y += flake.speed * frameScale
+                flake.x += sin(flake.y * 12.0).toFloat() * 0.00065f * frameScale
                 if (flake.y > 1f) {
                     flake.y = -0.03f
                     flake.x = (flake.x + 0.17f) % 1f

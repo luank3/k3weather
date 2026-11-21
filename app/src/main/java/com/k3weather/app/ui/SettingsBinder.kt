@@ -73,11 +73,38 @@ class SettingsBinder(
             send(settings.copy(language = if (effective == "vi") "en" else "vi"))
         }
 
+        // Reduce motion toggle
+        binding.tvReduceMotionValue.text = context.getString(
+            if (settings.reduceMotion) com.k3weather.app.R.string.toggle_on else com.k3weather.app.R.string.toggle_off
+        )
+        binding.rowReduceMotion.setOnClickListener {
+            it.performHapticFeedback(HapticFeedbackConstants.CLOCK_TICK)
+            send(settings.copy(reduceMotion = !settings.reduceMotion))
+        }
+
+        // Use current location toggle
+        binding.tvUseCurrentLocationValue.text = context.getString(
+            if (settings.useCurrentLocation) com.k3weather.app.R.string.toggle_on else com.k3weather.app.R.string.toggle_off
+        )
+        binding.rowUseCurrentLocation.setOnClickListener {
+            it.performHapticFeedback(HapticFeedbackConstants.CLOCK_TICK)
+            send(settings.copy(useCurrentLocation = !settings.useCurrentLocation))
+        }
+
+        // Clear cache & refresh
+        binding.rowClearCache.setOnClickListener {
+            it.performHapticFeedback(HapticFeedbackConstants.CLOCK_TICK)
+            onClearCache()
+        }
+
         MotionHelper.attachPressScale(binding.rowTemperature, pressedScale = 0.985f)
         MotionHelper.attachPressScale(binding.rowWindSpeed, pressedScale = 0.985f)
         MotionHelper.attachPressScale(binding.rowPrecipitation, pressedScale = 0.985f)
         MotionHelper.attachPressScale(binding.rowPressure, pressedScale = 0.985f)
         MotionHelper.attachPressScale(binding.rowLanguage, pressedScale = 0.985f)
+        MotionHelper.attachPressScale(binding.rowReduceMotion, pressedScale = 0.985f)
+        MotionHelper.attachPressScale(binding.rowUseCurrentLocation, pressedScale = 0.985f)
+        MotionHelper.attachPressScale(binding.rowClearCache, pressedScale = 0.985f)
     }
 
     private fun send(settings: AppSettings) = onSettingsChanged(settings)

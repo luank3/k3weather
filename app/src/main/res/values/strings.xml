@@ -165,4 +165,11 @@
     <string name="settings_clear_cache_action">Clear cache</string>
     <string name="settings_version">Version</string>
     <string name="settings_cache_cleared">Cache cleared, data refreshed</string>
+    <string name="toggle_on">On</string>
+    <string name="toggle_off">Off</string>
+    <string name="location_unavailable">Unable to determine current location</string>
+    <string name="clear_search">Clear search</string>
+    <string name="weather_icon">Weather icon</string>
+    <string name="undo">Undo</string>
+    <string name="location_removed">Removed %1$s</string>
 </resources>

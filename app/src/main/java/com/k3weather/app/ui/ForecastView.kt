@@ -42,8 +42,11 @@ class ForecastView(private val binding: LayoutForecastBinding) {
     private var isScrubbingDaily = false
     private var reduceMotion = false
     private var lastBoundCityId: String? = null
+    private var lastCityPillsKey: Any? = null
+    private var lastWeeklyKey: Any? = null
     private var dailyIndicatorAnimator: ValueAnimator? = null
     private var dailyBarUpdaters: List<() -> Unit> = emptyList()
+    private val hourlyAdapter = HourlyAdapter()
 
     fun bind(
         state: WeatherUiState,
@@ -61,6 +64,7 @@ class ForecastView(private val binding: LayoutForecastBinding) {
             isInteractiveSetupDone = true
             MotionHelper.attachPressScale(binding.searchButton, pressedScale = 0.91f, hapticOnTap = true)
             setupDailySwitch()
+            binding.hourlyList.adapter = hourlyAdapter
         }
 
         binding.searchButton.setOnClickListener { onSearch() }
@@ -123,8 +127,9 @@ class ForecastView(private val binding: LayoutForecastBinding) {
                 binding.tvForecastStatus.visibility = View.GONE
                 binding.tvForecastStatus.setOnClickListener(null)
             }
-            binding.hourlyList.adapter = null
+            hourlyAdapter.submit(emptyList(), state.settings.tempUnit, context.getString(R.string.time_now), accentColor, ZoneId.systemDefault(), false)
             binding.dailyRows.removeAllViews()
+            lastWeeklyKey = null
             dailyBarUpdaters = emptyList()
             setForecastSectionsVisibility(View.GONE)
             return
@@ -138,16 +143,6 @@ class ForecastView(private val binding: LayoutForecastBinding) {
         val locationZone = runCatching { ZoneId.of(forecast.location.timezone) }.getOrDefault(ZoneId.systemDefault())
 
         updateForecastStatusBanner(context, forecast, state.error, locationZone, onRefresh)
-
-        // Natural Atmosphere Theme derived directly from weather code & day/night
-        val effectiveTheme = when {
-            !current.isDay -> HeroWeatherArtworkView.Theme.NIGHT
-            current.weatherCode in listOf(51, 53, 55, 61, 63, 65, 80, 81, 82, 95, 96, 99) -> HeroWeatherArtworkView.Theme.RAINY
-            current.weatherCode in listOf(2, 3, 45, 48) -> HeroWeatherArtworkView.Theme.CLOUDY
-            else -> HeroWeatherArtworkView.Theme.SUNNY
-        }
-        binding.heroWeatherArtwork.setTheme(effectiveTheme)
-        binding.heroWeatherArtwork.setReduceMotion(state.settings.reduceMotion)
 
         // Hero Temperature & Concise Summary (animated on city switch)
         val newTemp = tempUnit.format(current.temperatureC)
@@ -167,10 +162,10 @@ class ForecastView(private val binding: LayoutForecastBinding) {
             binding.highLow.text = newRange
         }
 
-        // Hourly Forecast Ribbon (24-hour window)
+        // Hourly Forecast Ribbon (24-hour window) — reuse adapter to preserve scroll position
         val hourlyWindow = forecast.hourly.take(24)
         val maxHourlyPop = hourlyWindow.maxOfOrNull { it.precipitationProbability } ?: 0
-        binding.hourlyList.adapter = HourlyAdapter(
+        hourlyAdapter.submit(
             items = forecast.hourly,
             unit = tempUnit,
             nowLabel = context.getString(R.string.time_now),
@@ -189,9 +184,13 @@ class ForecastView(private val binding: LayoutForecastBinding) {
         )
 
         // Multi-Day Forecast: Dual-Curve Chart & 7-Day Range List with Scrubbable Segmented Toggle
-        binding.dailyTrendChart.setForecastDays(forecast.daily, tempUnit, locationZone)
-        setupWeeklyForecast(forecast, tempUnit, colorScheme, locationZone)
-        applyDailyViewMode(animate = false)
+        val weeklyKey = listOf(forecast.location.id, forecast.fetchedAtEpochMs, forecast.isStale, tempUnit, colorScheme, locationZone.id, context.resources.configuration.locales[0]?.toLanguageTag())
+        if (weeklyKey != lastWeeklyKey) {
+            lastWeeklyKey = weeklyKey
+            binding.dailyTrendChart.setForecastDays(forecast.daily, tempUnit, locationZone)
+            setupWeeklyForecast(forecast, tempUnit, colorScheme, locationZone)
+            applyDailyViewMode(animate = false)
+        }
 
         // Compact 3-Column Metrics Grid
         val uvInt = current.uvIndexInt
@@ -231,6 +230,8 @@ class ForecastView(private val binding: LayoutForecastBinding) {
 
         val dayProgress = calculateDayProgress(current.sunriseIso, current.sunsetIso, locationZone)
         binding.solarArcView.setProgress(dayProgress, current.isDay)
+        binding.solarArcView.contentDescription =
+            "${context.getString(R.string.sunrise_short)} $sunriseTime, ${context.getString(R.string.sunset_short)} $sunsetTime"
     }
 
     @SuppressLint("ClickableViewAccessibility")
@@ -276,8 +277,10 @@ class ForecastView(private val binding: LayoutForecastBinding) {
                         )
                         updateDailyIndicatorForScrub(localX)
 
-                        val midpoint = (binding.btnDailyChart.right + binding.btnDailyList.left) * 0.5f
-                        val targetChart = localX < midpoint
+                        val isRtl = binding.dailyToggleContent.layoutDirection == View.LAYOUT_DIRECTION_RTL
+                        val midpoint = (binding.btnDailyChart.left + binding.btnDailyChart.right +
+                            binding.btnDailyList.left + binding.btnDailyList.right) * 0.25f
+                        val targetChart = if (isRtl) localX >= midpoint else localX < midpoint
                         if (targetChart != showDailyChart) {
                             binding.dailyToggleTrack.performHapticFeedback(HapticFeedbackConstants.CLOCK_TICK)
                             showDailyChart = targetChart
@@ -413,12 +416,16 @@ class ForecastView(private val binding: LayoutForecastBinding) {
     private fun setupCityPills(state: WeatherUiState, onSelectCity: (LocationItem) -> Unit) {
         val context = binding.root.context
         val density = context.resources.displayMetrics.density
-        binding.cityPillsContainer.removeAllViews()
 
         val allCities = mutableListOf<LocationItem>()
         state.detectedCurrentLocation?.let { allCities.add(it) }
         state.savedLocations.forEach { loc ->
-            if (allCities.none { it.id == loc.id }) allCities.add(loc)
+            val isDuplicate = allCities.any { existing ->
+                existing.id == loc.id ||
+                    (kotlin.math.abs(existing.latitude - loc.latitude) < 0.03 &&
+                        kotlin.math.abs(existing.longitude - loc.longitude) < 0.03)
+            }
+            if (!isDuplicate) allCities.add(loc)
         }
 
         if (allCities.isEmpty() && state.selectedLocation != null) {
@@ -426,6 +433,10 @@ class ForecastView(private val binding: LayoutForecastBinding) {
         }
 
         val activeId = state.selectedLocation?.id ?: allCities.firstOrNull()?.id
+        val pillsKey = listOf(allCities.map { it.id to it.name }, activeId, state.detectedCurrentLocation?.id)
+        if (pillsKey == lastCityPillsKey) return
+        lastCityPillsKey = pillsKey
+        binding.cityPillsContainer.removeAllViews()
         val pillHeightPx = (42 * density).toInt()
 
         var activePill: View? = null
@@ -669,7 +680,9 @@ class ForecastView(private val binding: LayoutForecastBinding) {
             val nowSec = ZonedDateTime.now(zoneId).toEpochSecond()
             val riseSec = LocalDateTime.parse(sunriseIso).atZone(zoneId).toEpochSecond()
             val setSec = LocalDateTime.parse(sunsetIso).atZone(zoneId).toEpochSecond()
-            ((nowSec - riseSec).toFloat() / (setSec - riseSec).toFloat()).coerceIn(0f, 1f)
+            val span = (setSec - riseSec).toFloat()
+            if (span <= 0f) return 0.5f
+            ((nowSec - riseSec).toFloat() / span).coerceIn(0f, 1f)
         }.getOrDefault(0.6f)
     }
 
@@ -723,19 +736,41 @@ class ForecastBinder(private val view: ForecastView) {
     ) = view.bind(state, onSearch, onRefresh, onSelectCity, onToggleUnit)
 }
 
-private class HourlyAdapter(
-    private val items: List<HourlyForecast>,
-    private val unit: TemperatureUnit,
-    private val nowLabel: String,
-    private val accentColor: Int,
-    private val zoneId: ZoneId,
-    private val isStale: Boolean
-) : RecyclerView.Adapter<HourlyAdapter.Holder>() {
+private class HourlyAdapter : RecyclerView.Adapter<HourlyAdapter.Holder>() {
 
-    private val nowEpochSec = Instant.now().epochSecond
-    private val todayDate = LocalDate.now(zoneId)
+    private var items: List<HourlyForecast> = emptyList()
+    private var unit: TemperatureUnit = TemperatureUnit.CELSIUS
+    private var nowLabel: String = "Now"
+    private var accentColor: Int = 0xFF38BDF8.toInt()
+    private var zoneId: ZoneId = ZoneId.systemDefault()
+    private var isStale: Boolean = false
+    private var nowEpochSec: Long = Instant.now().epochSecond
+    private var todayDate: LocalDate = LocalDate.now(zoneId)
+    private var lastKey: Any? = null
 
     class Holder(val binding: ItemHourlyForecastBinding) : RecyclerView.ViewHolder(binding.root)
+
+    fun submit(
+        items: List<HourlyForecast>,
+        unit: TemperatureUnit,
+        nowLabel: String,
+        accentColor: Int,
+        zoneId: ZoneId,
+        isStale: Boolean
+    ) {
+        val nextKey = listOf(items, unit, nowLabel, accentColor, zoneId.id, isStale)
+        if (nextKey == lastKey) return
+        lastKey = nextKey
+        this.items = items
+        this.unit = unit
+        this.nowLabel = nowLabel
+        this.accentColor = accentColor
+        this.zoneId = zoneId
+        this.isStale = isStale
+        this.nowEpochSec = Instant.now().epochSecond
+        this.todayDate = LocalDate.now(zoneId)
+        notifyDataSetChanged()
+    }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): Holder =
         Holder(ItemHourlyForecastBinding.inflate(LayoutInflater.from(parent.context), parent, false))
@@ -744,7 +779,9 @@ private class HourlyAdapter(
 
     override fun onBindViewHolder(holder: Holder, position: Int) {
         val item = items[position]
-        val isCurrentHour = position == 0 && !isStale && kotlin.math.abs(nowEpochSec - item.timeEpochSeconds) < 5400L
+        val isCurrentHour = position == 0 && !isStale &&
+            nowEpochSec >= item.timeEpochSeconds &&
+            (nowEpochSec - item.timeEpochSeconds) < 3600L
 
         if (isCurrentHour) {
             holder.binding.hourlyCard.setBackgroundResource(R.drawable.bg_hourly_card_active)

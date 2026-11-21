@@ -200,6 +200,79 @@ class BugFixRegressionTest {
         assertTrue(parsed.isCurrentLocation)
     }
 
+    @Test
+    fun cleanAdministrativeNamePreservesNumberedWardsAndDistricts() {
+        assertEquals("Phường 1", LocationResolver.cleanAdministrativeName("Phường 1"))
+        assertEquals("Quận 7", LocationResolver.cleanAdministrativeName("Quận 7"))
+        assertEquals("Bến Nghé", LocationResolver.cleanAdministrativeName("Phường Bến Nghé"))
+        assertEquals("Xuân Hương", LocationResolver.cleanAdministrativeName("Xã Xuân Hương"))
+        assertEquals("Ba Dinh", LocationResolver.cleanAdministrativeName("Ba Dinh District"))
+    }
+
+    @Test
+    fun gpsLocationIdBucketsNearbyCoordinatesToPreventCacheThrashing() {
+        val idA = LocationResolver.gpsLocationId(11.94646, 108.44193)
+        val idB = LocationResolver.gpsLocationId(11.94660, 108.44205)
+        assertEquals("gps_11.95_108.44", idA)
+        assertEquals(idA, idB)
+    }
+
+    @Test
+    fun forecastParserHandlesExplicitJsonNullsWithoutNaNAndUsesCurrentHourVisibility() {
+        val json = JSONObject(
+            """
+            {
+              "timezone": "Asia/Ho_Chi_Minh",
+              "current": {
+                "time": "2024-01-01T02:30",
+                "temperature_2m": 24.0,
+                "apparent_temperature": null,
+                "relative_humidity_2m": 80,
+                "weather_code": 2,
+                "is_day": 1,
+                "wind_speed_10m": 10.0,
+                "wind_gusts_10m": null,
+                "surface_pressure": null,
+                "precipitation": null,
+                "uv_index": null
+              },
+              "hourly": {
+                "time": ["2024-01-01T02:00", "2024-01-01T03:00"],
+                "temperature_2m": [23.0, 25.0],
+                "weather_code": [2, 3],
+                "is_day": [1, 1],
+                "precipitation_probability": [10, 20],
+                "visibility": [5000, 15000]
+              },
+              "daily": {
+                "time": ["2024-01-01"],
+                "weather_code": [2],
+                "temperature_2m_min": [18.0],
+                "temperature_2m_max": [28.0],
+                "uv_index_max": [5.0]
+              }
+            }
+            """.trimIndent()
+        )
+        val parsed = ForecastJsonParser.parse(LocationItem("x", "Test", latitude = 0.0, longitude = 0.0), json, 100L)
+        assertEquals(24.0, parsed.current.apparentTemperatureC, 0.0)
+        assertEquals(10.0, parsed.current.windGustsKmh, 0.0)
+        assertEquals(1013.0, parsed.current.surfacePressureHpa, 0.0)
+        assertEquals(0.0, parsed.current.precipitationMm, 0.0)
+        assertEquals(5.0, parsed.current.uvIndex, 0.0)
+        // Current time is 02:30 -> visibility should come from 02:00 (5000m = 5.0 km), not 03:00 (15.0 km)
+        assertEquals(5.0, parsed.current.visibilityKm, 0.01)
+    }
+
+    @Test
+    fun preferencesDeduplicatesNearbyPresetCoordinates() {
+        val memPrefs = InMemorySharedPreferences()
+        val prefs = WeatherPreferences(memPrefs)
+        // Default locations include Đà Lạt (11.94646, 108.44193)
+        val nearbyDalat = LocationItem("preset_dalat", "Đà Lạt", "Lâm Đồng", "Vietnam", 11.9404, 108.4583)
+        assertFalse(prefs.addLocation(nearbyDalat))
+    }
+
     private fun sampleForecast(
         location: LocationItem,
         temp: Double,

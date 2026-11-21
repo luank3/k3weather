@@ -63,11 +63,45 @@ class SolarArcView @JvmOverloads constructor(
     }
 
     private val arcPath = Path()
+    private val glowMatrix = android.graphics.Matrix()
+    private val dayArcGlowShader = RadialGradient(
+        0f, 0f, 1f,
+        intArrayOf(0x66FBBF24.toInt(), 0x00000000),
+        null,
+        Shader.TileMode.CLAMP
+    )
+    private val nightArcGlowShader = RadialGradient(
+        0f, 0f, 1f,
+        intArrayOf(0x44818CF8.toInt(), 0x00000000),
+        null,
+        Shader.TileMode.CLAMP
+    )
+    private val dayBarGlowShader = RadialGradient(
+        0f, 0f, 1f,
+        intArrayOf(0x80FDE047.toInt(), 0x00000000),
+        null,
+        Shader.TileMode.CLAMP
+    )
+    private val nightBarGlowShader = RadialGradient(
+        0f, 0f, 1f,
+        intArrayOf(0x5593C5FD.toInt(), 0x00000000),
+        null,
+        Shader.TileMode.CLAMP
+    )
 
     fun setProgress(progress: Float, day: Boolean) {
-        dayProgress = progress.coerceIn(0f, 1f)
+        dayProgress = if (progress.isFinite()) progress.coerceIn(0f, 1f) else 0.5f
         isDay = day
         invalidate()
+    }
+
+    private fun drawSunGlow(canvas: Canvas, cx: Float, cy: Float, radius: Float, shader: RadialGradient) {
+        glowMatrix.reset()
+        glowMatrix.postScale(radius, radius)
+        glowMatrix.postTranslate(cx, cy)
+        shader.setLocalMatrix(glowMatrix)
+        sunGlowPaint.shader = shader
+        canvas.drawCircle(cx, cy, radius, sunGlowPaint)
     }
 
     override fun onDraw(canvas: Canvas) {
@@ -110,17 +144,7 @@ class SolarArcView @JvmOverloads constructor(
         }
 
         // Glowing outer coronal halo
-        val glowRadius = 14f * density
-        sunGlowPaint.shader = RadialGradient(
-            sunX, sunY, glowRadius,
-            intArrayOf(
-                if (isDay) 0x66FBBF24.toInt() else 0x44818CF8.toInt(),
-                0x00000000
-            ),
-            null,
-            Shader.TileMode.CLAMP
-        )
-        canvas.drawCircle(sunX, sunY, glowRadius, sunGlowPaint)
+        drawSunGlow(canvas, sunX, sunY, 14f * density, if (isDay) dayArcGlowShader else nightArcGlowShader)
 
         // Core sun disc
         sunCorePaint.color = if (isDay) 0xFFFDE047.toInt() else 0xFFC7D2FE.toInt()
@@ -138,17 +162,7 @@ class SolarArcView @JvmOverloads constructor(
         progressPaint.color = if (isDay) 0xF2FFFFFF.toInt() else 0xB3C7D2FE.toInt()
         canvas.drawLine(startX, cy, sunX, cy, progressPaint)
 
-        val glowRadius = 11f * density
-        sunGlowPaint.shader = RadialGradient(
-            sunX, cy, glowRadius,
-            intArrayOf(
-                if (isDay) 0x80FDE047.toInt() else 0x5593C5FD.toInt(),
-                0x00000000
-            ),
-            null,
-            Shader.TileMode.CLAMP
-        )
-        canvas.drawCircle(sunX, cy, glowRadius, sunGlowPaint)
+        drawSunGlow(canvas, sunX, cy, 11f * density, if (isDay) dayBarGlowShader else nightBarGlowShader)
         sunCorePaint.color = if (isDay) 0xFFFDE047.toInt() else 0xFFE0E7FF.toInt()
         canvas.drawCircle(sunX, cy, 4.5f * density, sunCorePaint)
     }

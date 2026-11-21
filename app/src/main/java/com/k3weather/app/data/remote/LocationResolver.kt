@@ -42,9 +42,14 @@ object LocationResolver {
 
     /**
      * Real device location (permission must already be granted and location services enabled):
-     * freshest last-known fix, otherwise a live fix from the enabled providers. Never touches IP geolocation.
+     * freshest accurate last-known fix (unless [forceFresh] is true), otherwise a live fix from
+     * enabled providers. Never touches IP geolocation.
      */
-    suspend fun resolveRealLocation(context: Context): LocationItem? {
+    suspend fun resolveRealLocation(
+        context: Context,
+        forceFresh: Boolean = false,
+        preferredLanguage: String? = null
+    ): LocationItem? {
         if (!hasLocationPermission(context)) return null
         val lm = context.getSystemService(Context.LOCATION_SERVICE) as? LocationManager ?: return null
         if (!LocationManagerCompat.isLocationEnabled(lm)) return null
@@ -57,10 +62,10 @@ object LocationResolver {
             return null
         }
 
-        val fix = freshestLastKnown(lm, allCandidateProviders)
+        val fix = (if (!forceFresh) freshestLastKnown(lm, allCandidateProviders) else null)
             ?: if (activeProviders.isNotEmpty()) awaitFreshFix(context, lm, activeProviders, allCandidateProviders)
-            else allCandidateProviders.mapNotNull { runCatching { lm.getLastKnownLocation(it) }.getOrNull() }.maxByOrNull { it.time }
-        return fix?.let { withContext(Dispatchers.IO) { toLocationItem(context, it) } }
+            else freshestFallbackLastKnown(lm, allCandidateProviders)
+        return fix?.let { withContext(Dispatchers.IO) { toLocationItem(context, it, preferredLanguage) } }
     }
 
     /** IP geolocation – only for the case where the user denied the location permission. */
@@ -69,10 +74,30 @@ object LocationResolver {
     }
 
     @android.annotation.SuppressLint("MissingPermission")
-    private fun freshestLastKnown(lm: LocationManager, providers: List<String>): Location? =
-        providers.mapNotNull { runCatching { lm.getLastKnownLocation(it) }.getOrNull() }
+    private fun freshestLastKnown(lm: LocationManager, providers: List<String>): Location? {
+        val now = System.currentTimeMillis()
+        val candidates = providers
+            .mapNotNull { runCatching { lm.getLastKnownLocation(it) }.getOrNull() }
+            .filter { loc ->
+                val ageMs = now - loc.time
+                ageMs in 0..LAST_KNOWN_MAX_AGE_MS &&
+                    (!loc.hasAccuracy() || loc.accuracy <= MAX_ACCEPTABLE_ACCURACY_METERS)
+            }
+        // Prefer a recent fine fix (< 5 min, <= 250 m) over a slightly newer coarse fix
+        val fineRecent = candidates
+            .filter { (now - it.time) <= FINE_FIX_MAX_AGE_MS && it.hasAccuracy() && it.accuracy <= GOOD_ACCURACY_METERS }
             .maxByOrNull { it.time }
-            ?.takeIf { System.currentTimeMillis() - it.time < 15 * 60 * 1000L }
+        return fineRecent ?: candidates.maxByOrNull { it.time }
+    }
+
+    @android.annotation.SuppressLint("MissingPermission")
+    private fun freshestFallbackLastKnown(lm: LocationManager, providers: List<String>): Location? {
+        val now = System.currentTimeMillis()
+        return providers
+            .mapNotNull { runCatching { lm.getLastKnownLocation(it) }.getOrNull() }
+            .filter { (now - it.time) in 0..FALLBACK_LAST_KNOWN_MAX_AGE_MS }
+            .maxByOrNull { it.time }
+    }
 
     @android.annotation.SuppressLint("MissingPermission")
     private suspend fun awaitFreshFix(
@@ -80,19 +105,25 @@ object LocationResolver {
         lm: LocationManager,
         activeProviders: List<String>,
         fallbackProviders: List<String>
-    ): Location? =
-        kotlinx.coroutines.withTimeoutOrNull(8_000L) {
+    ): Location? {
+        var bestLiveFix: Location? = null
+        val live = kotlinx.coroutines.withTimeoutOrNull(8_000L) {
             kotlinx.coroutines.suspendCancellableCoroutine<Location?> { cont ->
                 val cancelSignal = android.os.CancellationSignal()
                 val mainExecutor = ContextCompat.getMainExecutor(context)
+                val mainHandler = android.os.Handler(android.os.Looper.getMainLooper())
                 var remaining = activeProviders.size
                 var finished = false
+                var refineRunnable: Runnable? = null
+
                 fun finish(loc: Location?) {
                     if (finished) return
                     finished = true
+                    refineRunnable?.let { mainHandler.removeCallbacks(it) }
                     cancelSignal.cancel()
                     if (cont.isActive) cont.resume(loc) {}
                 }
+
                 activeProviders.forEach { provider ->
                     runCatching {
                         LocationManagerCompat.getCurrentLocation(
@@ -101,24 +132,58 @@ object LocationResolver {
                             cancelSignal,
                             mainExecutor
                         ) { loc ->
+                            remaining -= 1
                             if (loc != null) {
-                                finish(loc)
-                            } else {
-                                remaining -= 1
-                                if (remaining <= 0) finish(null)
+                                val currentBest = bestLiveFix
+                                if (currentBest == null || isBetterFix(loc, currentBest)) {
+                                    bestLiveFix = loc
+                                }
+                                val isGoodEnough = !loc.hasAccuracy() || loc.accuracy <= GOOD_ACCURACY_METERS
+                                if (isGoodEnough || remaining <= 0) {
+                                    finish(bestLiveFix)
+                                } else if (refineRunnable == null) {
+                                    // Coarse fix received first; wait briefly for a finer GPS/fused fix
+                                    val r = Runnable { finish(bestLiveFix) }
+                                    refineRunnable = r
+                                    mainHandler.postDelayed(r, REFINE_WINDOW_MS)
+                                }
+                            } else if (remaining <= 0) {
+                                finish(bestLiveFix)
                             }
                         }
                     }.onFailure {
                         remaining -= 1
-                        if (remaining <= 0) finish(null)
+                        if (remaining <= 0) finish(bestLiveFix)
                     }
                 }
-                cont.invokeOnCancellation { cancelSignal.cancel() }
+                cont.invokeOnCancellation {
+                    refineRunnable?.let { mainHandler.removeCallbacks(it) }
+                    cancelSignal.cancel()
+                }
             }
-        } ?: fallbackProviders.mapNotNull { runCatching { lm.getLastKnownLocation(it) }.getOrNull() }.maxByOrNull { it.time }
+        }
+        return live ?: bestLiveFix ?: freshestFallbackLastKnown(lm, fallbackProviders)
+    }
 
-    private fun toLocationItem(context: Context, loc: Location): LocationItem {
-        val lang = Locale.getDefault().language.ifBlank { "vi" }
+    private fun isBetterFix(candidate: Location, current: Location): Boolean {
+        if (candidate.hasAccuracy() && current.hasAccuracy()) {
+            return candidate.accuracy < current.accuracy
+        }
+        return candidate.time > current.time
+    }
+
+    private suspend fun toLocationItem(
+        context: Context,
+        loc: Location,
+        preferredLanguage: String? = null
+    ): LocationItem {
+        val lang = when (preferredLanguage) {
+            "vi", "en" -> preferredLanguage
+            else -> context.resources.configuration.locales[0]?.language
+                ?.takeIf { it.isNotBlank() }
+                ?: Locale.getDefault().language.ifBlank { "en" }
+        }
+        val locale = Locale(lang)
 
         // 1. Try OpenStreetMap Nominatim reverse geocoding for accurate ward/district/town resolution
         resolveNominatimReverse(loc.latitude, loc.longitude, lang)?.let { return it }
@@ -128,8 +193,7 @@ object LocationResolver {
         var region = ""
         var country = ""
         try {
-            val geocoder = Geocoder(context, Locale.getDefault())
-            val addresses = geocoder.getFromLocation(loc.latitude, loc.longitude, 1)
+            val addresses = reverseGeocodeAndroid(context, locale, loc.latitude, loc.longitude)
             if (!addresses.isNullOrEmpty()) {
                 val addr = addresses[0]
                 val specificArea = listOfNotNull(
@@ -151,7 +215,7 @@ object LocationResolver {
         } catch (_: Exception) {
         }
         return LocationItem(
-            id = "gps_${String.format(Locale.US, "%.4f_%.4f", loc.latitude, loc.longitude)}",
+            id = gpsLocationId(loc.latitude, loc.longitude),
             name = placeName,
             region = region,
             country = country,
@@ -162,6 +226,34 @@ object LocationResolver {
         )
     }
 
+    private suspend fun reverseGeocodeAndroid(
+        context: Context,
+        locale: Locale,
+        lat: Double,
+        lon: Double
+    ): List<android.location.Address>? {
+        if (!Geocoder.isPresent()) return null
+        val geocoder = Geocoder(context, locale)
+        return if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+            kotlinx.coroutines.withTimeoutOrNull(3_500L) {
+                kotlinx.coroutines.suspendCancellableCoroutine { cont ->
+                    geocoder.getFromLocation(lat, lon, 1, object : Geocoder.GeocodeListener {
+                        override fun onGeocode(addresses: MutableList<android.location.Address>) {
+                            if (cont.isActive) cont.resume(addresses) {}
+                        }
+
+                        override fun onError(errorMessage: String?) {
+                            if (cont.isActive) cont.resume(null) {}
+                        }
+                    })
+                }
+            }
+        } else {
+            @Suppress("DEPRECATION")
+            geocoder.getFromLocation(lat, lon, 1)
+        }
+    }
+
     private fun resolveNominatimReverse(lat: Double, lon: Double, lang: String): LocationItem? {
         return try {
             val url = URL("https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=$lat&lon=$lon&zoom=14&accept-language=$lang")
@@ -169,57 +261,88 @@ object LocationResolver {
                 requestMethod = "GET"
                 connectTimeout = 3500
                 readTimeout = 3500
-                setRequestProperty("User-Agent", "K3Weather/1.0 (Android)")
+                setRequestProperty("User-Agent", "K3Weather/1.0 (https://github.com/luank3/k3weather; Android)")
                 setRequestProperty("Accept", "application/json")
             }
-            if (connection.responseCode == 200) {
-                val body = connection.inputStream.bufferedReader().use { it.readText() }
-                val json = JSONObject(body)
-                val addr = json.optJSONObject("address") ?: return null
-                val localArea = listOf(
-                    addr.optString("suburb"),
-                    addr.optString("town"),
-                    addr.optString("city_district"),
-                    addr.optString("district"),
-                    addr.optString("village"),
-                    addr.optString("municipality"),
-                    addr.optString("county"),
-                    addr.optString("quarter")
-                ).firstOrNull { it.isNotBlank() }
-                val city = listOf(
-                    addr.optString("city"),
-                    addr.optString("state"),
-                    addr.optString("province")
-                ).firstOrNull { it.isNotBlank() }.orEmpty()
-                val country = addr.optString("country", "")
+            try {
+                if (connection.responseCode == 200) {
+                    val body = connection.inputStream.bufferedReader().use { it.readText() }
+                    val json = JSONObject(body)
+                    val addr = json.optJSONObject("address") ?: return null
+                    val localArea = listOf(
+                        addr.optString("suburb"),
+                        addr.optString("town"),
+                        addr.optString("city_district"),
+                        addr.optString("district"),
+                        addr.optString("village"),
+                        addr.optString("municipality"),
+                        addr.optString("county"),
+                        addr.optString("quarter")
+                    ).firstOrNull { it.isNotBlank() }
+                    val city = listOf(
+                        addr.optString("city"),
+                        addr.optString("state"),
+                        addr.optString("province")
+                    ).firstOrNull { it.isNotBlank() }.orEmpty()
+                    val country = addr.optString("country", "")
 
-                val primaryName = (localArea ?: city.takeIf { it.isNotBlank() }) ?: return null
-                val cleanPrimary = primaryName
-                    .replace(Regex("^(Phường|Xã|Thị trấn|Thị xã|Quận|Huyện)\\s+", RegexOption.IGNORE_CASE), "")
-                    .replace(Regex("\\s+(Ward|Commune|District|Township|Town)$", RegexOption.IGNORE_CASE), "")
-                    .ifBlank { primaryName }
-                val regionName = if (localArea != null && city.isNotBlank() && !localArea.equals(city, ignoreCase = true)) {
-                    city
+                    val primaryName = (localArea ?: city.takeIf { it.isNotBlank() }) ?: return null
+                    val cleanPrimary = cleanAdministrativeName(primaryName)
+                    val regionName = if (localArea != null && city.isNotBlank() && !localArea.equals(city, ignoreCase = true)) {
+                        city
+                    } else {
+                        ""
+                    }
+                    LocationItem(
+                        id = gpsLocationId(lat, lon),
+                        name = cleanPrimary,
+                        region = regionName,
+                        country = country,
+                        latitude = lat,
+                        longitude = lon,
+                        timezone = "auto",
+                        isCurrentLocation = true
+                    )
                 } else {
-                    ""
+                    null
                 }
-                LocationItem(
-                    id = "gps_${String.format(Locale.US, "%.4f_%.4f", lat, lon)}",
-                    name = cleanPrimary,
-                    region = regionName,
-                    country = country,
-                    latitude = lat,
-                    longitude = lon,
-                    timezone = "auto",
-                    isCurrentLocation = true
-                )
-            } else {
-                null
+            } finally {
+                connection.disconnect()
             }
         } catch (_: Exception) {
             null
         }
     }
+
+    /**
+     * Buckets GPS coordinates to ~1.1 km (2 decimal places) for cache/identity stability
+     * while preserving full precision in [LocationItem.latitude]/[LocationItem.longitude].
+     */
+    internal fun gpsLocationId(lat: Double, lon: Double): String =
+        "gps_${String.format(Locale.US, "%.2f_%.2f", lat, lon)}"
+
+    /**
+     * Strips verbose administrative prefixes/suffixes unless doing so would leave a bare number
+     * (e.g. "Phường 1", "Quận 7" remain intact, while "Phường Bến Nghé" becomes "Bến Nghé").
+     */
+    internal fun cleanAdministrativeName(rawName: String): String {
+        val trimmed = rawName.trim()
+        val stripped = trimmed
+            .replace(Regex("^(Phường|Xã|Thị trấn|Thị xã|Quận|Huyện)\\s+", RegexOption.IGNORE_CASE), "")
+            .replace(Regex("\\s+(Ward|Commune|District|Township|Town)$", RegexOption.IGNORE_CASE), "")
+            .trim()
+        if (stripped.isBlank() || stripped.first().isDigit()) {
+            return trimmed
+        }
+        return stripped
+    }
+
+    private const val FINE_FIX_MAX_AGE_MS = 5 * 60 * 1000L
+    private const val LAST_KNOWN_MAX_AGE_MS = 15 * 60 * 1000L
+    private const val FALLBACK_LAST_KNOWN_MAX_AGE_MS = 2 * 60 * 60 * 1000L
+    private const val GOOD_ACCURACY_METERS = 250f
+    private const val MAX_ACCEPTABLE_ACCURACY_METERS = 1500f
+    private const val REFINE_WINDOW_MS = 2_500L
 
     fun resolveIpLocation(): LocationItem? {
         return resolvePrimaryIpLocation() ?: resolveSecondaryIpLocation()
