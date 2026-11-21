@@ -71,11 +71,15 @@ class WeatherRepositoryImpl(
             val client = clientFactory(settings.customApiBaseUrl)
             val q = query.trim()
             if (q.isEmpty()) return@runCatching emptyList()
-            val first = client.search(q)
+            val lang = when (settings.language) {
+                "vi", "en" -> settings.language
+                else -> java.util.Locale.getDefault().language.ifBlank { "en" }
+            }
+            val first = client.search(q, lang)
             var results = parseLocations(first)
             if (results.isEmpty()) {
                 val normalized = normalizeSearchQuery(q)
-                if (normalized != q) results = parseLocations(client.search(normalized))
+                if (normalized != q) results = parseLocations(client.search(normalized, lang))
             }
             results
         }
@@ -117,10 +121,22 @@ class WeatherRepositoryImpl(
 }
 
 internal object ForecastJsonParser {
+    private fun JSONObject.optFiniteDouble(key: String, fallback: Double): Double {
+        if (isNull(key)) return fallback
+        val v = optDouble(key, fallback)
+        return if (v.isFinite()) v else fallback
+    }
+
+    private fun JSONArray.optFiniteDouble(index: Int, fallback: Double): Double {
+        if (index !in 0 until length() || isNull(index)) return fallback
+        val v = optDouble(index, fallback)
+        return if (v.isFinite()) v else fallback
+    }
+
     fun parse(location: LocationItem, json: JSONObject, fetchedAt: Long): ForecastData {
         val current = json.getJSONObject("current")
         val daily = json.getJSONObject("daily")
-        val currentCode = current.getInt("weather_code")
+        val currentCode = current.optInt("weather_code", 0)
         val nowText = current.getString("time")
         val zone = runCatching { ZoneId.of(json.optString("timezone", location.timezone)) }.getOrDefault(ZoneId.of("UTC"))
         val now = runCatching { LocalDateTime.parse(nowText) }.getOrElse { LocalDateTime.now(zone).withMinute(0).withSecond(0).withNano(0) }
@@ -137,13 +153,14 @@ internal object ForecastJsonParser {
             runCatching { !LocalDateTime.parse(times.getString(it)).isBefore(now) }.getOrDefault(false)
         } ?: 0
 
+        val tempC = current.optFiniteDouble("temperature_2m", 0.0)
         val hours = (start until minOf(times.length(), start + 24)).map { i ->
             val local = LocalDateTime.parse(times.getString(i))
             HourlyForecast(
                 timeEpochSeconds = local.atZone(zone).toEpochSecond(),
                 timeLabel = local.format(DateTimeFormatter.ofPattern("ha")),
-                temperatureC = hourlyTemps.getDouble(i),
-                weatherCode = hourlyCodes.getInt(i),
+                temperatureC = hourlyTemps.optFiniteDouble(i, tempC),
+                weatherCode = hourlyCodes.optInt(i, currentCode),
                 isDay = hourlyIsDay?.optInt(i, 1) != 0,
                 precipitationProbability = hourlyPop?.optInt(i, 0) ?: 0
             )
@@ -163,42 +180,47 @@ internal object ForecastJsonParser {
             DailyForecast(
                 dateIso = date,
                 dayLabel = LocalDate.parse(date).format(DateTimeFormatter.ofPattern("EEE")),
-                weatherCode = dailyCodes.getInt(i),
-                minTempC = dailyMin.getDouble(i),
-                maxTempC = dailyMax.getDouble(i),
+                weatherCode = dailyCodes.optInt(i, currentCode),
+                minTempC = dailyMin.optFiniteDouble(i, tempC),
+                maxTempC = dailyMax.optFiniteDouble(i, tempC),
                 precipitationProbabilityMax = dailyPopMax?.optInt(i, 0) ?: 0,
-                uvIndexMax = dailyUvMax?.optDouble(i, 0.0) ?: 0.0,
+                uvIndexMax = dailyUvMax?.optFiniteDouble(i, 0.0) ?: 0.0,
                 sunriseIso = dailySunrise?.optString(i, "") ?: "",
                 sunsetIso = dailySunset?.optString(i, "") ?: ""
             )
         }
 
         val todayIndex = (0 until dailyTimes.length()).firstOrNull { dailyTimes.getString(it) == now.toLocalDate().toString() } ?: 0
-        val tempC = current.getDouble("temperature_2m")
-        val windSpeed = current.getDouble("wind_speed_10m")
-        val visMeters = hourlyVis?.optDouble(start, 10000.0) ?: 10000.0
-        val currentUv = current.optDouble("uv_index", Double.NaN).let {
-            if (it.isNaN()) (dailyUvMax?.optDouble(todayIndex, 0.0) ?: 0.0) else it
+        val windSpeed = current.optFiniteDouble("wind_speed_10m", 0.0)
+        // Use the actual current hour index for visibility (if `start` is the next hour because now has minutes > 0)
+        val currentHourIndex = if (start > 0 && runCatching { LocalDateTime.parse(times.getString(start)).isAfter(now) }.getOrDefault(false)) {
+            start - 1
+        } else {
+            start
+        }
+        val visMeters = hourlyVis?.optFiniteDouble(currentHourIndex, 10000.0) ?: 10000.0
+        val currentUv = current.optFiniteDouble("uv_index", Double.NaN).let {
+            if (it.isNaN()) (dailyUvMax?.optFiniteDouble(todayIndex, 0.0) ?: 0.0) else it
         }
 
         return ForecastData(
             location = location,
             current = CurrentWeather(
                 temperatureC = tempC,
-                apparentTemperatureC = current.optDouble("apparent_temperature", tempC),
+                apparentTemperatureC = current.optFiniteDouble("apparent_temperature", tempC),
                 weatherCode = currentCode,
                 condition = WeatherCodeMapper.map(currentCode).label,
                 isDay = current.optInt("is_day", 1) == 1,
                 windSpeedKmh = windSpeed,
                 windDirectionDeg = current.optInt("wind_direction_10m", 0),
-                windGustsKmh = current.optDouble("wind_gusts_10m", windSpeed),
+                windGustsKmh = current.optFiniteDouble("wind_gusts_10m", windSpeed),
                 humidityPercent = current.optInt("relative_humidity_2m", 65),
                 uvIndex = currentUv,
-                surfacePressureHpa = current.optDouble("surface_pressure", 1013.0),
+                surfacePressureHpa = current.optFiniteDouble("surface_pressure", 1013.0),
                 visibilityKm = (visMeters / 1000.0).coerceIn(0.1, 50.0),
-                precipitationMm = current.optDouble("precipitation", 0.0),
-                minTempC = dailyMin.getDouble(todayIndex),
-                maxTempC = dailyMax.getDouble(todayIndex),
+                precipitationMm = current.optFiniteDouble("precipitation", 0.0),
+                minTempC = dailyMin.optFiniteDouble(todayIndex, tempC),
+                maxTempC = dailyMax.optFiniteDouble(todayIndex, tempC),
                 sunriseIso = dailySunrise?.optString(todayIndex, "") ?: "",
                 sunsetIso = dailySunset?.optString(todayIndex, "") ?: "",
                 timeIso = nowText

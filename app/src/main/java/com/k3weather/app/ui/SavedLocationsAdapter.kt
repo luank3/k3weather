@@ -4,6 +4,7 @@ import android.content.res.ColorStateList
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
 import com.k3weather.app.R
 import com.k3weather.app.core.model.*
@@ -36,14 +37,44 @@ class SavedLocationsAdapter(
         colorScheme: AppColorScheme = AppColorScheme.CYAN,
         selectedLocationId: String? = null
     ) {
+        val oldLocations = this.locations
+        val oldForecasts = this.forecasts
+        val oldUnit = this.unit
+        val oldBg = this.backgroundsEnabled
+        val oldReduce = this.reduceMotion
+        val oldScheme = this.colorScheme
+        val oldSelected = this.selectedLocationId
+
+        val newForecasts = forecasts.toMap()
         this.locations = locations
-        this.forecasts = forecasts
+        this.forecasts = newForecasts
         this.unit = unit
         this.backgroundsEnabled = backgroundsEnabled
         this.reduceMotion = reduceMotion
         this.colorScheme = colorScheme
         this.selectedLocationId = selectedLocationId
-        notifyDataSetChanged()
+
+        val diff = DiffUtil.calculateDiff(object : DiffUtil.Callback() {
+            override fun getOldListSize(): Int = oldLocations.size
+            override fun getNewListSize(): Int = locations.size
+
+            override fun areItemsTheSame(oldItemPosition: Int, newItemPosition: Int): Boolean =
+                oldLocations[oldItemPosition].id == locations[newItemPosition].id
+
+            override fun areContentsTheSame(oldItemPosition: Int, newItemPosition: Int): Boolean {
+                val oldItem = oldLocations[oldItemPosition]
+                val newItem = locations[newItemPosition]
+                return oldItem == newItem &&
+                    oldForecasts[oldItem.id]?.fetchedAtEpochMs == newForecasts[newItem.id]?.fetchedAtEpochMs &&
+                    oldForecasts[oldItem.id]?.current == newForecasts[newItem.id]?.current &&
+                    oldUnit == unit &&
+                    oldBg == backgroundsEnabled &&
+                    oldReduce == reduceMotion &&
+                    oldScheme == colorScheme &&
+                    (oldItem.id == oldSelected) == (newItem.id == selectedLocationId)
+            }
+        })
+        diff.dispatchUpdatesTo(this)
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): Holder {
@@ -90,14 +121,15 @@ class SavedLocationsAdapter(
         // Weather icon
         holder.binding.ivWeatherIcon.setImageResource(WeatherCodeMapper.getIcon(weatherCode, isDay))
 
-        holder.binding.activeBorderOverlay.visibility = View.GONE
+        val isSelected = location.id == selectedLocationId
+        holder.binding.activeBorderOverlay.visibility = if (isSelected) View.VISIBLE else View.GONE
 
-        // Card weather effect background
+        // Static weather atmosphere on cards to avoid N+1 concurrent 120fps loops
         WeatherBackgroundHelper.applyWeatherEffect(
             view = holder.binding.weatherEffectBackground,
             weatherCode = weatherCode,
             isDay = isDay,
-            reduceMotion = reduceMotion,
+            reduceMotion = true,
             colorScheme = colorScheme,
             enabled = backgroundsEnabled
         )
@@ -125,7 +157,12 @@ class SavedLocationsBinder(private val adapter: SavedLocationsAdapter) {
                 add(cur.copy(isCurrentLocation = true))
             }
             state.savedLocations.forEach { loc ->
-                if (none { it.id == loc.id }) add(loc)
+                val isDuplicate = any { existing ->
+                    existing.id == loc.id ||
+                        (kotlin.math.abs(existing.latitude - loc.latitude) < 0.03 &&
+                            kotlin.math.abs(existing.longitude - loc.longitude) < 0.03)
+                }
+                if (!isDuplicate) add(loc)
             }
         }
         adapter.submit(

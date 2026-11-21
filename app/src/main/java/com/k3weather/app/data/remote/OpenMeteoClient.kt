@@ -9,7 +9,10 @@ import java.net.URL
 import java.net.URLEncoder
 import java.util.zip.GZIPInputStream
 
-class OpenMeteoClient(private val customBaseUrl: String? = null) {
+class OpenMeteoClient(
+    private val customBaseUrl: String? = null,
+    private val customGeocodingBaseUrl: String? = null
+) {
     fun fetchForecast(latitude: Double, longitude: Double): JSONObject {
         val base = customBaseUrl?.trimEnd('/') ?: "https://api.open-meteo.com/v1/forecast"
         val currentParams = "temperature_2m,apparent_temperature,relative_humidity_2m,weather_code,is_day,wind_speed_10m,wind_direction_10m,wind_gusts_10m,surface_pressure,precipitation,uv_index"
@@ -19,10 +22,11 @@ class OpenMeteoClient(private val customBaseUrl: String? = null) {
         return request("$base?$query")
     }
 
-    fun search(query: String): JSONObject {
-        val base = customBaseUrl?.trimEnd('/') ?: "https://geocoding-api.open-meteo.com/v1/search"
+    fun search(query: String, language: String = "en"): JSONObject {
+        val base = customGeocodingBaseUrl?.trimEnd('/') ?: "https://geocoding-api.open-meteo.com/v1/search"
         val encoded = URLEncoder.encode(query, Charsets.UTF_8.name())
-        return request("$base?name=$encoded&count=10&language=en&format=json")
+        val safeLang = language.lowercase().take(2).takeIf { it.all(Char::isLetter) && it.length == 2 } ?: "en"
+        return request("$base?name=$encoded&count=10&language=$safeLang&format=json")
     }
 
     private fun request(urlStr: String): JSONObject {

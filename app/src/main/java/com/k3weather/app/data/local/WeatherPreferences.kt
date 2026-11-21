@@ -6,9 +6,13 @@ import com.k3weather.app.core.model.*
 import org.json.JSONArray
 import org.json.JSONObject
 
-class WeatherPreferences internal constructor(private val prefs: SharedPreferences) {
+class WeatherPreferences internal constructor(
+    private val prefs: SharedPreferences,
+    private val cachePrefs: SharedPreferences = prefs
+) {
     constructor(context: Context) : this(
-        context.getSharedPreferences("weather_preferences", Context.MODE_PRIVATE)
+        prefs = context.getSharedPreferences("weather_preferences", Context.MODE_PRIVATE),
+        cachePrefs = context.getSharedPreferences("weather_forecast_cache", Context.MODE_PRIVATE)
     )
 
     fun getSettings(): AppSettings = runCatching {
@@ -47,8 +51,8 @@ class WeatherPreferences internal constructor(private val prefs: SharedPreferenc
     }
 
     fun clearCache() {
-        val editor = prefs.edit()
-        prefs.all.keys.filter { it.startsWith(KEY_CACHE_PREFIX) }.forEach {
+        val editor = cachePrefs.edit()
+        cachePrefs.all.keys.filter { it.startsWith(KEY_CACHE_PREFIX) }.forEach {
             editor.remove(it)
         }
         editor.apply()
@@ -90,7 +94,9 @@ class WeatherPreferences internal constructor(private val prefs: SharedPreferenc
     }
 
     fun getCachedForecast(locationId: String): JSONObject? = runCatching {
-        JSONObject(prefs.getString(KEY_CACHE_PREFIX + locationId, null) ?: return null)
+        val raw = cachePrefs.getString(KEY_CACHE_PREFIX + locationId, null)
+            ?: if (cachePrefs !== prefs) prefs.getString(KEY_CACHE_PREFIX + locationId, null) else null
+        JSONObject(raw ?: return null)
     }.getOrNull()
 
     fun saveCachedForecast(location: LocationItem, timestamp: Long, data: JSONObject) {
@@ -98,14 +104,14 @@ class WeatherPreferences internal constructor(private val prefs: SharedPreferenc
             .put("timestamp", timestamp)
             .put("location", location.toJsonObject())
             .put("data", data)
-        prefs.edit().putString(KEY_CACHE_PREFIX + location.id, wrapper.toString()).apply()
+        cachePrefs.edit().putString(KEY_CACHE_PREFIX + location.id, wrapper.toString()).apply()
         pruneCaches(keepLocationId = location.id, nowMs = timestamp)
     }
 
     private fun removeCachedIfUnused(locationId: String) {
         val protectedIds = buildProtectedLocationIds()
         if (locationId !in protectedIds) {
-            prefs.edit().remove(KEY_CACHE_PREFIX + locationId).apply()
+            cachePrefs.edit().remove(KEY_CACHE_PREFIX + locationId).apply()
         }
     }
 
@@ -124,10 +130,10 @@ class WeatherPreferences internal constructor(private val prefs: SharedPreferenc
     private fun pruneCaches(keepLocationId: String, nowMs: Long) {
         val protectedIds = buildProtectedLocationIds() + keepLocationId
         val cacheEntries = mutableListOf<Pair<String, Long>>()
-        val editor = prefs.edit()
+        val editor = cachePrefs.edit()
         var dirty = false
 
-        for ((key, value) in prefs.all) {
+        for ((key, value) in cachePrefs.all) {
             if (!key.startsWith(KEY_CACHE_PREFIX)) continue
             val locId = key.removePrefix(KEY_CACHE_PREFIX)
             if (locId in protectedIds) {
@@ -162,7 +168,12 @@ class WeatherPreferences internal constructor(private val prefs: SharedPreferenc
 
     fun addLocation(location: LocationItem): Boolean {
         val locations = getSavedLocations()
-        if (locations.any { it.id == location.id || (kotlin.math.abs(it.latitude - location.latitude) < 0.01 && kotlin.math.abs(it.longitude - location.longitude) < 0.01) }) {
+        if (locations.any {
+                it.id == location.id ||
+                    (kotlin.math.abs(it.latitude - location.latitude) < 0.03 &&
+                        kotlin.math.abs(it.longitude - location.longitude) < 0.03)
+            }
+        ) {
             return false
         }
         saveLocations(locations + location)

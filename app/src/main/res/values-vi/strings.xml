@@ -165,4 +165,11 @@
     <string name="settings_clear_cache_action">Xóa bộ nhớ đệm</string>
     <string name="settings_version">Phiên bản</string>
     <string name="settings_cache_cleared">Đã xóa bộ nhớ đệm và làm mới</string>
+    <string name="toggle_on">Bật</string>
+    <string name="toggle_off">Tắt</string>
+    <string name="location_unavailable">Không thể xác định vị trí hiện tại</string>
+    <string name="clear_search">Xóa tìm kiếm</string>
+    <string name="weather_icon">Biểu tượng thời tiết</string>
+    <string name="undo">Hoàn tác</string>
+    <string name="location_removed">Đã xóa %1$s</string>
 </resources>

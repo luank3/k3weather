@@ -166,12 +166,16 @@ object WeatherWidgetUpdater {
             id to widgetSeq.getOrPut(id) { AtomicLong(0L) }.incrementAndGet()
         }
 
-        val prefs = WeatherPreferences(appContext)
-        val repo = WeatherRepositoryImpl(prefs)
+        val repo = (appContext as? com.k3weather.app.WeatherApplication)?.repository
+            ?: WeatherRepositoryImpl(WeatherPreferences(appContext))
         val settings = repo.getSettings()
         val locContext = localizedContext(appContext, settings.language)
 
-        val targetLocation = repo.getDetectedCurrentLocation() ?: repo.getSelectedLocation()
+        val targetLocation = if (settings.useCurrentLocation) {
+            repo.getDetectedCurrentLocation() ?: repo.getSelectedLocation()
+        } else {
+            repo.getSelectedLocation()
+        }
         val ownCached = repo.getCachedForecast(targetLocation.id)
         val selectedCached = if (ownCached == null) {
             val selected = repo.getSelectedLocation()
@@ -299,7 +303,9 @@ object WeatherWidgetUpdater {
             val todayDate = LocalDate.now(zoneId)
             for (i in 0 until 5) {
                 val h = hours.getOrNull(i) ?: continue
-                val isCurrentHour = i == 0 && !forecast.isStale && kotlin.math.abs(nowEpochSec - h.timeEpochSeconds) < 5400L
+                val isCurrentHour = i == 0 && !forecast.isStale &&
+                    nowEpochSec >= h.timeEpochSeconds &&
+                    (nowEpochSec - h.timeEpochSeconds) < 3600L
                 val timeStr = if (isCurrentHour) {
                     nowLabel
                 } else {

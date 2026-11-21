@@ -1,9 +1,13 @@
 package com.k3weather.app.ui
 
+import android.content.Context
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.inputmethod.EditorInfo
+import android.view.inputmethod.InputMethodManager
 import androidx.core.widget.doAfterTextChanged
+import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
 import com.k3weather.app.R
 import com.k3weather.app.core.model.LocationItem
@@ -30,6 +34,16 @@ class SearchView(private val binding: LayoutSearchBinding) {
                 val query = text?.toString().orEmpty()
                 binding.clearButton.visibility = if (query.isNotEmpty()) View.VISIBLE else View.GONE
                 onQuery(query)
+            }
+            binding.searchInput.setOnEditorActionListener { v, actionId, _ ->
+                if (actionId == EditorInfo.IME_ACTION_SEARCH) {
+                    val imm = v.context.getSystemService(Context.INPUT_METHOD_SERVICE) as? InputMethodManager
+                    imm?.hideSoftInputFromWindow(v.windowToken, 0)
+                    onQuery(v.text?.toString().orEmpty())
+                    true
+                } else {
+                    false
+                }
             }
         }
         adapter.onSelect = onSelect
@@ -79,23 +93,23 @@ class SearchView(private val binding: LayoutSearchBinding) {
         currentLocation?.let { list.add(it) }
         val vnCountry = if (isVi) "Việt Nam" else "Vietnam"
         val presets = listOf(
-            LocationItem(id = "preset_hanoi", name = "Hà Nội", country = vnCountry, latitude = 21.0285, longitude = 105.8542, timezone = "Asia/Bangkok", region = if (isVi) "Thủ đô" else "Capital"),
-            LocationItem(id = "preset_hcmc", name = if (isVi) "TP. Hồ Chí Minh" else "Ho Chi Minh City", country = vnCountry, latitude = 10.8231, longitude = 106.6297, timezone = "Asia/Bangkok", region = if (isVi) "Đông Nam Bộ" else "Southern Vietnam"),
-            LocationItem(id = "preset_danang", name = "Đà Nẵng", country = vnCountry, latitude = 16.0544, longitude = 108.2022, timezone = "Asia/Bangkok", region = if (isVi) "Duyên hải Nam Trung Bộ" else "Central Coast"),
-            LocationItem(id = "preset_hue", name = "Huế", country = vnCountry, latitude = 16.4637, longitude = 107.5909, timezone = "Asia/Bangkok", region = "Thừa Thiên Huế"),
-            LocationItem(id = "preset_dalat", name = "Đà Lạt", country = vnCountry, latitude = 11.9404, longitude = 108.4583, timezone = "Asia/Bangkok", region = "Lâm Đồng"),
-            LocationItem(id = "preset_nhatrang", name = "Nha Trang", country = vnCountry, latitude = 12.2388, longitude = 109.1967, timezone = "Asia/Bangkok", region = "Khánh Hòa"),
-            LocationItem(id = "preset_haiphong", name = "Hải Phòng", country = vnCountry, latitude = 20.8449, longitude = 106.6881, timezone = "Asia/Bangkok", region = if (isVi) "Đồng bằng sông Hồng" else "Red River Delta"),
-            LocationItem(id = "preset_cantho", name = "Cần Thơ", country = vnCountry, latitude = 10.0452, longitude = 105.7469, timezone = "Asia/Bangkok", region = if (isVi) "Đồng bằng sông Cửu Long" else "Mekong Delta"),
-            LocationItem(id = "preset_phuquoc", name = "Phú Quốc", country = vnCountry, latitude = 10.2270, longitude = 103.9632, timezone = "Asia/Bangkok", region = "Kiên Giang"),
-            LocationItem(id = "preset_tokyo", name = "Tokyo", country = if (isVi) "Nhật Bản" else "Japan", latitude = 35.6762, longitude = 139.6503, timezone = "Asia/Tokyo", region = "Kanto"),
-            LocationItem(id = "preset_seoul", name = "Seoul", country = if (isVi) "Hàn Quốc" else "South Korea", latitude = 37.5665, longitude = 126.9780, timezone = "Asia/Seoul", region = "Seoul"),
-            LocationItem(id = "preset_singapore", name = "Singapore", country = "Singapore", latitude = 1.3521, longitude = 103.8198, timezone = "Asia/Singapore"),
-            LocationItem(id = "preset_london", name = "London", country = if (isVi) "Vương quốc Anh" else "United Kingdom", latitude = 51.5074, longitude = -0.1278, timezone = "Europe/London", region = "England"),
-            LocationItem(id = "preset_paris", name = "Paris", country = if (isVi) "Pháp" else "France", latitude = 48.8566, longitude = 2.3522, timezone = "Europe/Paris", region = "Île-de-France")
+            LocationItem(id = "1581130", name = "Hà Nội", country = vnCountry, latitude = 21.0245, longitude = 105.84117, timezone = "Asia/Ho_Chi_Minh", region = if (isVi) "Thủ đô" else "Capital"),
+            LocationItem(id = "1566083", name = if (isVi) "TP. Hồ Chí Minh" else "Ho Chi Minh City", country = vnCountry, latitude = 10.8231, longitude = 106.6297, timezone = "Asia/Ho_Chi_Minh", region = if (isVi) "Đông Nam Bộ" else "Southern Vietnam"),
+            LocationItem(id = "1583992", name = "Đà Nẵng", country = vnCountry, latitude = 16.06778, longitude = 108.22083, timezone = "Asia/Ho_Chi_Minh", region = if (isVi) "Duyên hải Nam Trung Bộ" else "Central Coast"),
+            LocationItem(id = "1580240", name = "Huế", country = vnCountry, latitude = 16.4637, longitude = 107.5909, timezone = "Asia/Ho_Chi_Minh", region = "Thừa Thiên Huế"),
+            LocationItem(id = "1584071", name = "Đà Lạt", country = vnCountry, latitude = 11.94646, longitude = 108.44193, timezone = "Asia/Ho_Chi_Minh", region = "Lâm Đồng"),
+            LocationItem(id = "1572151", name = "Nha Trang", country = vnCountry, latitude = 12.2388, longitude = 109.1967, timezone = "Asia/Ho_Chi_Minh", region = "Khánh Hòa"),
+            LocationItem(id = "1581298", name = "Hải Phòng", country = vnCountry, latitude = 20.8449, longitude = 106.6881, timezone = "Asia/Ho_Chi_Minh", region = if (isVi) "Đồng bằng sông Hồng" else "Red River Delta"),
+            LocationItem(id = "1586203", name = "Cần Thơ", country = vnCountry, latitude = 10.0452, longitude = 105.7469, timezone = "Asia/Ho_Chi_Minh", region = if (isVi) "Đồng bằng sông Cửu Long" else "Mekong Delta"),
+            LocationItem(id = "1579008", name = "Phú Quốc", country = vnCountry, latitude = 10.2270, longitude = 103.9632, timezone = "Asia/Ho_Chi_Minh", region = "Kiên Giang"),
+            LocationItem(id = "1850147", name = "Tokyo", country = if (isVi) "Nhật Bản" else "Japan", latitude = 35.6762, longitude = 139.6503, timezone = "Asia/Tokyo", region = "Kanto"),
+            LocationItem(id = "1835848", name = "Seoul", country = if (isVi) "Hàn Quốc" else "South Korea", latitude = 37.5665, longitude = 126.9780, timezone = "Asia/Seoul", region = "Seoul"),
+            LocationItem(id = "1880252", name = "Singapore", country = "Singapore", latitude = 1.3521, longitude = 103.8198, timezone = "Asia/Singapore"),
+            LocationItem(id = "2643743", name = "London", country = if (isVi) "Vương quốc Anh" else "United Kingdom", latitude = 51.5074, longitude = -0.1278, timezone = "Europe/London", region = "England"),
+            LocationItem(id = "2988507", name = "Paris", country = if (isVi) "Pháp" else "France", latitude = 48.8566, longitude = 2.3522, timezone = "Europe/Paris", region = "Île-de-France")
         )
         for (p in presets) {
-            if (list.none { it.name.equals(p.name, ignoreCase = true) }) {
+            if (list.none { it.id == p.id || it.name.equals(p.name, ignoreCase = true) }) {
                 list.add(p)
             }
         }
@@ -120,10 +134,31 @@ private class SearchAdapter(var onSelect: (LocationItem) -> Unit) : RecyclerView
     class Holder(val binding: ItemSearchResultBinding) : RecyclerView.ViewHolder(binding.root)
 
     fun submit(values: List<LocationItem>, savedIds: Set<String>, savedNames: Set<String>) {
-        items = values
+        val oldItems = this.items
+        val oldSavedIds = this.savedIds
+        val oldSavedNames = this.savedNames
+        this.items = values
         this.savedIds = savedIds
         this.savedNames = savedNames
-        notifyDataSetChanged()
+
+        val diff = DiffUtil.calculateDiff(object : DiffUtil.Callback() {
+            override fun getOldListSize(): Int = oldItems.size
+            override fun getNewListSize(): Int = values.size
+
+            override fun areItemsTheSame(oldItemPosition: Int, newItemPosition: Int): Boolean =
+                oldItems[oldItemPosition].id == values[newItemPosition].id
+
+            override fun areContentsTheSame(oldItemPosition: Int, newItemPosition: Int): Boolean {
+                val oldItem = oldItems[oldItemPosition]
+                val newItem = values[newItemPosition]
+                val oldSaved = oldItem.isCurrentLocation || oldItem.id in oldSavedIds || oldItem.name.lowercase() in oldSavedNames
+                val newSaved = newItem.isCurrentLocation || newItem.id in savedIds || newItem.name.lowercase() in savedNames
+                val oldLast = oldItemPosition == oldItems.lastIndex
+                val newLast = newItemPosition == values.lastIndex
+                return oldItem == newItem && oldSaved == newSaved && oldLast == newLast
+            }
+        })
+        diff.dispatchUpdatesTo(this)
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int) =
