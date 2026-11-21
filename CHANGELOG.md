@@ -4,6 +4,25 @@ versioning: [SemVer](https://semver.org).
 
 ## [Unreleased]
 
+## [1.2.0] - 2026-11-21
+### Added
+- Settings controls for **Reduce motion**, **Use current location**, and **Clear cache & refresh** (`SettingsBinder`, `layout_settings.xml`).
+- **Undo** Snackbar when removing a saved city (`MainActivity`).
+- Distinct sunset vector icon (`ic_sunset.xml`) on the Sunrise & Sunset card.
+- Regression unit tests for administrative name cleaning, GPS coordinate bucketing, JSON `null`/`NaN` handling, current-hour visibility, and proximity deduplication (`BugFixRegressionTest`).
+
+### Changed
+- **Location accuracy**: filtered cached fixes by accuracy (`<= 1500 m`, preferring `< 5 min` fixes with `<= 250 m`), added a brief GPS refinement window in `awaitFreshFix()`, capped fallback fixes to 2 hours, bucketed GPS IDs to `~1.1 km` (`gps_%.2f_%.2f`), and used API 33+ async `Geocoder.GeocodeListener`.
+- **Performance & battery**: paused `WeatherEffectView` when hidden/offscreen, converted particle physics and lightning timers to delta-time, cached `sunCoronaGradient`, eliminated per-draw `RadialGradient` allocations in `SolarArcView`, and switched `SavedLocationsAdapter` and `SearchAdapter` to `DiffUtil`.
+- **UX & accessibility**: reused `HourlyAdapter` to preserve scroll position, diff-gated city pills and weekly rows, highlighted the active city card, auto-opened the soft keyboard on Search with `IME_ACTION_SEARCH`, respected OS `ANIMATOR_DURATION_SCALE` and `weatherBackgroundsEnabled`, and increased touch targets.
+- Parallelized saved-city forecast refreshes and separated forecast cache into `weather_forecast_cache` `SharedPreferences`.
+
+### Fixed
+- Preserved numbered Vietnamese wards and districts (e.g., `"Phường 1"`, `"Quận 7"`) during reverse geocoding (`LocationResolver`).
+- Fixed `"Now"` hourly badge off-by-one and current-hour visibility index (`ForecastView`, `WeatherRepositoryImpl`, `WeatherWidgetProvider`).
+- Guarded Open-Meteo numeric JSON parsing against explicit `null`/`NaN` values and closed Nominatim HTTP connections in `finally`.
+- Aligned preset city IDs, coordinates, and `Asia/Ho_Chi_Minh` timezones with defaults, widened proximity deduplication, fixed RTL switch/bottom-nav scrubbing, and separated geocoding base URLs.
+
 ## [1.1.0] - 2026-11-14
 ### Added
 - Scrubbable segmented Chart/List switch on the multi-day forecast card with smooth cross-slide transitions.
