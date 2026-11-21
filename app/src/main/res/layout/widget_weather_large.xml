@@ -1,12 +1,23 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/widgetRoot"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@drawable/bg_widget_sky_night"
-    android:orientation="vertical"
-    android:paddingHorizontal="16dp"
-    android:paddingVertical="14dp">
+    android:background="@drawable/bg_widget_sky_night">
+
+    <ImageView
+        android:id="@+id/widgetWeatherEffectBg"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:contentDescription="@null"
+        android:scaleType="centerCrop" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:paddingHorizontal="16dp"
+        android:paddingVertical="14dp">
 
     <!-- Top Header: Left (Location + Big Temp) | Right (Icon + Condition + High/Low) -->
     <RelativeLayout
@@ -469,4 +480,5 @@
 
     </LinearLayout>
 
-</LinearLayout>
+    </LinearLayout>
+</FrameLayout>

@@ -149,8 +149,9 @@ internal object ForecastJsonParser {
         val hourlyPop = hourly.optJSONArray("precipitation_probability")
         val hourlyVis = hourly.optJSONArray("visibility")
 
+        val currentHour = now.truncatedTo(java.time.temporal.ChronoUnit.HOURS)
         val start = (0 until times.length()).firstOrNull {
-            runCatching { !LocalDateTime.parse(times.getString(it)).isBefore(now) }.getOrDefault(false)
+            runCatching { !LocalDateTime.parse(times.getString(it)).isBefore(currentHour) }.getOrDefault(false)
         } ?: 0
 
         val tempC = current.optFiniteDouble("temperature_2m", 0.0)

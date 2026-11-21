@@ -1,11 +1,22 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/widgetRoot"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@drawable/bg_widget_sky_night"
-    android:paddingHorizontal="16dp"
-    android:paddingVertical="14dp">
+    android:background="@drawable/bg_widget_sky_night">
+
+    <ImageView
+        android:id="@+id/widgetWeatherEffectBg"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:contentDescription="@null"
+        android:scaleType="centerCrop" />
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:paddingHorizontal="16dp"
+        android:paddingVertical="14dp">
 
     <!-- Top-Right Weather Icon (balances Hero Temp on Top-Left) -->
     <ImageView
@@ -101,4 +112,5 @@
             android:fontFamily="sans-serif" />
     </LinearLayout>
 
-</RelativeLayout>
+    </RelativeLayout>
+</FrameLayout>

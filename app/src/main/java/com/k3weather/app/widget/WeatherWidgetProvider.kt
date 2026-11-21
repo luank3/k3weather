@@ -246,6 +246,10 @@ object WeatherWidgetUpdater {
                 R.drawable.bg_widget_sky_day
         }
         views.setInt(R.id.widgetRoot, "setBackgroundResource", bgRes)
+        views.setImageViewBitmap(
+            R.id.widgetWeatherEffectBg,
+            WidgetWeatherEffectRenderer.render(context, size, current.weatherCode, current.isDay)
+        )
 
         // Tap anywhere on widget to launch MainActivity
         val launchIntent = Intent(context, MainActivity::class.java).apply {

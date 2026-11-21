@@ -100,9 +100,9 @@ class ComprehensiveWeatherTest {
         assertEquals(18.0, parsed.current.minTempC, 0.0)
         assertEquals(28.0, parsed.current.maxTempC, 0.0)
         assertEquals("2024-01-01T02:30", parsed.current.timeIso)
-        assertEquals(6, parsed.hourly.size)
-        assertEquals("3AM", parsed.hourly.first().timeLabel)
-        assertEquals(23.0, parsed.hourly.first().temperatureC, 0.0)
+        assertEquals(7, parsed.hourly.size)
+        assertEquals("2AM", parsed.hourly.first().timeLabel)
+        assertEquals(22.0, parsed.hourly.first().temperatureC, 0.0)
         assertEquals(7, parsed.daily.size)
         assertEquals("2024-01-01", parsed.daily.first().dateIso)
         assertEquals(18.0, parsed.daily.first().minTempC, 0.0)
@@ -120,14 +120,14 @@ class ComprehensiveWeatherTest {
         )
         val parsed = ForecastJsonParser.parse(location("UTC"), json, 0L)
 
-        assertEquals(5, parsed.hourly.size)
-        assertEquals("12AM", parsed.hourly.first().timeLabel)
-        assertEquals("1AM", parsed.hourly[1].timeLabel)
+        assertEquals(6, parsed.hourly.size)
+        assertEquals("11PM", parsed.hourly.first().timeLabel)
+        assertEquals("12AM", parsed.hourly[1].timeLabel)
         assertEquals(
             Instant.parse("2024-01-02T08:00:00Z").epochSecond,
-            parsed.hourly.first().timeEpochSeconds
+            parsed.hourly[1].timeEpochSeconds
         )
-        assertEquals("2AM", parsed.hourly[2].timeLabel)
+        assertEquals("1AM", parsed.hourly[2].timeLabel)
         assertEquals(18.0, parsed.current.minTempC, 0.0)
     }
 

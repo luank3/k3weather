@@ -4,6 +4,13 @@ versioning: [SemVer](https://semver.org).
 
 ## [Unreleased]
 
+## [1.2.2] - 2026-11-21
+### Added
+- Static, battery-free weather effect backgrounds (sun glow, stars/moon, clouds, mist, rain streaks, snow, lightning) on all home-screen widgets (`WidgetWeatherEffectRenderer`).
+
+### Fixed
+- Restored the `"Now"` hourly forecast label by truncating `current.time` to the hour in `ForecastJsonParser.parse()` so the active hour is included instead of skipped when `current.time` has non-zero minutes.
+
 ## [1.2.1] - 2026-11-21
 ### Changed
 - Brightened bad-weather sky gradients in both the app (`WeatherEffectView`) and rain widget (`bg_widget_sky_rain.xml`) for better daytime and storm readability.
