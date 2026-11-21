@@ -311,8 +311,7 @@ object WeatherWidgetUpdater {
                 } else {
                     runCatching {
                         val zdt = Instant.ofEpochSecond(h.timeEpochSeconds).atZone(zoneId)
-                        val pattern = if (zdt.toLocalDate() == todayDate) "HH:mm" else "d/M HH:mm"
-                        zdt.format(DateTimeFormatter.ofPattern(pattern, Locale.US))
+                        zdt.format(DateTimeFormatter.ofPattern("HH:mm", Locale.US))
                     }.getOrDefault(h.timeLabel)
                 }
                 views.setTextViewText(timeIds[i], timeStr)

@@ -311,71 +311,92 @@ class WeatherEffectView @JvmOverloads constructor(
                 }
                 WeatherCondition.CLOUDY -> {
                     if (isDay) intArrayOf(
-                        Color.rgb(30, 56, 86),
-                        Color.rgb(45, 76, 110),
-                        Color.rgb(62, 96, 130),
-                        Color.rgb(78, 112, 144)
+                        Color.rgb(48, 84, 124),
+                        Color.rgb(68, 108, 150),
+                        Color.rgb(92, 132, 174),
+                        Color.rgb(116, 154, 192)
                     ) else intArrayOf(
-                        Color.rgb(10, 18, 32),
-                        Color.rgb(17, 30, 50),
-                        Color.rgb(26, 43, 68),
-                        Color.rgb(34, 54, 82)
+                        Color.rgb(16, 28, 48),
+                        Color.rgb(26, 44, 72),
+                        Color.rgb(38, 60, 94),
+                        Color.rgb(50, 74, 110)
                     )
                 }
                 WeatherCondition.FOG -> {
                     if (isDay) intArrayOf(
-                        Color.rgb(40, 64, 84),
-                        Color.rgb(58, 86, 108),
-                        Color.rgb(78, 106, 128),
-                        Color.rgb(94, 122, 142)
+                        Color.rgb(58, 90, 116),
+                        Color.rgb(78, 114, 142),
+                        Color.rgb(102, 138, 166),
+                        Color.rgb(124, 158, 184)
                     ) else intArrayOf(
-                        Color.rgb(16, 28, 42),
-                        Color.rgb(26, 42, 58),
-                        Color.rgb(38, 56, 74),
-                        Color.rgb(48, 68, 86)
+                        Color.rgb(24, 40, 58),
+                        Color.rgb(36, 58, 80),
+                        Color.rgb(50, 74, 98),
+                        Color.rgb(64, 88, 114)
                     )
                 }
-                WeatherCondition.DRIZZLE -> intArrayOf(
-                    Color.rgb(16, 38, 62),
-                    Color.rgb(26, 56, 86),
-                    Color.rgb(38, 72, 104),
-                    Color.rgb(50, 86, 118)
-                )
-                WeatherCondition.RAIN -> intArrayOf(
-                    Color.rgb(12, 29, 50),
-                    Color.rgb(20, 44, 72),
-                    Color.rgb(28, 58, 90),
-                    Color.rgb(38, 70, 102)
-                )
-                WeatherCondition.HEAVY_RAIN -> intArrayOf(
-                    Color.rgb(8, 19, 34),
-                    Color.rgb(14, 30, 50),
-                    Color.rgb(22, 42, 66),
-                    Color.rgb(30, 52, 78)
-                )
+                WeatherCondition.DRIZZLE -> {
+                    if (isDay) intArrayOf(
+                        Color.rgb(36, 74, 114),
+                        Color.rgb(52, 96, 138),
+                        Color.rgb(70, 118, 162),
+                        Color.rgb(90, 138, 180)
+                    ) else intArrayOf(
+                        Color.rgb(20, 44, 72),
+                        Color.rgb(32, 64, 98),
+                        Color.rgb(44, 82, 120),
+                        Color.rgb(58, 98, 136)
+                    )
+                }
+                WeatherCondition.RAIN -> {
+                    if (isDay) intArrayOf(
+                        Color.rgb(30, 64, 102),
+                        Color.rgb(44, 84, 126),
+                        Color.rgb(60, 104, 148),
+                        Color.rgb(78, 124, 168)
+                    ) else intArrayOf(
+                        Color.rgb(18, 38, 64),
+                        Color.rgb(28, 56, 88),
+                        Color.rgb(40, 72, 108),
+                        Color.rgb(52, 86, 124)
+                    )
+                }
+                WeatherCondition.HEAVY_RAIN -> {
+                    if (isDay) intArrayOf(
+                        Color.rgb(24, 52, 84),
+                        Color.rgb(36, 70, 106),
+                        Color.rgb(50, 88, 126),
+                        Color.rgb(66, 106, 144)
+                    ) else intArrayOf(
+                        Color.rgb(14, 30, 52),
+                        Color.rgb(24, 46, 74),
+                        Color.rgb(34, 62, 94),
+                        Color.rgb(46, 76, 110)
+                    )
+                }
                 WeatherCondition.SLEET -> intArrayOf(
-                    Color.rgb(18, 34, 54),
-                    Color.rgb(30, 52, 76),
-                    Color.rgb(44, 68, 94),
-                    Color.rgb(56, 82, 108)
+                    Color.rgb(34, 62, 92),
+                    Color.rgb(50, 82, 116),
+                    Color.rgb(68, 104, 140),
+                    Color.rgb(86, 122, 156)
                 )
                 WeatherCondition.SNOW -> intArrayOf(
-                    Color.rgb(24, 46, 76),
-                    Color.rgb(40, 68, 104),
-                    Color.rgb(58, 90, 128),
-                    Color.rgb(74, 108, 146)
+                    Color.rgb(38, 70, 110),
+                    Color.rgb(58, 94, 138),
+                    Color.rgb(80, 118, 162),
+                    Color.rgb(102, 140, 182)
                 )
                 WeatherCondition.THUNDER -> intArrayOf(
-                    Color.rgb(9, 13, 28),
-                    Color.rgb(18, 25, 48),
-                    Color.rgb(28, 36, 66),
-                    Color.rgb(36, 46, 78)
+                    Color.rgb(22, 34, 64),
+                    Color.rgb(34, 50, 88),
+                    Color.rgb(48, 68, 112),
+                    Color.rgb(62, 84, 130)
                 )
                 WeatherCondition.THUNDER_HAIL -> intArrayOf(
-                    Color.rgb(6, 10, 22),
-                    Color.rgb(13, 20, 38),
-                    Color.rgb(22, 30, 54),
-                    Color.rgb(30, 40, 66)
+                    Color.rgb(18, 28, 54),
+                    Color.rgb(30, 44, 78),
+                    Color.rgb(42, 60, 100),
+                    Color.rgb(56, 76, 118)
                 )
             }
 

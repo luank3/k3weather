@@ -4,6 +4,15 @@ versioning: [SemVer](https://semver.org).
 
 ## [Unreleased]
 
+## [1.2.1] - 2026-11-21
+### Changed
+- Brightened bad-weather sky gradients in both the app (`WeatherEffectView`) and rain widget (`bg_widget_sky_rain.xml`) for better daytime and storm readability.
+- Aligned 2×2 widget text sizes (`widgetTemp` `40sp`, `widgetCity` `14sp` bold, `widgetCondition` `12.5sp`, `widgetHighLow` `12sp`) and tightened 4×2 widget vertical padding to prevent bottom temperature clipping.
+
+### Fixed
+- Placed the city name before the current-location pin on the 2×2 widget (`widget_weather_small.xml`) to match the 4×2 and 4×4 widgets.
+- Formatted all hourly forecast labels as `HH:mm` (`ForecastView`, `WeatherWidgetProvider`) so hours after `23:00` display `00:00`, `01:00`, etc. instead of truncating to `d/M`.
+
 ## [1.2.0] - 2026-11-21
 ### Added
 - Settings controls for **Reduce motion**, **Use current location**, and **Clear cache & refresh** (`SettingsBinder`, `layout_settings.xml`).

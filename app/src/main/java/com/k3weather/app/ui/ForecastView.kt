@@ -794,8 +794,7 @@ private class HourlyAdapter : RecyclerView.Adapter<HourlyAdapter.Holder>() {
         } else {
             runCatching {
                 val zdt = Instant.ofEpochSecond(item.timeEpochSeconds).atZone(zoneId)
-                val pattern = if (zdt.toLocalDate() == todayDate) "HH:mm" else "d/M HH:mm"
-                zdt.format(DateTimeFormatter.ofPattern(pattern, Locale.US))
+                zdt.format(DateTimeFormatter.ofPattern("HH:mm", Locale.US))
             }.getOrDefault(item.timeLabel)
         }
         holder.binding.hourTime.setTextColor(if (isCurrentHour) 0xFFFFFFFF.toInt() else 0xD9FFFFFF.toInt())
